@@ -5,8 +5,9 @@ const bcrypt = require('bcrypt');
 const bodyParser = require("body-parser");
 const cookieparser = require("cookie-parser")
 const session = require("express-session");
+const fileUpload = require('express-fileupload'); // Add this line
 const saltRounds = 10;
-const { db, getTables, storeImageBlob, getAllPictures } = require('./database');
+const { db, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture } = require('./database');
 
 const PORT = process.env.PORT || 8000;
 
@@ -25,7 +26,8 @@ app.use(session({
     secret: "atanu",
     resave: false,
     saveUninitialized: false,
-}))
+}));
+app.use(fileUpload()); // Add this line
 
 app.get("/", (req, res) => {
     res.send("hi");
@@ -42,33 +44,77 @@ app.get("/tables", (req, res) => {
     });
 });
 
-app.post('/storeImageBlob', (req, res) => {
-    const { id, blob } = req.body;
-    storeImageBlob(id, blob, (err) => {
-        if (err) {
-            console.error('Error storing image blob', err.message);
-            res.status(500).send('Error storing image blob');
-        } else {
-            res.send('Image blob stored');
-        }
-    });
-});
-
 app.get("/pictures", (req, res) => {
     getAllPictures((err, pictures) => {
         if (err) {
             console.error('Error fetching pictures', err.message);
             res.status(500).send('Error fetching pictures');
         } else {
-            /*pictures = pictures.map(picture => ({
-                id_pictures: picture.id_pictures,
-                picture: `data:image/jpeg;base64,${picture.picture.toString('base64')}`
-            }));*/
             res.json(pictures);
         }
     });
 });
 
+// Upload image (requires id_rooms)
+app.post('/upload', (req, res) => {
+    const { id_rooms } = req.body;
+    const { pic } = req.files;
+    console.log('id_rooms:', id_rooms, 'pic:', pic);
+    if (pic && id_rooms) {
+        console.log('Inserting image');
+        insertImage(id_rooms, pic.data, (err) => {
+            if (err) {
+                console.error('Error inserting image:', err);
+                res.sendStatus(500);
+            } else {
+                res.sendStatus(200);
+            }
+        });
+    } else {
+        res.sendStatus(400);
+    }
+});
+
+app.get('/fetch/:id', async (req, res) => {
+    const id = req.params.id;
+    try {
+        const { picture, mime } = await fetchImageById(id);
+        if (picture) {
+            res.type(mime);
+            res.end(picture);
+        } else {
+            res.end('No Img with that Id!');
+        }
+    } catch (err) {
+        console.error('Error fetching image:', err);
+        res.sendStatus(500);
+    }
+});
+
+app.post("/retrieveInfoPopUpByIdPicture/", (req, res) => {
+    const id_pictures = req.body.id_pictures;
+    retrieveInfoPopUpByIdPicture(id_pictures, (err, infoPopUp) => {
+        if (err) {
+            console.error('Error fetching info popup', err);
+            res.sendStatus(500);
+        } else {
+            console.log('Fetched', infoPopUp.length, 'info popup');
+            res.json(infoPopUp);
+        }
+    });
+});
+
+app.post('/insertInfoPopUp', (req, res) => {
+    const { id_pictures, posX, posY, posZ, text, title } = req.body;
+    insertInfoPopUp(id_pictures, posX, posY, posZ, text, title, (err) => {
+        if (err) {
+            console.error('Error inserting info popup:', err);
+            res.sendStatus(500);
+        } else {
+            res.sendStatus(200);
+        }
+    });
+});
 
 app.get("/login",(req,res)=>{
     if(req.session.user)

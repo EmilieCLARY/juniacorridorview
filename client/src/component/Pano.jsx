@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { Viewer, ImagePanorama, Infospot } from "panolens";
 import axios from 'axios';
@@ -6,74 +6,133 @@ import * as api from '../api/AxiosPano';
 
 const PanoramaViewer = () => {
   const viewerRef = useRef(null);
-
-  useEffect(() => {
-    const viewer = new Viewer({
-      container: viewerRef.current,
-      autoRotate: false,
-      autoRotateSpeed: 0.3,
-    });
-
-    const fetchPictures = async () => {
-      const pictures = await api.getPictures();
-
-      /*pictures.forEach(picture => {
-        console.log('Fetched pictures:', pictures);
-        const panorama = new ImagePanorama(picture.picture);
-        viewer.add(panorama);
-      });*/
-      console.log('Fetched pictures:', pictures[0].picture);
-
-      // Use the data URL in Panolens
-      const panorama = new ImagePanorama(pictures[0].picture);
-
-      // Infospot
-      const infospot = new Infospot(300); // Taille de l'infospot
-      infospot.position.set(-5000, -1300, -3000); // Position dans la scène (x, y, z)
-
-      // Ajout de l'infospot à la scène
-      panorama.add(infospot);
-
-      viewer.add(panorama);
-
-
-      /*try {
-        const response = await axios.get('http://localhost:8000/pictures');
-        const pictures = response.data;
-        console.log('Fetched pictures:', pictures);
-        pictures.forEach(picture => {
-          const panorama = new ImagePanorama(picture.picture);
-          viewer.add(panorama);
-        }
-        );
-      } catch (error) {
-        console.error('Error fetching pictures', error);
-      }*/
-    }
-
-    fetchPictures();
-
-    return () => {
-      viewer.dispose();
-    };
-  }, []);
+  const [images, setImages] = useState([]);
+  const [viewer, setViewer] = useState(null);
+  const [currentImageId, setCurrentImageId] = useState(null);
+  const [infoPopups, setInfoPopups] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [firstLoad, setFirstLoad] = useState(true); 
 
   const fetchTables = async () => {
     const tables = await api.getTables();
     console.log('Fetched tables:', tables);
-  }
-
-
-  const storeImageBlob = (id, blob) => {
-    axios.post('http://localhost:8000/storeImageBlob', { id, blob })
-      .then(response => {
-        console.log('Image blob stored successfully');
-      })
-      .catch(error => {
-        console.error('Error storing image blob', error);
-      });
   };
 
+  const handleUpload = async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    try {
+      await axios.post('http://localhost:8000/upload', formData);
+      alert('File uploaded successfully');
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert('File upload failed');
+    }
+  };
+
+  const handleInsertInfoPopUp = async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const data = Object.fromEntries(formData.entries());
+    try {
+      await axios.post('http://localhost:8000/insertInfoPopUp', data);
+      alert('Info popup inserted successfully');
+    } catch (error) {
+      console.error('Error inserting info popup:', error);
+      alert('Info popup insertion failed');
+    }
+  };
+
+  const handleRetrieveInfoPopUp = async () => {
+    if (!currentImageId) {
+      alert('No image is currently displayed');
+      return;
+    }
+    try {
+      const response = await axios.post('http://localhost:8000/retrieveInfoPopUpByIdPicture', { id_pictures: currentImageId });
+      setInfoPopups(prevInfoPopups => ({
+        ...prevInfoPopups,
+        [currentImageId]: response.data
+      }));
+      console.log('Retrieved info popup:', infoPopups[currentImageId]);
+    } catch (error) {
+      console.error('Error retrieving info popup:', error);
+      alert('Info popup retrieval failed');
+    }
+  };
+
+  const fetchImage = async (id) => {
+    try {
+      const response = await axios.get(`http://localhost:8000/fetch/${id}`, { responseType: 'blob' });
+      const imageUrl = URL.createObjectURL(response.data);
+      setImages(prevImages => [...prevImages, { id, imageUrl }]);
+
+    } catch (error) {
+      console.error('Error fetching image:', error);
+    }
+  };
+
+  const fetchPictures = async () => {
+    const pictures = await api.getPictures();
+    console.log('Fetched pictures:', pictures);
+    
+    await Promise.all(
+      pictures.map(picture => fetchImage(picture.id_pictures))
+    );
+    
+    setIsLoading(false);
+  };
+  
+  
+  const displayImage = async (imageUrl, id) => {
+    setCurrentImageId(id);
+    await handleRetrieveInfoPopUp();
+    const panorama = new ImagePanorama(imageUrl);
+    console.log('Popups:', infoPopups[currentImageId]);
+
+    // Add all infospots
+    if (infoPopups[currentImageId]) {
+      infoPopups[currentImageId].forEach(popup => {
+        const position = new THREE.Vector3(popup.position_x, popup.position_y, popup.position_z);
+        const infospot = new Infospot(350);
+        infospot.position.copy(position);
+        infospot.addHoverText(popup.title);
+        panorama.add(infospot);
+      });
+    }
+
+    // add infospot
+    const infospot2 = new Infospot(500);
+    infospot2.position.set(-4450, -100, 5555);
+    panorama.add(infospot2);
+    
+    viewer.add(panorama);
+    viewer.setPanorama(panorama);
+  };
+
+  useEffect(() => {
+      if(images.length > 0 && !isLoading && firstLoad) {   
+        console.log(images[0].imageUrl, images[0].id);
+        displayImage(images[0].imageUrl, images[0].id);
+      } 
+  }, [images, isLoading]);
+  
+  useEffect(() => {
+    fetchPictures();
+    setCurrentImageId(0);
+
+    const viewerInstance = new Viewer({
+      container: viewerRef.current,
+      autoRotate: false,
+      autoRotateSpeed: 0.3,
+    });
+    
+    setViewer(viewerInstance);
+
+    return () => {
+      viewerInstance.dispose();
+    };
+  }, []);
 
   return (
     <div>
@@ -86,8 +145,28 @@ const PanoramaViewer = () => {
           position: "relative", // Assurez-vous que le conteneur est correctement positionné
         }}
       ></div>
+      <div>
+        {images.map(image => (
+          <button key={image.id} onClick={() => displayImage(image.imageUrl, image.id)}>
+            Display Image {image.id}
+          </button>
+        ))}
+      </div>
       <button onClick={fetchTables}>Fetch Tables</button>
-      <button onClick={() => storeImageBlob(0, '/img/vraies/demonstrateur_4.jpg')}>Store Image Blob</button>
+      <form onSubmit={handleUpload}>
+        <input type="file" name="pic" />
+        <input type="text" name="id_rooms" placeholder="id_rooms"/>
+        <input type="submit" value="Upload a file"/>
+      </form>
+      <form onSubmit={handleInsertInfoPopUp}>
+        <input type="text" name="id_pictures" placeholder="id_pictures" />
+        <input type="text" name="posX" placeholder="posX" />
+        <input type="text" name="posY" placeholder="posY" />
+        <input type="text" name="posZ" placeholder="posZ" />
+        <input type="text" name="text" placeholder="text" />
+        <input type="text" name="title" placeholder="title" />
+        <input type="submit" value="Add Info Popup" />
+      </form>
     </div>
   );
 };
