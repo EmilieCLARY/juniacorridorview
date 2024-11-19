@@ -42,31 +42,33 @@ app.get("/tables", (req, res) => {
     });
 });
 
+app.post('/storeImageBlob', (req, res) => {
+    const { id, blob } = req.body;
+    storeImageBlob(id, blob, (err) => {
+        if (err) {
+            console.error('Error storing image blob', err.message);
+            res.status(500).send('Error storing image blob');
+        } else {
+            res.send('Image blob stored');
+        }
+    });
+});
+
 app.get("/pictures", (req, res) => {
     getAllPictures((err, pictures) => {
         if (err) {
             console.error('Error fetching pictures', err.message);
             res.status(500).send('Error fetching pictures');
         } else {
-            // Based on how they are stored in the database, retrive it and return it as they were before manipulation in /storeImageBlob
+            /*pictures = pictures.map(picture => ({
+                id_pictures: picture.id_pictures,
+                picture: `data:image/jpeg;base64,${picture.picture.toString('base64')}`
+            }));*/
             res.json(pictures);
         }
     });
 });
 
-app.post('/storeImageBlob', (req, res) => {
-    const { id, blob } = req.body;
-    const base64Data = blob.replace(/^data:image\/\w+;base64,/, "");
-    const buffer = Buffer.from(base64Data, 'base64');
-    storeImageBlob(id, buffer, (err) => {
-        if (err) {
-            console.error('Error storing image blob', err.message);
-            res.status(500).send('Error storing image blob');
-        } else {
-            res.status(200).send('Image blob stored successfully');
-        }
-    });
-});
 
 app.get("/login",(req,res)=>{
     if(req.session.user)
