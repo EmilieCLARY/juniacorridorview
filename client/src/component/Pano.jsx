@@ -43,21 +43,14 @@ const PanoramaViewer = () => {
     }
   };
 
-  const handleRetrieveInfoPopUp = async () => {
-    if (!currentImageId) {
-      alert('No image is currently displayed');
-      return;
-    }
+  const handleRetrieveInfoPopUp = async (imageId) => {
     try {
-      const response = await axios.post('http://localhost:8000/retrieveInfoPopUpByIdPicture', { id_pictures: currentImageId });
-      setInfoPopups(prevInfoPopups => ({
-        ...prevInfoPopups,
-        [currentImageId]: response.data
-      }));
-      console.log('Retrieved info popup:', infoPopups[currentImageId]);
+      const response = await axios.post('http://localhost:8000/retrieveInfoPopUpByIdPicture', { id_pictures: imageId });
+      return response.data;
     } catch (error) {
       console.error('Error retrieving info popup:', error);
       alert('Info popup retrieval failed');
+      return [];
     }
   };
 
@@ -86,13 +79,18 @@ const PanoramaViewer = () => {
   
   const displayImage = async (imageUrl, id) => {
     setCurrentImageId(id);
-    await handleRetrieveInfoPopUp();
+    const retrievedPopups = await handleRetrieveInfoPopUp(id); // Wait for the retrieval
+    setInfoPopups(prevInfoPopups => ({
+      ...prevInfoPopups,
+      [id]: retrievedPopups
+    }));
+
     const panorama = new ImagePanorama(imageUrl);
-    console.log('Popups:', infoPopups[currentImageId]);
+    console.log('Popups:', retrievedPopups);
 
     // Add all infospots
-    if (infoPopups[currentImageId]) {
-      infoPopups[currentImageId].forEach(popup => {
+    if (retrievedPopups) {
+      retrievedPopups.forEach(popup => {
         const position = new THREE.Vector3(popup.position_x, popup.position_y, popup.position_z);
         const infospot = new Infospot(350);
         infospot.position.copy(position);
@@ -101,7 +99,7 @@ const PanoramaViewer = () => {
       });
     }
 
-    // add infospot
+    // Antoine's infospots for testing
     const infospot2 = new Infospot(500);
     infospot2.position.set(-4450, -100, 5555);
     panorama.add(infospot2);
@@ -114,6 +112,7 @@ const PanoramaViewer = () => {
       if(images.length > 0 && !isLoading && firstLoad) {   
         console.log(images[0].imageUrl, images[0].id);
         displayImage(images[0].imageUrl, images[0].id);
+        setFirstLoad(false); // Ensure this is only called once
       } 
   }, [images, isLoading]);
   

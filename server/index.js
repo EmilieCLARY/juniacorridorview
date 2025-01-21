@@ -104,7 +104,7 @@ app.post("/retrieveInfoPopUpByIdPicture/", (req, res) => {
     });
 });
 
-app.post('/insertInfoPopUp', (req, res) => {
+app.post("/insertInfoPopUp", (req, res) => {
     const { id_pictures, posX, posY, posZ, text, title } = req.body;
     insertInfoPopUp(id_pictures, posX, posY, posZ, text, title, (err) => {
         if (err) {
@@ -115,6 +115,7 @@ app.post('/insertInfoPopUp', (req, res) => {
         }
     });
 });
+
 
 app.get("/login",(req,res)=>{
     if(req.session.user)
