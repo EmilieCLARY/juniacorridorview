@@ -103,6 +103,11 @@ const PanoramaViewer = () => {
     setIsLoading(false);
   };
   
+  const cleanUrlParams = () => {
+    const url = new URL(window.location);
+    url.search = '';
+    window.history.replaceState({}, document.title, url);
+  };
   
   const displayImage = async (imageUrl, id) => {
     setCurrentImageId(id);
@@ -151,6 +156,7 @@ const PanoramaViewer = () => {
 
     viewer.add(panorama);
     viewer.setPanorama(panorama);
+    cleanUrlParams(); // Clean URL parameters after loading the panorama
   };
 
   const handlePanoramaClick = (event) => {
