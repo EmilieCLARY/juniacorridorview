@@ -7,7 +7,7 @@ const cookieparser = require("cookie-parser")
 const session = require("express-session");
 const fileUpload = require('express-fileupload'); // Add this line
 const saltRounds = 10;
-const { db, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture } = require('./database');
+const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture } = require('./database');
 
 const PORT = process.env.PORT || 8000;
 
@@ -104,9 +104,35 @@ app.post("/retrieveInfoPopUpByIdPicture/", (req, res) => {
     });
 });
 
+app.post("/retrieveLinkByIdPicture/", (req, res) => {
+    const id_pictures = req.body.id_pictures;
+    retrieveLinkByIdPicture(id_pictures, (err, links) => {
+        if (err) {
+            console.error('Error fetching links', err);
+            res.sendStatus(500);
+        } else {
+            console.log('Fetched', links.length, 'links');
+            res.json(links);
+        }
+    });
+});
+
 app.post("/insertInfoPopUp", (req, res) => {
     const { id_pictures, posX, posY, posZ, text, title } = req.body;
     insertInfoPopUp(id_pictures, posX, posY, posZ, text, title, (err) => {
+        if (err) {
+            console.error('Error inserting info popup:', err);
+            res.sendStatus(500);
+        } else {
+            res.sendStatus(200);
+        }
+    });
+});
+
+app.post("/insertLink", (req, res) => {
+    console.log(req.body);
+    const { id_pictures, posX, posY, posZ, id_pictures_destination } = req.body;
+    insertLink(id_pictures, posX, posY, posZ, id_pictures_destination, (err) => {
         if (err) {
             console.error('Error inserting info popup:', err);
             res.sendStatus(500);

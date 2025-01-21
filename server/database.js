@@ -67,6 +67,21 @@ function insertInfoPopUp(id_pictures, posX, posY, posZ, text, title, callback) {
     });
 }
 
+function insertLink(id_pictures, posX, posY, posZ, id_pictures_destination, callback) {
+    db.get(`SELECT MAX(id_links) as maxId FROM Links`, (err, row) => {
+        if (err) {
+            callback(err);
+        } else {
+            const newId = (row.maxId || 0) + 1;
+            const stmt = db.prepare(`INSERT INTO Links (id_links, id_pictures, position_x, position_y, position_z, id_pictures_destination) VALUES (?, ?, ?, ?, ?, ?)`);
+            stmt.run(newId, id_pictures, posX, posY, posZ, id_pictures_destination, (err) => {
+                callback(err);
+            });
+            stmt.finalize();
+        }
+    });
+}
+
 function retrieveInfoPopUpByIdPicture(id_pictures, callback) {
     const sql = `SELECT * FROM Info_Popup WHERE id_pictures = ?`;
     db.all(sql, [id_pictures], (err, rows) => {
@@ -85,6 +100,27 @@ function retrieveInfoPopUpByIdPicture(id_pictures, callback) {
             }));
             console.log('Fetched', infoPopUp.length, 'info popup');
             callback(null, infoPopUp);
+        }
+    });
+}
+
+function retrieveLinkByIdPicture(id_pictures, callback) {
+    const sql = `SELECT * FROM Links WHERE id_pictures = ?`;
+    db.all(sql, [id_pictures], (err, rows) => {
+        if (err) {
+            console.error('Error fetching links', err);
+            callback(err, null);
+        } else {
+            const links = rows.map(row => ({
+                id_links: row.id_links,
+                id_pictures: row.id_pictures,
+                position_x: row.position_x,
+                position_y: row.position_y,
+                position_z: row.position_z,
+                id_pictures_destination: row.id_pictures_destination
+            }));
+            console.log('Fetched', links.length, 'links');
+            callback(null, links);
         }
     });
 }
@@ -114,7 +150,9 @@ module.exports = {
     getTables,
     getAllPictures,
     insertImage,
-    fetchImageById, // Add this line
+    fetchImageById,
     insertInfoPopUp,
-    retrieveInfoPopUpByIdPicture
+    retrieveInfoPopUpByIdPicture,
+    insertLink,
+    retrieveLinkByIdPicture
 };
