@@ -10,6 +10,7 @@ const PanoramaViewer = () => {
   const [viewer, setViewer] = useState(null);
   const [currentImageId, setCurrentImageId] = useState(null);
   const [infoPopups, setInfoPopups] = useState({});
+  const [links, setLinks] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [firstLoad, setFirstLoad] = useState(true); 
 
@@ -43,21 +44,40 @@ const PanoramaViewer = () => {
     }
   };
 
-  const handleRetrieveInfoPopUp = async () => {
-    if (!currentImageId) {
-      alert('No image is currently displayed');
-      return;
-    }
+  const handleInsertLink = async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const data = Object.fromEntries(formData.entries());
+    console.log('Data:', data);
     try {
-      const response = await axios.post('http://localhost:8000/retrieveInfoPopUpByIdPicture', { id_pictures: currentImageId });
-      setInfoPopups(prevInfoPopups => ({
-        ...prevInfoPopups,
-        [currentImageId]: response.data
-      }));
-      console.log('Retrieved info popup:', infoPopups[currentImageId]);
+      await axios.post('http://localhost:8000/insertLink', data);
+      alert('Link inserted successfully');
+    } catch (error) {
+      console.error('Error inserting link:', error);
+      alert('Link insertion failed');
+    }
+  };
+
+
+  const handleRetrieveInfoPopUp = async (imageId) => {
+    try {
+      const response = await axios.post('http://localhost:8000/retrieveInfoPopUpByIdPicture', { id_pictures: imageId });
+      return response.data;
     } catch (error) {
       console.error('Error retrieving info popup:', error);
       alert('Info popup retrieval failed');
+      return [];
+    }
+  };
+
+  const handleRetrieveLinks = async (imageId) => {
+    try {
+      const response = await axios.post('http://localhost:8000/retrieveLinkByIdPicture', { id_pictures: imageId });
+      return response.data;
+    } catch (error) {
+      console.error('Error retrieving links:', error);
+      alert('Link retrieval failed');
+      return [];
     }
   };
 
@@ -83,16 +103,26 @@ const PanoramaViewer = () => {
     setIsLoading(false);
   };
   
+  const cleanUrlParams = () => {
+    const url = new URL(window.location);
+    url.search = '';
+    window.history.replaceState({}, document.title, url);
+  };
   
   const displayImage = async (imageUrl, id) => {
     setCurrentImageId(id);
-    await handleRetrieveInfoPopUp();
+    const retrievedPopups = await handleRetrieveInfoPopUp(id); // Wait for the retrieval
+    setInfoPopups(prevInfoPopups => ({
+      ...prevInfoPopups,
+      [id]: retrievedPopups
+    }));
+
     const panorama = new ImagePanorama(imageUrl);
-    console.log('Popups:', infoPopups[currentImageId]);
+    console.log('Popups:', retrievedPopups);
 
     // Add all infospots
-    if (infoPopups[currentImageId]) {
-      infoPopups[currentImageId].forEach(popup => {
+    if (retrievedPopups) {
+      retrievedPopups.forEach(popup => {
         const position = new THREE.Vector3(popup.position_x, popup.position_y, popup.position_z);
         const infospot = new Infospot(350);
         infospot.position.copy(position);
@@ -101,19 +131,65 @@ const PanoramaViewer = () => {
       });
     }
 
-    // add infospot
-    const infospot2 = new Infospot(500);
-    infospot2.position.set(-4450, -100, 5555);
-    panorama.add(infospot2);
-    
+    // Add all links
+    const retrievedLinks = await handleRetrieveLinks(id);
+    console.log('Links:', retrievedLinks);
+    setLinks(prevLinks => ({
+      ...prevLinks,
+      [id]: retrievedLinks
+    }));
+
+    if (retrievedLinks) {
+      retrievedLinks.forEach(link => {
+        const position = new THREE.Vector3(link.position_x, link.position_y, link.position_z);
+        const infospot = new Infospot(350, '/img/chain.png');
+        infospot.position.copy(position);
+        infospot.addHoverText(`Go to panorama ${link.id_pictures_destination}`);
+        infospot.addEventListener('click', async () => {
+          const response = await axios.get(`http://localhost:8000/fetch/${link.id_pictures_destination}`, { responseType: 'blob' });
+          const newImageUrl = URL.createObjectURL(response.data);
+          displayImage(newImageUrl, link.id_pictures_destination);
+        });
+        panorama.add(infospot);
+      });
+    }
+
     viewer.add(panorama);
     viewer.setPanorama(panorama);
+    cleanUrlParams(); // Clean URL parameters after loading the panorama
   };
+
+  const handlePanoramaClick = (event) => {
+    const mouse = new THREE.Vector2();
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, viewer.camera);
+  
+    const intersects = raycaster.intersectObjects(viewer.scene.children, true);
+    if (intersects.length > 0) {
+      const point = intersects[0].point;
+      console.log(`Coordinates: x=${point.x}, y=${point.y}, z=${point.z}`);
+    }
+  };
+
+  useEffect(() => {
+    if (viewer) {
+      viewer.container.addEventListener('click', handlePanoramaClick);
+    }
+    return () => {
+      if (viewer) {
+        viewer.container.removeEventListener('click', handlePanoramaClick);
+      }
+    };
+  }, [viewer]);
 
   useEffect(() => {
       if(images.length > 0 && !isLoading && firstLoad) {   
         console.log(images[0].imageUrl, images[0].id);
         displayImage(images[0].imageUrl, images[0].id);
+        setFirstLoad(false); // Ensure this is only called once
       } 
   }, [images, isLoading]);
   
@@ -146,8 +222,8 @@ const PanoramaViewer = () => {
         }}
       ></div>
       <div>
-        {images.map(image => (
-          <button key={image.id} onClick={() => displayImage(image.imageUrl, image.id)}>
+        {images.map((image, index) => (
+          <button key={`${image.id}-${index}`} onClick={() => displayImage(image.imageUrl, image.id)}>
             Display Image {image.id}
           </button>
         ))}
@@ -166,6 +242,14 @@ const PanoramaViewer = () => {
         <input type="text" name="text" placeholder="text" />
         <input type="text" name="title" placeholder="title" />
         <input type="submit" value="Add Info Popup" />
+      </form>
+      <form onSubmit={handleInsertLink}>
+        <input type="text" name="id_pictures" placeholder="id_pictures" />
+        <input type="text" name="posX" placeholder="posX" />
+        <input type="text" name="posY" placeholder="posY" />
+        <input type="text" name="posZ" placeholder="posZ" />
+        <input type="text" name="id_pictures_destination" placeholder="id_pictures_destination" />
+        <input type="submit" value="Add Link" />
       </form>
     </div>
   );

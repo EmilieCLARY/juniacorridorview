@@ -1,48 +1,47 @@
-import React,{useState,useEffect} from 'react';
-import {NavLink} from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink } from 'react-router-dom';
 import * as api from '../api/AxiosLogin';
+import '../style/Navbar.css';
 
 const Navbar = () => {
-  const [login, setLogin] = useState(false)
+  const [login, setLogin] = useState(false);
 
   useEffect(() => {
-    const checkLogin= async () => {
-      let val= await api.getLogin();
-      setLogin(val.login)
-    }
+    const checkLogin = async () => {
+      let val = await api.getLogin();
+      setLogin(val.login);
+    };
     checkLogin();
-  }, [login])
-  
+  }, []);
+
   return (
     <>
-      <nav className="navbar navbar-expand-lg bg-dark">
-        <div className="container">
-          <NavLink className="navbar-brand text-white" to="/">Navbar</NavLink>
-          <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span className="navbar-toggler-icon"></span>
-          </button>
-          <div className="collapse navbar-collapse" id="navbarNav">
-            <ul className="navbar-nav ml-auto ">
-              <li className="nav-item active">
-                <NavLink to="/" className="nav-link text-white" >Home </NavLink>
-              </li>
-              <li className="nav-item active">
-              {
-                !login ? (
-                  <>
-                  <NavLink to="/login" className="nav-link text-white" >Login</NavLink>
-                  
-                  </>
-                )
-                :   <NavLink to="/logout" className="nav-link text-white" >LogOut</NavLink>
-              }
-              </li>              
-            </ul>
+      <nav className="navbar">
+        <div className="navbar-container">
+          <div className="navbar-left">
+            <NavLink to="/" className="navbar-logo">
+              JUNIA
+            </NavLink>
+            <p className="navbar-subtitle">Grande école d'ingénieurs</p>
+          </div>
+          <div className="navbar-right">
+            <NavLink to="/" className="navbar-item">
+              Home
+            </NavLink>
+            {login ? (
+              <NavLink to="/logout" className="navbar-item">
+                Logout
+              </NavLink>
+            ) : (
+              <NavLink to="/login" className="navbar-item">
+                Login
+              </NavLink>
+            )}
           </div>
         </div>
       </nav>
     </>
-  )
-}
+  );
+};
 
 export default Navbar;
