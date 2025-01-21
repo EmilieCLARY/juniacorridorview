@@ -102,7 +102,7 @@ const PanoramaViewer = () => {
     // Antoine's infospots for testing
     const infospot2 = new Infospot(500);
     infospot2.position.set(-4450, -100, 5555);
-    panorama.add(infospot2);
+    //panorama.add(infospot2);
     
     viewer.add(panorama);
     viewer.setPanorama(panorama);
