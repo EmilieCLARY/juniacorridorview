@@ -1,7 +1,6 @@
+import { ImagePanorama, Infospot, Viewer } from "panolens";
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
-import { Viewer, ImagePanorama, Infospot } from "panolens";
-import axios from 'axios';
 import * as api from '../api/AxiosPano';
 import '../style/Pano.css';
 
@@ -24,29 +23,13 @@ const PanoramaViewer = () => {
   const handleUpload = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
-    try {
-      await axios.post('http://localhost:8000/upload', formData);
-      alert('File uploaded successfully');
-    } catch (error) {
-      console.error('Error uploading file:', error);
-      alert('File upload failed');
-    }
+    await api.uploadFile(formData);
   };
 
   const handleInsertInfoPopUp = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
-    try {
-        await axios.post('http://localhost:8000/insertInfoPopUp', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
-        });
-        alert('Info popup inserted successfully');
-    } catch (error) {
-        console.error('Error inserting info popup:', error);
-        alert('Info popup insertion failed');
-    }
+    await api.insertInfoPopUp(formData);
   };
 
   const handleInsertLink = async (event) => {
@@ -54,47 +37,23 @@ const PanoramaViewer = () => {
     const formData = new FormData(event.target);
     const data = Object.fromEntries(formData.entries());
     console.log('Data:', data);
-    try {
-      await axios.post('http://localhost:8000/insertLink', data);
-      alert('Link inserted successfully');
-    } catch (error) {
-      console.error('Error inserting link:', error);
-      alert('Link insertion failed');
-    }
+    await api.insertLink(data);
   };
 
 
   const handleRetrieveInfoPopUp = async (imageId) => {
-    try {
-      const response = await axios.post('http://localhost:8000/retrieveInfoPopUpByIdPicture', { id_pictures: imageId });
-      return response.data;
-    } catch (error) {
-      console.error('Error retrieving info popup:', error);
-      alert('Info popup retrieval failed');
-      return [];
-    }
+    const popUps = await api.getInfoPopup(imageId);
+    return popUps;
   };
 
   const handleRetrieveLinks = async (imageId) => {
-    try {
-      const response = await axios.post('http://localhost:8000/retrieveLinkByIdPicture', { id_pictures: imageId });
-      return response.data;
-    } catch (error) {
-      console.error('Error retrieving links:', error);
-      alert('Link retrieval failed');
-      return [];
-    }
+    const links = await api.getLinks(imageId);
+    return links;
   };
 
   const fetchImage = async (id) => {
-    try {
-      const response = await axios.get(`http://localhost:8000/fetch/${id}`, { responseType: 'blob' });
-      const imageUrl = URL.createObjectURL(response.data);
-      setImages(prevImages => [...prevImages, { id, imageUrl }]);
-
-    } catch (error) {
-      console.error('Error fetching image:', error);
-    }
+    const imageUrl = await api.getImage(id);
+    setImages(prevImages => [...prevImages, { id, imageUrl }]);
   };
 
   const fetchPictures = async () => {
@@ -160,8 +119,7 @@ const PanoramaViewer = () => {
         infospot.position.copy(position);
         infospot.addHoverText(`Go to panorama ${link.id_pictures_destination}`);
         infospot.addEventListener('click', async () => {
-          const response = await axios.get(`http://localhost:8000/fetch/${link.id_pictures_destination}`, { responseType: 'blob' });
-          const newImageUrl = URL.createObjectURL(response.data);
+          const newImageUrl = await api.getImage(link.id_pictures_destination);
           displayImage(newImageUrl, link.id_pictures_destination);
         });
         panorama.add(infospot);
