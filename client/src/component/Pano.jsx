@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { Viewer, ImagePanorama, Infospot } from "panolens";
 import axios from 'axios';
 import * as api from '../api/AxiosPano';
+import '../style/Pano.css';
 
 const PanoramaViewer = () => {
   const viewerRef = useRef(null);
@@ -13,6 +14,7 @@ const PanoramaViewer = () => {
   const [links, setLinks] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [firstLoad, setFirstLoad] = useState(true); 
+  const [selectedInfospot, setSelectedInfospot] = useState(null);
 
   const fetchTables = async () => {
     const tables = await api.getTables();
@@ -34,13 +36,16 @@ const PanoramaViewer = () => {
   const handleInsertInfoPopUp = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
-    const data = Object.fromEntries(formData.entries());
     try {
-      await axios.post('http://localhost:8000/insertInfoPopUp', data);
-      alert('Info popup inserted successfully');
+        await axios.post('http://localhost:8000/insertInfoPopUp', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        alert('Info popup inserted successfully');
     } catch (error) {
-      console.error('Error inserting info popup:', error);
-      alert('Info popup insertion failed');
+        console.error('Error inserting info popup:', error);
+        alert('Info popup insertion failed');
     }
   };
 
@@ -109,6 +114,14 @@ const PanoramaViewer = () => {
     window.history.replaceState({}, document.title, url);
   };
   
+  const handleInfospotClick = (popup) => {
+    if (selectedInfospot && selectedInfospot.id === popup.id) {
+      setSelectedInfospot(null);
+    } else {
+      setSelectedInfospot(popup);
+    }
+  };
+
   const displayImage = async (imageUrl, id) => {
     setCurrentImageId(id);
     const retrievedPopups = await handleRetrieveInfoPopUp(id); // Wait for the retrieval
@@ -127,6 +140,7 @@ const PanoramaViewer = () => {
         const infospot = new Infospot(350);
         infospot.position.copy(position);
         infospot.addHoverText(popup.title);
+        infospot.addEventListener('click', () => handleInfospotClick(popup));
         panorama.add(infospot);
       });
     }
@@ -214,13 +228,19 @@ const PanoramaViewer = () => {
     <div>
       <div
         ref={viewerRef}
-        style={{
-          width: "100%", // Adaptation à la largeur de l'écran
-          height: "500px", // Taille fixe pour la hauteur
-          marginBottom: "20px",
-          position: "relative", // Assurez-vous que le conteneur est correctement positionné
-        }}
-      ></div>
+        className="viewer-container"
+      >
+        {selectedInfospot && (
+          <div className="infospot-popup">
+            <button onClick={() => setSelectedInfospot(null)}>✖</button>
+            <h3>{selectedInfospot.title}</h3>
+            <p>{selectedInfospot.text}</p>
+            {selectedInfospot.image && (
+              <img src={`data:image/jpeg;base64,${Buffer.from(selectedInfospot.image).toString('base64')}`} alt="Infospot" />
+            )}
+          </div>
+        )}
+      </div>
       <div>
         {images.map((image, index) => (
           <button key={`${image.id}-${index}`} onClick={() => displayImage(image.imageUrl, image.id)}>
@@ -241,6 +261,7 @@ const PanoramaViewer = () => {
         <input type="text" name="posZ" placeholder="posZ" />
         <input type="text" name="text" placeholder="text" />
         <input type="text" name="title" placeholder="title" />
+        <input type="file" name="pic" />
         <input type="submit" value="Add Info Popup" />
       </form>
       <form onSubmit={handleInsertLink}>

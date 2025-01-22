@@ -52,14 +52,14 @@ function insertImage(id_rooms, data, callback) {
 }
 
 
-function insertInfoPopUp(id_pictures, posX, posY, posZ, text, title, callback) {
+function insertInfoPopUp(id_pictures, posX, posY, posZ, text, title, image, callback) {
     db.get(`SELECT MAX(id_info_popup) as maxId FROM Info_Popup`, (err, row) => {
         if (err) {
             callback(err);
         } else {
             const newId = (row.maxId || 0) + 1;
-            const stmt = db.prepare(`INSERT INTO Info_Popup (id_info_popup, id_pictures, position_x, position_y, position_z, text, title) VALUES (?, ?, ?, ?, ?, ?, ?)`);
-            stmt.run(newId, id_pictures, posX, posY, posZ, text, title, (err) => {
+            const stmt = db.prepare(`INSERT INTO Info_Popup (id_info_popup, id_pictures, position_x, position_y, position_z, text, title, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
+            stmt.run(newId, id_pictures, posX, posY, posZ, text, title, image, (err) => {
                 callback(err);
             });
             stmt.finalize();
@@ -96,7 +96,8 @@ function retrieveInfoPopUpByIdPicture(id_pictures, callback) {
                 position_y: row.position_y,
                 position_z: row.position_z,
                 text: row.text,
-                title: row.title
+                title: row.title,
+                image: row.image
             }));
             console.log('Fetched', infoPopUp.length, 'info popup');
             callback(null, infoPopUp);
