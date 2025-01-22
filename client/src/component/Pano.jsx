@@ -4,7 +4,7 @@ import { Viewer, ImagePanorama, Infospot } from "panolens";
 import axios from 'axios';
 import * as api from '../api/AxiosPano';
 import '../style/Pano.css';
-  
+
 const PanoramaViewer = () => {
   const viewerRef = useRef(null);
   const [images, setImages] = useState([]);
@@ -229,17 +229,18 @@ const PanoramaViewer = () => {
       <div
         ref={viewerRef}
         className="viewer-container"
-      ></div>
-      {selectedInfospot && (
-        <div className="infospot-popup">
-          <button onClick={() => setSelectedInfospot(null)}>✖</button>
-          <h3>{selectedInfospot.title}</h3>
-          <p>{selectedInfospot.text}</p>
-          {selectedInfospot.image && (
-            <img src={`data:image/jpeg;base64,${Buffer.from(selectedInfospot.image).toString('base64')}`} alt="Infospot" />
-          )}
-        </div>
-      )}
+      >
+        {selectedInfospot && (
+          <div className="infospot-popup">
+            <button onClick={() => setSelectedInfospot(null)}>✖</button>
+            <h3>{selectedInfospot.title}</h3>
+            <p>{selectedInfospot.text}</p>
+            {selectedInfospot.image && (
+              <img src={`data:image/jpeg;base64,${Buffer.from(selectedInfospot.image).toString('base64')}`} alt="Infospot" />
+            )}
+          </div>
+        )}
+      </div>
       <div>
         {images.map((image, index) => (
           <button key={`${image.id}-${index}`} onClick={() => displayImage(image.imageUrl, image.id)}>
