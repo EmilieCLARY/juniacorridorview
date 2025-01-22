@@ -1,0 +1,31 @@
+.viewer-container {
+  width: 100%;
+  height: 500px;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.infospot-popup {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: orange;
+  padding: 10px;
+  border-radius: 5px;
+  z-index: 1000;
+}
+
+.infospot-popup button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.infospot-popup img {
+  width: 100px;
+  height: 100px;
+}

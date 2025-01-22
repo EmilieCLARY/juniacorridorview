@@ -3,7 +3,8 @@ import * as THREE from "three";
 import { Viewer, ImagePanorama, Infospot } from "panolens";
 import axios from 'axios';
 import * as api from '../api/AxiosPano';
-
+import '../style/Pano.css';
+  
 const PanoramaViewer = () => {
   const viewerRef = useRef(null);
   const [images, setImages] = useState([]);
@@ -13,6 +14,7 @@ const PanoramaViewer = () => {
   const [links, setLinks] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [firstLoad, setFirstLoad] = useState(true); 
+  const [selectedInfospot, setSelectedInfospot] = useState(null);
 
   const fetchTables = async () => {
     const tables = await api.getTables();
@@ -112,6 +114,14 @@ const PanoramaViewer = () => {
     window.history.replaceState({}, document.title, url);
   };
   
+  const handleInfospotClick = (popup) => {
+    if (selectedInfospot && selectedInfospot.id === popup.id) {
+      setSelectedInfospot(null);
+    } else {
+      setSelectedInfospot(popup);
+    }
+  };
+
   const displayImage = async (imageUrl, id) => {
     setCurrentImageId(id);
     const retrievedPopups = await handleRetrieveInfoPopUp(id); // Wait for the retrieval
@@ -130,6 +140,7 @@ const PanoramaViewer = () => {
         const infospot = new Infospot(350);
         infospot.position.copy(position);
         infospot.addHoverText(popup.title);
+        infospot.addEventListener('click', () => handleInfospotClick(popup));
         panorama.add(infospot);
       });
     }
@@ -217,13 +228,18 @@ const PanoramaViewer = () => {
     <div>
       <div
         ref={viewerRef}
-        style={{
-          width: "100%", // Adaptation à la largeur de l'écran
-          height: "500px", // Taille fixe pour la hauteur
-          marginBottom: "20px",
-          position: "relative", // Assurez-vous que le conteneur est correctement positionné
-        }}
+        className="viewer-container"
       ></div>
+      {selectedInfospot && (
+        <div className="infospot-popup">
+          <button onClick={() => setSelectedInfospot(null)}>✖</button>
+          <h3>{selectedInfospot.title}</h3>
+          <p>{selectedInfospot.text}</p>
+          {selectedInfospot.image && (
+            <img src={`data:image/jpeg;base64,${Buffer.from(selectedInfospot.image).toString('base64')}`} alt="Infospot" />
+          )}
+        </div>
+      )}
       <div>
         {images.map((image, index) => (
           <button key={`${image.id}-${index}`} onClick={() => displayImage(image.imageUrl, image.id)}>
