@@ -34,13 +34,16 @@ const PanoramaViewer = () => {
   const handleInsertInfoPopUp = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
-    const data = Object.fromEntries(formData.entries());
     try {
-      await axios.post('http://localhost:8000/insertInfoPopUp', data);
-      alert('Info popup inserted successfully');
+        await axios.post('http://localhost:8000/insertInfoPopUp', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        alert('Info popup inserted successfully');
     } catch (error) {
-      console.error('Error inserting info popup:', error);
-      alert('Info popup insertion failed');
+        console.error('Error inserting info popup:', error);
+        alert('Info popup insertion failed');
     }
   };
 
@@ -241,6 +244,7 @@ const PanoramaViewer = () => {
         <input type="text" name="posZ" placeholder="posZ" />
         <input type="text" name="text" placeholder="text" />
         <input type="text" name="title" placeholder="title" />
+        <input type="file" name="pic" />
         <input type="submit" value="Add Info Popup" />
       </form>
       <form onSubmit={handleInsertLink}>

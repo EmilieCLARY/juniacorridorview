@@ -119,14 +119,19 @@ app.post("/retrieveLinkByIdPicture/", (req, res) => {
 
 app.post("/insertInfoPopUp", (req, res) => {
     const { id_pictures, posX, posY, posZ, text, title } = req.body;
-    insertInfoPopUp(id_pictures, posX, posY, posZ, text, title, (err) => {
-        if (err) {
-            console.error('Error inserting info popup:', err);
-            res.sendStatus(500);
-        } else {
-            res.sendStatus(200);
-        }
-    });
+    const pic = req.files ? req.files.pic : null;
+    if (pic) {
+        insertInfoPopUp(id_pictures, posX, posY, posZ, text, title, pic.data, (err) => {
+            if (err) {
+                console.error('Error inserting info popup:', err);
+                res.sendStatus(500);
+            } else {
+                res.sendStatus(200);
+            }
+        });
+    } else {
+        res.sendStatus(400);
+    }
 });
 
 app.post("/insertLink", (req, res) => {
