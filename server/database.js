@@ -74,7 +74,11 @@ const getTourSteps = (tourId, callback) => {
 };
 
 const getRooms = (callback) => {
-    const sql = `SELECT * FROM Rooms`;
+    const sql = `
+        SELECT Rooms.*, Buildings.name as building_name 
+        FROM Rooms 
+        LEFT JOIN Buildings ON Rooms.id_buildings = Buildings.id_buildings
+    `;
     db.all(sql, [], (err, rows) => {
         if (err) {
             console.error('Error fetching rooms', err);
@@ -83,7 +87,9 @@ const getRooms = (callback) => {
             const rooms = rows.map(row => ({
                 id_rooms: row.id_rooms,
                 name: row.name,
-                number: row.number
+                number: row.number,
+                id_buildings: row.id_buildings,
+                building_name: row.building_name // Add this line
             }));
             console.log('Fetched', rooms.length, 'rooms');
             callback(null, rooms);
@@ -106,6 +112,19 @@ function insertImage(id_rooms, data, callback) {
     });
 }
 
+function updateImage(id_pictures, data, callback) {
+    const sql = `UPDATE Pictures SET picture = ? WHERE id_pictures = ?`;
+    db.run(sql, [data, id_pictures], (err) => {
+        callback(err);
+    });
+}
+
+function updateInfospot(id_info_popup, id_pictures, posX, posY, posZ, text, title, image, callback) {
+    const sql = `UPDATE Info_Popup SET id_pictures = ?, position_x = ?, position_y = ?, position_z = ?, text = ?, title = ?, image = ? WHERE id_info_popup = ?`;
+    db.run(sql, [id_pictures, posX, posY, posZ, text, title, image, id_info_popup], (err) => {
+        callback(err);
+    });
+}
 
 function insertInfoPopUp(id_pictures, posX, posY, posZ, text, title, image, callback) {
     db.get(`SELECT MAX(id_info_popup) as maxId FROM Info_Popup`, (err, row) => {
@@ -131,6 +150,28 @@ function insertLink(id_pictures, posX, posY, posZ, id_pictures_destination, call
             const stmt = db.prepare(`INSERT INTO Links (id_links, id_pictures, position_x, position_y, position_z, id_pictures_destination) VALUES (?, ?, ?, ?, ?, ?)`);
             stmt.run(newId, id_pictures, posX, posY, posZ, id_pictures_destination, (err) => {
                 callback(err);
+            });
+            stmt.finalize();
+        }
+    });
+}
+
+function updateLink(id_links, id_pictures, posX, posY, posZ, id_pictures_destination, callback) {
+    const sql = `UPDATE Links SET id_pictures = ?, position_x = ?, position_y = ?, position_z = ?, id_pictures_destination = ? WHERE id_links = ?`;
+    db.run(sql, [id_pictures, posX, posY, posZ, id_pictures_destination, id_links], (err) => {
+        callback(err);
+    });
+}
+
+function addRoom(name, number, id_buildings, callback) {
+    db.get(`SELECT MAX(id_rooms) as maxId FROM Rooms`, (err, row) => {
+        if (err) {
+            callback(err);
+        } else {
+            const newId = (row.maxId || 0) + 1;
+            const stmt = db.prepare(`INSERT INTO Rooms (id_rooms, name, number, id_buildings) VALUES (?, ?, ?, ?)`);
+            stmt.run(newId, name, number, id_buildings, (err) => {
+                if (callback) callback(err); // Ensure callback is a function
             });
             stmt.finalize();
         }
@@ -269,5 +310,9 @@ module.exports = {
     getRoomIdByPictureId,
     getRooms,
     getPicturesByRoomId,
-    getFirstPictureByRoomId
+    getFirstPictureByRoomId,
+    updateImage,
+    updateInfospot,
+    updateLink,
+    addRoom // Ensure this is exported
 };
