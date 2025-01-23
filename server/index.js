@@ -7,7 +7,7 @@ const cookieparser = require("cookie-parser")
 const session = require("express-session");
 const fileUpload = require('express-fileupload'); // Add this line
 const saltRounds = 10;
-const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture } = require('./database');
+const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture, getTours, getTourSteps } = require('./database');
 
 const PORT = process.env.PORT || 8000;
 
@@ -147,6 +147,28 @@ app.post("/insertLink", (req, res) => {
     });
 });
 
+app.get("/tours", (req, res) => {
+    getTours((err, tours) => {
+        if (err) {
+            console.error('Error fetching tours', err.message);
+            res.status(500).send('Error fetching tours');
+        } else {
+            res.json(tours);
+        }
+    });
+});
+
+app.get("/tour-steps/:id", (req, res) => {
+    const tourId = req.params.id;
+    getTourSteps(tourId, (err, steps) => {
+        if (err) {
+            console.error('Error fetching tour steps', err.message);
+            res.status(500).send('Error fetching tour steps');
+        } else {
+            res.json(steps);
+        }
+    });
+});
 
 app.get("/login",(req,res)=>{
     if(req.session.user)

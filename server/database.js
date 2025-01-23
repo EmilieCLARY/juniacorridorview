@@ -36,6 +36,43 @@ const getAllPictures = (callback) => {
     });
 };
 
+const getTours = (callback) => {
+    const sql = `SELECT * FROM Tours`;
+    db.all(sql, [], (err, rows) => {
+        if (err) {
+            console.error('Error fetching tours', err);
+            callback(err, null);
+        } else {
+            const tours = rows.map(row => ({
+                id_tours: row.id_tours,
+                title: row.title,
+                description: row.description
+            }));
+            console.log('Fetched', tours.length, 'tours');
+            callback(null, tours);
+        }
+    });
+};
+
+const getTourSteps = (tourId, callback) => {
+    const sql = `SELECT * FROM Tour_Steps WHERE id_tours = ? ORDER BY step_number`;
+    db.all(sql, [tourId], (err, rows) => {
+        if (err) {
+            console.error('Error fetching tour steps', err);
+            callback(err, null);
+        } else {
+            const steps = rows.map(row => ({
+                id_tour_steps: row.id_tour_steps,
+                id_rooms: row.id_rooms,
+                step_number: row.step_number,
+                id_tours: row.id_tours
+            }));
+            console.log('Fetched', steps.length, 'tour steps');
+            callback(null, steps);
+        }
+    });
+};
+
 function insertImage(id_rooms, data, callback) {
     db.get(`SELECT MAX(id_pictures) as maxId FROM Pictures`, (err, row) => {
         if (err) {
@@ -155,5 +192,7 @@ module.exports = {
     insertInfoPopUp,
     retrieveInfoPopUpByIdPicture,
     insertLink,
-    retrieveLinkByIdPicture
+    retrieveLinkByIdPicture,
+    getTours,
+    getTourSteps
 };
