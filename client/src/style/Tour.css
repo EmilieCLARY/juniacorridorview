@@ -20,3 +20,14 @@
 .tour-item p {
   margin-bottom: 0;
 }
+
+.panorama-overview {
+  margin-top: 10px;
+}
+
+.panorama-overview img {
+  width: 150px; /* Change the width to a smaller size */
+  height: auto;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}

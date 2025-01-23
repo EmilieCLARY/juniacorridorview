@@ -241,6 +241,18 @@ const getPicturesByRoomId = (id_rooms, callback) => {
     });
 };
 
+const getFirstPictureByRoomId = (id_rooms, callback) => {
+    const sql = `SELECT id_pictures FROM Pictures WHERE id_rooms = ? LIMIT 1`;
+    db.get(sql, [id_rooms], (err, row) => {
+        if (err) {
+            console.error('Error fetching first picture by room ID', err);
+            callback(err, null);
+        } else {
+            callback(null, row);
+        }
+    });
+};
+
 module.exports = {
     db,
     getTables,
@@ -256,5 +268,6 @@ module.exports = {
     getRoomNameById,
     getRoomIdByPictureId,
     getRooms,
-    getPicturesByRoomId
+    getPicturesByRoomId,
+    getFirstPictureByRoomId
 };

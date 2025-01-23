@@ -5,6 +5,8 @@ import '../style/Tour.css';
 const TourViewer = () => {
   const [tours, setTours] = useState([]);
   const [tourSteps, setTourSteps] = useState({});
+  const [rooms, setRooms] = useState({});
+  const [panoramaUrls, setPanoramaUrls] = useState({});
 
   const fetchTours = async () => {
     try {
@@ -21,6 +23,30 @@ const TourViewer = () => {
       setTourSteps(prevSteps => ({
         ...prevSteps,
         [tourId]: stepsData
+      }));
+
+      // Fetch room details and one panorama URL for each step
+      const roomDetails = await Promise.all(
+        stepsData.map(step => api.getRoomDetails(step.id_rooms))
+      );
+      setRooms(prevRooms => ({
+        ...prevRooms,
+        ...Object.fromEntries(roomDetails.map(room => [room.id_rooms, room]))
+      }));
+
+      const panoramaUrlsData = await Promise.all(
+        stepsData.map(async step => {
+          const picture = await api.getFirstPictureByRoomId(step.id_rooms);
+          if (picture) {
+            const imageUrl = await api.getImage(picture.id_pictures);
+            return { id_rooms: step.id_rooms, imageUrl };
+          }
+          return { id_rooms: step.id_rooms, imageUrl: null };
+        })
+      );
+      setPanoramaUrls(prevUrls => ({
+        ...prevUrls,
+        ...Object.fromEntries(panoramaUrlsData.map(panorama => [panorama.id_rooms, panorama.imageUrl]))
       }));
     } catch (error) {
       console.error('Error fetching tour steps:', error);
@@ -45,7 +71,12 @@ const TourViewer = () => {
               <ul>
                 {tourSteps[tour.id_tours].map(step => (
                   <li key={step.id_tour_steps}>
-                    Step {step.step_number}: Room {step.id_rooms}
+                    Step {step.step_number}: Room {rooms[step.id_rooms]?.name} ({rooms[step.id_rooms]?.number})
+                    {panoramaUrls[step.id_rooms] && (
+                      <div className="panorama-overview">
+                        <img src={panoramaUrls[step.id_rooms]} alt={`Panorama of ${rooms[step.id_rooms]?.name}`} />
+                      </div>
+                    )}
                   </li>
                 ))}
               </ul>
