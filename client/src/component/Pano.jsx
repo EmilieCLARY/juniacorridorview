@@ -16,6 +16,7 @@ const PanoramaViewer = () => {
   const [selectedInfospot, setSelectedInfospot] = useState(null);
   const [currentRoomName, setCurrentRoomName] = useState('');
   const [currentRoomNumber, setCurrentRoomNumber] = useState('');
+  const [rooms, setRooms] = useState([]);
 
   const fetchTables = async () => {
     const tables = await api.getTables();
@@ -69,6 +70,11 @@ const PanoramaViewer = () => {
     setIsLoading(false);
   };
   
+  const fetchRooms = async () => {
+    const rooms = await api.getRooms();
+    setRooms(rooms);
+  };
+
   const cleanUrlParams = () => {
     const url = new URL(window.location);
     url.search = '';
@@ -158,6 +164,15 @@ const PanoramaViewer = () => {
     }
   };
 
+  const handleRoomClick = async (id_rooms) => {
+    const pictures = await api.getPicturesByRoomId(id_rooms);
+    if (pictures.length > 0) {
+      const firstPicture = pictures[0];
+      const imageUrl = await api.getImage(firstPicture.id_pictures);
+      displayImage(imageUrl, firstPicture.id_pictures);
+    }
+  };
+
   useEffect(() => {
     if (viewer) {
       viewer.container.addEventListener('click', handlePanoramaClick);
@@ -179,6 +194,7 @@ const PanoramaViewer = () => {
   
   useEffect(() => {
     fetchPictures();
+    fetchRooms();
     setCurrentImageId(0);
 
     const viewerInstance = new Viewer({
@@ -196,53 +212,66 @@ const PanoramaViewer = () => {
 
   return (
     <div>
-      <div
-        ref={viewerRef}
-        className="viewer-container"
-      >
-        {selectedInfospot && (
-          <div className="infospot-popup">
-            <button onClick={() => setSelectedInfospot(null)}>✖</button>
-            <h3>{selectedInfospot.title}</h3>
-            <p>{selectedInfospot.text}</p>
-            {selectedInfospot.image && (
-              <img src={`data:image/jpeg;base64,${Buffer.from(selectedInfospot.image).toString('base64')}`} alt="Infospot" />
+      <div className="panorama-container">
+        <div className="rooms-list">
+          <h3>Available Rooms</h3>
+          <ul>
+            {rooms.map(room => (
+              <li key={room.id_rooms} onClick={() => handleRoomClick(room.id_rooms)}>
+                {room.name} ({room.number})
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="panorama-content">
+          <div>
+            <h2>Current Room: {currentRoomName} ({currentRoomNumber})</h2>
+            {images.map((image, index) => (
+              <button key={`${image.id}-${index}`} onClick={() => displayImage(image.imageUrl, image.id)}>
+                Display Image {image.id}
+              </button>
+            ))}
+          </div>
+          <div ref={viewerRef} className="viewer-container">
+            {selectedInfospot && (
+              <div className="infospot-popup">
+                <button onClick={() => setSelectedInfospot(null)}>✖</button>
+                <h3>{selectedInfospot.title}</h3>
+                <p>{selectedInfospot.text}</p>
+                {selectedInfospot.image && (
+                  <img src={`data:image/jpeg;base64,${Buffer.from(selectedInfospot.image).toString('base64')}`} alt="Infospot" />
+                )}
+              </div>
             )}
           </div>
-        )}
+        </div>
       </div>
-      <div>
-        <h2>Current Room: {currentRoomName} ({currentRoomNumber})</h2>
-        {images.map((image, index) => (
-          <button key={`${image.id}-${index}`} onClick={() => displayImage(image.imageUrl, image.id)}>
-            Display Image {image.id}
-          </button>
-        ))}
+      <div className="forms-container">
+        <button onClick={fetchTables}>Fetch Tables</button>
+        <form onSubmit={handleUpload}>
+          <input type="file" name="pic" />
+          <input type="text" name="id_rooms" placeholder="id_rooms"/>
+          <input type="submit" value="Upload a file"/>
+        </form>
+        <form onSubmit={handleInsertInfoPopUp}>
+          <input type="text" name="id_pictures" placeholder="id_pictures" />
+          <input type="text" name="posX" placeholder="posX" />
+          <input type="text" name="posY" placeholder="posY" />
+          <input type="text" name="posZ" placeholder="posZ" />
+          <input type="text" name="text" placeholder="text" />
+          <input type="text" name="title" placeholder="title" />
+          <input type="file" name="pic" />
+          <input type="submit" value="Add Info Popup" />
+        </form>
+        <form onSubmit={handleInsertLink}>
+          <input type="text" name="id_pictures" placeholder="id_pictures" />
+          <input type="text" name="posX" placeholder="posX" />
+          <input type="text" name="posY" placeholder="posY" />
+          <input type="text" name="posZ" placeholder="posZ" />
+          <input type="text" name="id_pictures_destination" placeholder="id_pictures_destination" />
+          <input type="submit" value="Add Link" />
+        </form>
       </div>
-      <button onClick={fetchTables}>Fetch Tables</button>
-      <form onSubmit={handleUpload}>
-        <input type="file" name="pic" />
-        <input type="text" name="id_rooms" placeholder="id_rooms"/>
-        <input type="submit" value="Upload a file"/>
-      </form>
-      <form onSubmit={handleInsertInfoPopUp}>
-        <input type="text" name="id_pictures" placeholder="id_pictures" />
-        <input type="text" name="posX" placeholder="posX" />
-        <input type="text" name="posY" placeholder="posY" />
-        <input type="text" name="posZ" placeholder="posZ" />
-        <input type="text" name="text" placeholder="text" />
-        <input type="text" name="title" placeholder="title" />
-        <input type="file" name="pic" />
-        <input type="submit" value="Add Info Popup" />
-      </form>
-      <form onSubmit={handleInsertLink}>
-        <input type="text" name="id_pictures" placeholder="id_pictures" />
-        <input type="text" name="posX" placeholder="posX" />
-        <input type="text" name="posY" placeholder="posY" />
-        <input type="text" name="posZ" placeholder="posZ" />
-        <input type="text" name="id_pictures_destination" placeholder="id_pictures_destination" />
-        <input type="submit" value="Add Link" />
-      </form>
     </div>
   );
 };

@@ -73,6 +73,24 @@ const getTourSteps = (tourId, callback) => {
     });
 };
 
+const getRooms = (callback) => {
+    const sql = `SELECT * FROM Rooms`;
+    db.all(sql, [], (err, rows) => {
+        if (err) {
+            console.error('Error fetching rooms', err);
+            callback(err, null);
+        } else {
+            const rooms = rows.map(row => ({
+                id_rooms: row.id_rooms,
+                name: row.name,
+                number: row.number
+            }));
+            console.log('Fetched', rooms.length, 'rooms');
+            callback(null, rooms);
+        }
+    });
+};
+
 function insertImage(id_rooms, data, callback) {
     db.get(`SELECT MAX(id_pictures) as maxId FROM Pictures`, (err, row) => {
         if (err) {
@@ -207,6 +225,22 @@ const getRoomIdByPictureId = (id_pictures, callback) => {
     });
 };
 
+const getPicturesByRoomId = (id_rooms, callback) => {
+    const sql = `SELECT id_pictures FROM Pictures WHERE id_rooms = ?`;
+    db.all(sql, [id_rooms], (err, rows) => {
+        if (err) {
+            console.error('Error fetching pictures by room ID', err);
+            callback(err, null);
+        } else {
+            const pictures = rows.map(row => ({
+                id_pictures: row.id_pictures
+            }));
+            console.log('Fetched', pictures.length, 'pictures for room', id_rooms);
+            callback(null, pictures);
+        }
+    });
+};
+
 module.exports = {
     db,
     getTables,
@@ -220,5 +254,7 @@ module.exports = {
     getTours,
     getTourSteps,
     getRoomNameById,
-    getRoomIdByPictureId
+    getRoomIdByPictureId,
+    getRooms,
+    getPicturesByRoomId
 };

@@ -88,6 +88,26 @@ const getRoomDetails = async (id_rooms) => {
   }
 };
 
+const getRooms = async () => {
+  try {
+    const response = await axios.get(`${url}/rooms`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching rooms', error);
+    return [];
+  }
+};
+
+const getPicturesByRoomId = async (id_rooms) => {
+  try {
+    const response = await axios.get(`${url}/pictures-by-room/${id_rooms}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching pictures by room ID', error);
+    return [];
+  }
+};
+
 /**
  * POST
  */
@@ -121,5 +141,5 @@ const insertLink = async (data) => {
     }
 };
 
-export { getImage, getInfoPopup, getLinks, getPictures, getTables, insertInfoPopUp, insertLink, uploadFile, getRoomDetails, getRoomName, getRoomIdByPictureId };
+export { getImage, getInfoPopup, getLinks, getPictures, getTables, insertInfoPopUp, insertLink, uploadFile, getRoomDetails, getRoomName, getRoomIdByPictureId, getRooms, getPicturesByRoomId };
 

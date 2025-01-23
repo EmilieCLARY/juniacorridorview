@@ -7,7 +7,7 @@ const cookieparser = require("cookie-parser")
 const session = require("express-session");
 const fileUpload = require('express-fileupload'); // Add this line
 const saltRounds = 10;
-const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture, getTours, getTourSteps, getRoomNameById, getRoomIdByPictureId } = require('./database');
+const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture, getTours, getTourSteps, getRoomNameById, getRoomIdByPictureId, getRooms, getPicturesByRoomId } = require('./database');
 
 const PORT = process.env.PORT || 8000;
 
@@ -190,6 +190,29 @@ app.get('/room-id/:id', (req, res) => {
             res.sendStatus(500);
         } else {
             res.json({ id_rooms: roomId });
+        }
+    });
+});
+
+app.get('/rooms', (req, res) => {
+    getRooms((err, rooms) => {
+        if (err) {
+            console.error('Error fetching rooms', err);
+            res.sendStatus(500);
+        } else {
+            res.json(rooms);
+        }
+    });
+});
+
+app.get('/pictures-by-room/:id', (req, res) => {
+    const id_rooms = req.params.id;
+    getPicturesByRoomId(id_rooms, (err, pictures) => {
+        if (err) {
+            console.error('Error fetching pictures by room ID', err);
+            res.sendStatus(500);
+        } else {
+            res.json(pictures);
         }
     });
 });
