@@ -2,9 +2,10 @@ import { ImagePanorama, Infospot, Viewer } from "panolens";
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import * as api from '../api/AxiosPano';
+import { getTourSteps } from '../api/AxiosTour'; // Add this line
 import '../style/Pano.css';
 
-const PanoramaViewer = () => {
+const PanoramaViewer = ({ location }) => {
   const viewerRef = useRef(null);
   const [images, setImages] = useState([]);
   const [viewer, setViewer] = useState(null);
@@ -18,6 +19,26 @@ const PanoramaViewer = () => {
   const [currentRoomNumber, setCurrentRoomNumber] = useState('');
   const [rooms, setRooms] = useState([]);
   const [roomPreviews, setRoomPreviews] = useState({});
+  const [visitType, setVisitType] = useState('Visite libre');
+  const [tourSteps, setTourSteps] = useState([]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tourId = params.get('tour_id');
+    if (tourId) {
+      setVisitType(`Visite guidée, Parcours ${tourId}`);
+      fetchTourSteps(tourId);
+    }
+  }, [location]);
+
+  const fetchTourSteps = async (tourId) => {
+    try {
+      const stepsData = await getTourSteps(tourId); // Use getTourSteps from AxiosTour
+      setTourSteps(stepsData);
+    } catch (error) {
+      console.error('Error fetching tour steps:', error);
+    }
+  };
 
   const fetchTables = async () => {
     const tables = await api.getTables();
@@ -61,7 +82,6 @@ const PanoramaViewer = () => {
 
   const fetchPictures = async () => {
     const pictures = await api.getPictures();
-    console.log('Fetched pictures:', pictures);
     
     await Promise.all(
       pictures.map(picture => fetchImage(picture.id_pictures))
@@ -116,7 +136,6 @@ const PanoramaViewer = () => {
     }));
 
     const panorama = new ImagePanorama(imageUrl);
-    console.log('Popups:', retrievedPopups);
 
     // Add all infospots
     if (retrievedPopups) {
@@ -132,7 +151,6 @@ const PanoramaViewer = () => {
 
     // Add all links
     const retrievedLinks = await handleRetrieveLinks(id);
-    console.log('Links:', retrievedLinks);
     setLinks(prevLinks => ({
       ...prevLinks,
       [id]: retrievedLinks
@@ -198,7 +216,6 @@ const PanoramaViewer = () => {
 
   useEffect(() => {
       if(images.length > 0 && !isLoading && firstLoad) {   
-        console.log(images[0].imageUrl, images[0].id);
         displayImage(images[0].imageUrl, images[0].id);
         setFirstLoad(false); // Ensure this is only called once
       } 
@@ -222,13 +239,18 @@ const PanoramaViewer = () => {
     };
   }, []);
 
+  const filteredRooms = visitType.startsWith('Visite guidée') 
+    ? rooms.filter(room => tourSteps.some(step => step.id_rooms === room.id_rooms))
+    : rooms;
+
   return (
     <div>
+      <h1>{visitType}</h1>
       <div className="panorama-container">
         <div className="rooms-list">
           <h3>Available Rooms</h3>
           <ul>
-            {rooms.map(room => (
+            {filteredRooms.map(room => (
               <li key={room.id_rooms} onClick={() => handleRoomClick(room.id_rooms)}>
                 {room.name} ({room.number})
                 {roomPreviews[room.id_rooms] && (

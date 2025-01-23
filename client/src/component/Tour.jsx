@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useHistory } from "react-router-dom";
 import * as api from '../api/AxiosTour';
 import '../style/Tour.css';
 
@@ -7,6 +8,7 @@ const TourViewer = () => {
   const [tourSteps, setTourSteps] = useState({});
   const [rooms, setRooms] = useState({});
   const [panoramaUrls, setPanoramaUrls] = useState({});
+  const history = useHistory();
 
   const fetchTours = async () => {
     try {
@@ -53,6 +55,10 @@ const TourViewer = () => {
     }
   };
 
+  const handleTourClick = (tourId) => {
+    history.push(`/pano?tour_id=${tourId}`);
+  };
+
   useEffect(() => {
     fetchTours();
   }, []);
@@ -66,6 +72,7 @@ const TourViewer = () => {
             <h2>Tour {tour.id_tours}</h2>
             <h3>{tour.title}</h3>
             <p>{tour.description}</p>
+            <button onClick={() => handleTourClick(tour.id_tours)}>Start Tour</button>
             <button onClick={() => fetchTourSteps(tour.id_tours)}>Show Steps</button>
             {tourSteps[tour.id_tours] && (
               <ul>
