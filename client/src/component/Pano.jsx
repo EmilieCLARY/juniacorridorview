@@ -14,6 +14,8 @@ const PanoramaViewer = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [firstLoad, setFirstLoad] = useState(true); 
   const [selectedInfospot, setSelectedInfospot] = useState(null);
+  const [currentRoomName, setCurrentRoomName] = useState('');
+  const [currentRoomNumber, setCurrentRoomNumber] = useState('');
 
   const fetchTables = async () => {
     const tables = await api.getTables();
@@ -81,6 +83,12 @@ const PanoramaViewer = () => {
     }
   };
 
+  const fetchRoomDetails = async (id_rooms) => {
+    const room = await api.getRoomDetails(id_rooms);
+    setCurrentRoomName(room.name);
+    setCurrentRoomNumber(room.number);
+  };
+
   const displayImage = async (imageUrl, id) => {
     setCurrentImageId(id);
     const retrievedPopups = await handleRetrieveInfoPopUp(id); // Wait for the retrieval
@@ -129,6 +137,10 @@ const PanoramaViewer = () => {
     viewer.add(panorama);
     viewer.setPanorama(panorama);
     cleanUrlParams(); // Clean URL parameters after loading the panorama
+
+    // Fetch and set the room details
+    const roomId = await api.getRoomIdByPictureId(id);
+    fetchRoomDetails(roomId);
   };
 
   const handlePanoramaClick = (event) => {
@@ -200,6 +212,7 @@ const PanoramaViewer = () => {
         )}
       </div>
       <div>
+        <h2>Current Room: {currentRoomName} ({currentRoomNumber})</h2>
         {images.map((image, index) => (
           <button key={`${image.id}-${index}`} onClick={() => displayImage(image.imageUrl, image.id)}>
             Display Image {image.id}

@@ -183,6 +183,30 @@ async function fetchImageById(id) {
     });
 }
 
+const getRoomNameById = (id_rooms, callback) => {
+    const sql = `SELECT * FROM Rooms WHERE id_rooms = ?`;
+    db.get(sql, [id_rooms], (err, row) => {
+        if (err) {
+            console.error('Error fetching room name', err);
+            callback(err, null);
+        } else {
+            callback(null, row);
+        }
+    });
+};
+
+const getRoomIdByPictureId = (id_pictures, callback) => {
+    const sql = `SELECT id_rooms FROM Pictures WHERE id_pictures = ?`;
+    db.get(sql, [id_pictures], (err, row) => {
+        if (err) {
+            console.error('Error fetching room ID by picture ID', err);
+            callback(err, null);
+        } else {
+            callback(null, row.id_rooms);
+        }
+    });
+};
+
 module.exports = {
     db,
     getTables,
@@ -194,5 +218,7 @@ module.exports = {
     insertLink,
     retrieveLinkByIdPicture,
     getTours,
-    getTourSteps
+    getTourSteps,
+    getRoomNameById,
+    getRoomIdByPictureId
 };
