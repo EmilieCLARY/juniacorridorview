@@ -7,7 +7,7 @@ const cookieparser = require("cookie-parser")
 const session = require("express-session");
 const fileUpload = require('express-fileupload'); // Add this line
 const saltRounds = 10;
-const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture, getTours, getTourSteps, getRoomNameById, getRoomIdByPictureId, getRooms, getPicturesByRoomId, getFirstPictureByRoomId } = require('./database');
+const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture, getTours, getTourSteps, getRoomNameById, getRoomIdByPictureId, getRooms, getPicturesByRoomId, getFirstPictureByRoomId, updateImage, updateInfospot, updateLink } = require('./database');
 
 const PORT = process.env.PORT || 8000;
 
@@ -238,6 +238,48 @@ app.get("/login",(req,res)=>{
         res.send({login:false});
     }
 })
+
+app.post('/update-image', (req, res) => {
+    const { id_pictures } = req.body;
+    const { pic } = req.files;
+    if (pic && id_pictures) {
+        updateImage(id_pictures, pic.data, (err) => {
+            if (err) {
+                console.error('Error updating image:', err);
+                res.sendStatus(500);
+            } else {
+                res.sendStatus(200);
+            }
+        });
+    } else {
+        res.sendStatus(400);
+    }
+});
+
+app.post('/update-infospot', (req, res) => {
+    const { id_info_popup, id_pictures, posX, posY, posZ, text, title } = req.body;
+    const pic = req.files ? req.files.pic : null;
+    updateInfospot(id_info_popup, id_pictures, posX, posY, posZ, text, title, pic ? pic.data : null, (err) => {
+        if (err) {
+            console.error('Error updating infospot:', err);
+            res.sendStatus(500);
+        } else {
+            res.sendStatus(200);
+        }
+    });
+});
+
+app.post('/update-link', (req, res) => {
+    const { id_links, id_pictures, posX, posY, posZ, id_pictures_destination } = req.body;
+    updateLink(id_links, id_pictures, posX, posY, posZ, id_pictures_destination, (err) => {
+        if (err) {
+            console.error('Error updating link:', err);
+            res.sendStatus(500);
+        } else {
+            res.sendStatus(200);
+        }
+    });
+});
 
 app.listen(PORT, () => {
     console.log(`app running in ${PORT}`);
