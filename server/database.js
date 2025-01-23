@@ -163,6 +163,21 @@ function updateLink(id_links, id_pictures, posX, posY, posZ, id_pictures_destina
     });
 }
 
+function addRoom(name, number, id_buildings, callback) {
+    db.get(`SELECT MAX(id_rooms) as maxId FROM Rooms`, (err, row) => {
+        if (err) {
+            callback(err);
+        } else {
+            const newId = (row.maxId || 0) + 1;
+            const stmt = db.prepare(`INSERT INTO Rooms (id_rooms, name, number, id_buildings) VALUES (?, ?, ?, ?)`);
+            stmt.run(newId, name, number, id_buildings, (err) => {
+                if (callback) callback(err); // Ensure callback is a function
+            });
+            stmt.finalize();
+        }
+    });
+}
+
 function retrieveInfoPopUpByIdPicture(id_pictures, callback) {
     const sql = `SELECT * FROM Info_Popup WHERE id_pictures = ?`;
     db.all(sql, [id_pictures], (err, rows) => {
@@ -298,5 +313,6 @@ module.exports = {
     getFirstPictureByRoomId,
     updateImage,
     updateInfospot,
-    updateLink
+    updateLink,
+    addRoom // Ensure this is exported
 };

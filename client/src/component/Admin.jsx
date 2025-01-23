@@ -11,6 +11,7 @@ const Admin = () => {
   const [selectedPictureId, setSelectedPictureId] = useState(null);
   const [selectedInfospot, setSelectedInfospot] = useState(null);
   const [selectedLink, setSelectedLink] = useState(null);
+  const [newRoomModalOpen, setNewRoomModalOpen] = useState(false);
 
   const fetchRoomsInfo = async () => {
     try {
@@ -101,9 +102,20 @@ const Admin = () => {
     fetchRoomsInfo(); // Refresh the rooms info to reflect the updated link
   };
 
+  const handleNewRoom = async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    await api.addRoom(formData);
+    setNewRoomModalOpen(false);
+    fetchRoomsInfo(); // Refresh the rooms info to reflect the new room
+  };
+
   return (
     <div>
-      <h1>Rooms Information</h1>
+      <div className="header">
+        <h1>Rooms Information</h1>
+        <button onClick={() => setNewRoomModalOpen(true)}>Add New Room</button>
+      </div>
       <table>
         <thead>
           <tr>
@@ -256,6 +268,21 @@ const Admin = () => {
               <input type="text" name="posZ" defaultValue={selectedLink.position_z} placeholder="Position Z" required />
               <input type="text" name="id_pictures_destination" defaultValue={selectedLink.id_pictures_destination} placeholder="Picture Destination ID" required />
               <button type="submit">Update</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {newRoomModalOpen && (
+        <div className="modal">
+          <div className="modal-content">
+            <span className="close" onClick={() => setNewRoomModalOpen(false)}>&times;</span>
+            <h2>Add New Room</h2>
+            <form onSubmit={handleNewRoom}>
+              <input type="text" name="name" placeholder="Room Name" required />
+              <input type="text" name="number" placeholder="Room Number" required />
+              <input type="text" name="id_buildings" placeholder="Building ID" required />
+              <button type="submit">Add Room</button>
             </form>
           </div>
         </div>

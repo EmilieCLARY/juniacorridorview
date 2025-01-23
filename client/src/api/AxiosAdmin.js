@@ -82,6 +82,17 @@ const updateLink = async (formData) => {
   }
 };
 
+const addRoom = async (formData) => {
+  try {
+    const data = Object.fromEntries(formData.entries());
+    await axios.post(`${url}/add-room`, data);
+    alert('Room added successfully');
+  } catch (error) {
+    console.error('Error adding room:', error);
+    alert('Room addition failed');
+  }
+};
+
 export {
   getRooms,
   getPicturesByRoomId,
@@ -90,5 +101,6 @@ export {
   getImage,
   updateImage,
   updateInfospot,
-  updateLink // Ensure this is exported
+  updateLink,
+  addRoom // Ensure this is exported
 };

@@ -7,7 +7,7 @@ const cookieparser = require("cookie-parser")
 const session = require("express-session");
 const fileUpload = require('express-fileupload'); // Add this line
 const saltRounds = 10;
-const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture, getTours, getTourSteps, getRoomNameById, getRoomIdByPictureId, getRooms, getPicturesByRoomId, getFirstPictureByRoomId, updateImage, updateInfospot, updateLink } = require('./database');
+const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture, getTours, getTourSteps, getRoomNameById, getRoomIdByPictureId, getRooms, getPicturesByRoomId, getFirstPictureByRoomId, updateImage, updateInfospot, updateLink, addRoom } = require('./database');
 
 const PORT = process.env.PORT || 8000;
 
@@ -274,6 +274,18 @@ app.post('/update-link', (req, res) => {
     updateLink(id_links, id_pictures, posX, posY, posZ, id_pictures_destination, (err) => {
         if (err) {
             console.error('Error updating link:', err);
+            res.sendStatus(500);
+        } else {
+            res.sendStatus(200);
+        }
+    });
+});
+
+app.post('/add-room', (req, res) => {
+    const { name, number, id_buildings } = req.body;
+    addRoom(name, number, id_buildings, (err) => {
+        if (err) {
+            console.error('Error adding room:', err);
             res.sendStatus(500);
         } else {
             res.sendStatus(200);
