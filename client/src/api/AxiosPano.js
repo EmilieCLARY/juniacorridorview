@@ -58,6 +58,66 @@ const getImage = async (id) => {
     }
 }
 
+const getRoomName = async (id_rooms) => {
+  try {
+    const response = await axios.get(`${url}/room/${id_rooms}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching room name', error);
+    return {};
+  }
+};
+
+const getRoomIdByPictureId = async (id_pictures) => {
+  try {
+    const response = await axios.get(`${url}/room-id/${id_pictures}`);
+    return response.data.id_rooms;
+  } catch (error) {
+    console.error('Error fetching room ID by picture ID', error);
+    return null;
+  }
+};
+
+const getRoomDetails = async (id_rooms) => {
+  try {
+    const response = await axios.get(`${url}/room/${id_rooms}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching room details', error);
+    return {};
+  }
+};
+
+const getRooms = async () => {
+  try {
+    const response = await axios.get(`${url}/rooms`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching rooms', error);
+    return [];
+  }
+};
+
+const getPicturesByRoomId = async (id_rooms) => {
+  try {
+    const response = await axios.get(`${url}/pictures-by-room/${id_rooms}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching pictures by room ID', error);
+    return [];
+  }
+};
+
+const getFirstPictureByRoomId = async (id_rooms) => {
+  try {
+    const response = await axios.get(`${url}/first-picture-by-room/${id_rooms}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching first picture by room ID', error);
+    return null;
+  }
+};
+
 /**
  * POST
  */
@@ -91,5 +151,20 @@ const insertLink = async (data) => {
     }
 };
 
-export { getImage, getInfoPopup, getLinks, getPictures, getTables, insertInfoPopUp, insertLink, uploadFile };
+export { 
+  getImage, 
+  getInfoPopup, 
+  getLinks, 
+  getPictures, 
+  getTables, 
+  insertInfoPopUp, 
+  insertLink, 
+  uploadFile, 
+  getRoomDetails, 
+  getRoomName, 
+  getRoomIdByPictureId, 
+  getRooms, 
+  getPicturesByRoomId, 
+  getFirstPictureByRoomId 
+};
 

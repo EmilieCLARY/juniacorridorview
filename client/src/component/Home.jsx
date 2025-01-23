@@ -9,10 +9,10 @@ const Home = () => {
         <main>
           <h2 className="main-title">Menu Principal</h2>
           <div className="button-container">
-            <NavLink to="/pano" className="main-button">
+            <NavLink to="/tour?type=guided" className="main-button">
               Visite Guidée
             </NavLink>
-            <NavLink to="/pano" className="main-button">
+            <NavLink to="/pano?type=free" className="main-button">
               Visite Libre
             </NavLink>
           </div>

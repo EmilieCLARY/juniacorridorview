@@ -7,7 +7,7 @@ const cookieparser = require("cookie-parser")
 const session = require("express-session");
 const fileUpload = require('express-fileupload'); // Add this line
 const saltRounds = 10;
-const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture, getTours, getTourSteps } = require('./database');
+const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture, getTours, getTourSteps, getRoomNameById, getRoomIdByPictureId, getRooms, getPicturesByRoomId, getFirstPictureByRoomId } = require('./database');
 
 const PORT = process.env.PORT || 8000;
 
@@ -168,6 +168,65 @@ app.get("/tour-steps/:id", (req, res) => {
             res.json(steps);
         }
     });
+});
+
+app.get('/room/:id', (req, res) => {
+    const id_rooms = req.params.id;
+    getRoomNameById(id_rooms, (err, room) => {
+        if (err) {
+            console.error('Error fetching room name', err);
+            res.sendStatus(500);
+        } else {
+            res.json(room);
+        }
+    });
+});
+
+app.get('/room-id/:id', (req, res) => {
+    const id_pictures = req.params.id;
+    getRoomIdByPictureId(id_pictures, (err, roomId) => {
+        if (err) {
+            console.error('Error fetching room ID by picture ID', err);
+            res.sendStatus(500);
+        } else {
+            res.json({ id_rooms: roomId });
+        }
+    });
+});
+
+app.get('/rooms', (req, res) => {
+    getRooms((err, rooms) => {
+        if (err) {
+            console.error('Error fetching rooms', err);
+            res.sendStatus(500);
+        } else {
+            res.json(rooms);
+        }
+    });
+});
+
+app.get('/pictures-by-room/:id', (req, res) => {
+    const id_rooms = req.params.id;
+    getPicturesByRoomId(id_rooms, (err, pictures) => {
+        if (err) {
+            console.error('Error fetching pictures by room ID', err);
+            res.sendStatus(500);
+        } else {
+            res.json(pictures);
+        }
+    });
+});
+
+app.get('/first-picture-by-room/:id', (req, res) => {
+  const id_rooms = req.params.id;
+  getFirstPictureByRoomId(id_rooms, (err, picture) => {
+    if (err) {
+      console.error('Error fetching first picture by room ID', err);
+      res.sendStatus(500);
+    } else {
+      res.json(picture);
+    }
+  });
 });
 
 app.get("/login",(req,res)=>{

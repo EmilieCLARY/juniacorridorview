@@ -2,9 +2,10 @@ import { ImagePanorama, Infospot, Viewer } from "panolens";
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import * as api from '../api/AxiosPano';
+import { getTourSteps } from '../api/AxiosTour'; // Add this line
 import '../style/Pano.css';
 
-const PanoramaViewer = () => {
+const PanoramaViewer = ({ location }) => {
   const viewerRef = useRef(null);
   const [images, setImages] = useState([]);
   const [viewer, setViewer] = useState(null);
@@ -14,6 +15,30 @@ const PanoramaViewer = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [firstLoad, setFirstLoad] = useState(true); 
   const [selectedInfospot, setSelectedInfospot] = useState(null);
+  const [currentRoomName, setCurrentRoomName] = useState('');
+  const [currentRoomNumber, setCurrentRoomNumber] = useState('');
+  const [rooms, setRooms] = useState([]);
+  const [roomPreviews, setRoomPreviews] = useState({});
+  const [visitType, setVisitType] = useState('Visite libre');
+  const [tourSteps, setTourSteps] = useState([]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tourId = params.get('tour_id');
+    if (tourId) {
+      setVisitType(`Visite guidée, Parcours ${tourId}`);
+      fetchTourSteps(tourId);
+    }
+  }, [location]);
+
+  const fetchTourSteps = async (tourId) => {
+    try {
+      const stepsData = await getTourSteps(tourId); // Use getTourSteps from AxiosTour
+      setTourSteps(stepsData);
+    } catch (error) {
+      console.error('Error fetching tour steps:', error);
+    }
+  };
 
   const fetchTables = async () => {
     const tables = await api.getTables();
@@ -40,7 +65,6 @@ const PanoramaViewer = () => {
     await api.insertLink(data);
   };
 
-
   const handleRetrieveInfoPopUp = async (imageId) => {
     const popUps = await api.getInfoPopup(imageId);
     return popUps;
@@ -58,7 +82,6 @@ const PanoramaViewer = () => {
 
   const fetchPictures = async () => {
     const pictures = await api.getPictures();
-    console.log('Fetched pictures:', pictures);
     
     await Promise.all(
       pictures.map(picture => fetchImage(picture.id_pictures))
@@ -67,6 +90,23 @@ const PanoramaViewer = () => {
     setIsLoading(false);
   };
   
+  const fetchRooms = async () => {
+    const rooms = await api.getRooms();
+    setRooms(rooms);
+
+    const roomPreviewsData = await Promise.all(
+      rooms.map(async room => {
+        const picture = await api.getFirstPictureByRoomId(room.id_rooms);
+        if (picture) {
+          const imageUrl = await api.getImage(picture.id_pictures);
+          return { id_rooms: room.id_rooms, imageUrl };
+        }
+        return { id_rooms: room.id_rooms, imageUrl: null };
+      })
+    );
+    setRoomPreviews(Object.fromEntries(roomPreviewsData.map(preview => [preview.id_rooms, preview.imageUrl])));
+  };
+
   const cleanUrlParams = () => {
     const url = new URL(window.location);
     url.search = '';
@@ -81,6 +121,12 @@ const PanoramaViewer = () => {
     }
   };
 
+  const fetchRoomDetails = async (id_rooms) => {
+    const room = await api.getRoomDetails(id_rooms);
+    setCurrentRoomName(room.name);
+    setCurrentRoomNumber(room.number);
+  };
+
   const displayImage = async (imageUrl, id) => {
     setCurrentImageId(id);
     const retrievedPopups = await handleRetrieveInfoPopUp(id); // Wait for the retrieval
@@ -90,7 +136,6 @@ const PanoramaViewer = () => {
     }));
 
     const panorama = new ImagePanorama(imageUrl);
-    console.log('Popups:', retrievedPopups);
 
     // Add all infospots
     if (retrievedPopups) {
@@ -106,7 +151,6 @@ const PanoramaViewer = () => {
 
     // Add all links
     const retrievedLinks = await handleRetrieveLinks(id);
-    console.log('Links:', retrievedLinks);
     setLinks(prevLinks => ({
       ...prevLinks,
       [id]: retrievedLinks
@@ -129,6 +173,10 @@ const PanoramaViewer = () => {
     viewer.add(panorama);
     viewer.setPanorama(panorama);
     cleanUrlParams(); // Clean URL parameters after loading the panorama
+
+    // Fetch and set the room details
+    const roomId = await api.getRoomIdByPictureId(id);
+    fetchRoomDetails(roomId);
   };
 
   const handlePanoramaClick = (event) => {
@@ -146,6 +194,15 @@ const PanoramaViewer = () => {
     }
   };
 
+  const handleRoomClick = async (id_rooms) => {
+    const pictures = await api.getPicturesByRoomId(id_rooms);
+    if (pictures.length > 0) {
+      const firstPicture = pictures[0];
+      const imageUrl = await api.getImage(firstPicture.id_pictures);
+      displayImage(imageUrl, firstPicture.id_pictures);
+    }
+  };
+
   useEffect(() => {
     if (viewer) {
       viewer.container.addEventListener('click', handlePanoramaClick);
@@ -159,7 +216,6 @@ const PanoramaViewer = () => {
 
   useEffect(() => {
       if(images.length > 0 && !isLoading && firstLoad) {   
-        console.log(images[0].imageUrl, images[0].id);
         displayImage(images[0].imageUrl, images[0].id);
         setFirstLoad(false); // Ensure this is only called once
       } 
@@ -167,6 +223,7 @@ const PanoramaViewer = () => {
   
   useEffect(() => {
     fetchPictures();
+    fetchRooms();
     setCurrentImageId(0);
 
     const viewerInstance = new Viewer({
@@ -182,54 +239,78 @@ const PanoramaViewer = () => {
     };
   }, []);
 
+  const filteredRooms = visitType.startsWith('Visite guidée') 
+    ? rooms.filter(room => tourSteps.some(step => step.id_rooms === room.id_rooms))
+    : rooms;
+
   return (
     <div>
-      <div
-        ref={viewerRef}
-        className="viewer-container"
-      >
-        {selectedInfospot && (
-          <div className="infospot-popup">
-            <button onClick={() => setSelectedInfospot(null)}>✖</button>
-            <h3>{selectedInfospot.title}</h3>
-            <p>{selectedInfospot.text}</p>
-            {selectedInfospot.image && (
-              <img src={`data:image/jpeg;base64,${Buffer.from(selectedInfospot.image).toString('base64')}`} alt="Infospot" />
+      <h1>{visitType}</h1>
+      <div className="panorama-container">
+        <div className="rooms-list">
+          <h3>Available Rooms</h3>
+          <ul>
+            {filteredRooms.map(room => (
+              <li key={room.id_rooms} onClick={() => handleRoomClick(room.id_rooms)}>
+                {room.name} ({room.number})
+                {roomPreviews[room.id_rooms] && (
+                  <div className="room-preview">
+                    <img src={roomPreviews[room.id_rooms]} alt={`Preview of ${room.name}`} />
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="panorama-content">
+          <div>
+            <h2>Current Room: {currentRoomName} ({currentRoomNumber})</h2>
+            {images.map((image, index) => (
+              <button key={`${image.id}-${index}`} onClick={() => displayImage(image.imageUrl, image.id)}>
+                Display Image {image.id}
+              </button>
+            ))}
+          </div>
+          <div ref={viewerRef} className="viewer-container">
+            {selectedInfospot && (
+              <div className="infospot-popup">
+                <button onClick={() => setSelectedInfospot(null)}>✖</button>
+                <h3>{selectedInfospot.title}</h3>
+                <p>{selectedInfospot.text}</p>
+                {selectedInfospot.image && (
+                  <img src={`data:image/jpeg;base64,${Buffer.from(selectedInfospot.image).toString('base64')}`} alt="Infospot" />
+                )}
+              </div>
             )}
           </div>
-        )}
+        </div>
       </div>
-      <div>
-        {images.map((image, index) => (
-          <button key={`${image.id}-${index}`} onClick={() => displayImage(image.imageUrl, image.id)}>
-            Display Image {image.id}
-          </button>
-        ))}
+      <div className="forms-container">
+        <button onClick={fetchTables}>Fetch Tables</button>
+        <form onSubmit={handleUpload}>
+          <input type="file" name="pic" />
+          <input type="text" name="id_rooms" placeholder="id_rooms"/>
+          <input type="submit" value="Upload a file"/>
+        </form>
+        <form onSubmit={handleInsertInfoPopUp}>
+          <input type="text" name="id_pictures" placeholder="id_pictures" />
+          <input type="text" name="posX" placeholder="posX" />
+          <input type="text" name="posY" placeholder="posY" />
+          <input type="text" name="posZ" placeholder="posZ" />
+          <input type="text" name="text" placeholder="text" />
+          <input type="text" name="title" placeholder="title" />
+          <input type="file" name="pic" />
+          <input type="submit" value="Add Info Popup" />
+        </form>
+        <form onSubmit={handleInsertLink}>
+          <input type="text" name="id_pictures" placeholder="id_pictures" />
+          <input type="text" name="posX" placeholder="posX" />
+          <input type="text" name="posY" placeholder="posY" />
+          <input type="text" name="posZ" placeholder="posZ" />
+          <input type="text" name="id_pictures_destination" placeholder="id_pictures_destination" />
+          <input type="submit" value="Add Link" />
+        </form>
       </div>
-      <button onClick={fetchTables}>Fetch Tables</button>
-      <form onSubmit={handleUpload}>
-        <input type="file" name="pic" />
-        <input type="text" name="id_rooms" placeholder="id_rooms"/>
-        <input type="submit" value="Upload a file"/>
-      </form>
-      <form onSubmit={handleInsertInfoPopUp}>
-        <input type="text" name="id_pictures" placeholder="id_pictures" />
-        <input type="text" name="posX" placeholder="posX" />
-        <input type="text" name="posY" placeholder="posY" />
-        <input type="text" name="posZ" placeholder="posZ" />
-        <input type="text" name="text" placeholder="text" />
-        <input type="text" name="title" placeholder="title" />
-        <input type="file" name="pic" />
-        <input type="submit" value="Add Info Popup" />
-      </form>
-      <form onSubmit={handleInsertLink}>
-        <input type="text" name="id_pictures" placeholder="id_pictures" />
-        <input type="text" name="posX" placeholder="posX" />
-        <input type="text" name="posY" placeholder="posY" />
-        <input type="text" name="posZ" placeholder="posZ" />
-        <input type="text" name="id_pictures_destination" placeholder="id_pictures_destination" />
-        <input type="submit" value="Add Link" />
-      </form>
     </div>
   );
 };

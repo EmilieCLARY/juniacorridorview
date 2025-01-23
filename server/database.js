@@ -73,6 +73,24 @@ const getTourSteps = (tourId, callback) => {
     });
 };
 
+const getRooms = (callback) => {
+    const sql = `SELECT * FROM Rooms`;
+    db.all(sql, [], (err, rows) => {
+        if (err) {
+            console.error('Error fetching rooms', err);
+            callback(err, null);
+        } else {
+            const rooms = rows.map(row => ({
+                id_rooms: row.id_rooms,
+                name: row.name,
+                number: row.number
+            }));
+            console.log('Fetched', rooms.length, 'rooms');
+            callback(null, rooms);
+        }
+    });
+};
+
 function insertImage(id_rooms, data, callback) {
     db.get(`SELECT MAX(id_pictures) as maxId FROM Pictures`, (err, row) => {
         if (err) {
@@ -183,6 +201,58 @@ async function fetchImageById(id) {
     });
 }
 
+const getRoomNameById = (id_rooms, callback) => {
+    const sql = `SELECT * FROM Rooms WHERE id_rooms = ?`;
+    db.get(sql, [id_rooms], (err, row) => {
+        if (err) {
+            console.error('Error fetching room name', err);
+            callback(err, null);
+        } else {
+            callback(null, row);
+        }
+    });
+};
+
+const getRoomIdByPictureId = (id_pictures, callback) => {
+    const sql = `SELECT id_rooms FROM Pictures WHERE id_pictures = ?`;
+    db.get(sql, [id_pictures], (err, row) => {
+        if (err) {
+            console.error('Error fetching room ID by picture ID', err);
+            callback(err, null);
+        } else {
+            callback(null, row.id_rooms);
+        }
+    });
+};
+
+const getPicturesByRoomId = (id_rooms, callback) => {
+    const sql = `SELECT id_pictures FROM Pictures WHERE id_rooms = ?`;
+    db.all(sql, [id_rooms], (err, rows) => {
+        if (err) {
+            console.error('Error fetching pictures by room ID', err);
+            callback(err, null);
+        } else {
+            const pictures = rows.map(row => ({
+                id_pictures: row.id_pictures
+            }));
+            console.log('Fetched', pictures.length, 'pictures for room', id_rooms);
+            callback(null, pictures);
+        }
+    });
+};
+
+const getFirstPictureByRoomId = (id_rooms, callback) => {
+    const sql = `SELECT id_pictures FROM Pictures WHERE id_rooms = ? LIMIT 1`;
+    db.get(sql, [id_rooms], (err, row) => {
+        if (err) {
+            console.error('Error fetching first picture by room ID', err);
+            callback(err, null);
+        } else {
+            callback(null, row);
+        }
+    });
+};
+
 module.exports = {
     db,
     getTables,
@@ -194,5 +264,10 @@ module.exports = {
     insertLink,
     retrieveLinkByIdPicture,
     getTours,
-    getTourSteps
+    getTourSteps,
+    getRoomNameById,
+    getRoomIdByPictureId,
+    getRooms,
+    getPicturesByRoomId,
+    getFirstPictureByRoomId
 };
