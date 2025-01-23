@@ -66,3 +66,14 @@
 .forms-container button {
   margin-bottom: 20px;
 }
+
+.room-preview {
+  margin-top: 10px;
+}
+
+.room-preview img {
+  width: 150px; /* Change the width to a smaller size */
+  height: auto;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}

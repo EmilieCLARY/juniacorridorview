@@ -17,6 +17,7 @@ const PanoramaViewer = () => {
   const [currentRoomName, setCurrentRoomName] = useState('');
   const [currentRoomNumber, setCurrentRoomNumber] = useState('');
   const [rooms, setRooms] = useState([]);
+  const [roomPreviews, setRoomPreviews] = useState({});
 
   const fetchTables = async () => {
     const tables = await api.getTables();
@@ -42,7 +43,6 @@ const PanoramaViewer = () => {
     console.log('Data:', data);
     await api.insertLink(data);
   };
-
 
   const handleRetrieveInfoPopUp = async (imageId) => {
     const popUps = await api.getInfoPopup(imageId);
@@ -73,6 +73,18 @@ const PanoramaViewer = () => {
   const fetchRooms = async () => {
     const rooms = await api.getRooms();
     setRooms(rooms);
+
+    const roomPreviewsData = await Promise.all(
+      rooms.map(async room => {
+        const picture = await api.getFirstPictureByRoomId(room.id_rooms);
+        if (picture) {
+          const imageUrl = await api.getImage(picture.id_pictures);
+          return { id_rooms: room.id_rooms, imageUrl };
+        }
+        return { id_rooms: room.id_rooms, imageUrl: null };
+      })
+    );
+    setRoomPreviews(Object.fromEntries(roomPreviewsData.map(preview => [preview.id_rooms, preview.imageUrl])));
   };
 
   const cleanUrlParams = () => {
@@ -219,6 +231,11 @@ const PanoramaViewer = () => {
             {rooms.map(room => (
               <li key={room.id_rooms} onClick={() => handleRoomClick(room.id_rooms)}>
                 {room.name} ({room.number})
+                {roomPreviews[room.id_rooms] && (
+                  <div className="room-preview">
+                    <img src={roomPreviews[room.id_rooms]} alt={`Preview of ${room.name}`} />
+                  </div>
+                )}
               </li>
             ))}
           </ul>
