@@ -1,7 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
-import * as THREE from "three";
-import { Viewer, ImagePanorama, Infospot } from "panolens";
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import * as api from '../api/AxiosTour';
 import '../style/Tour.css';
 
 const TourViewer = () => {
@@ -10,8 +8,8 @@ const TourViewer = () => {
 
   const fetchTours = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/tours');
-      setTours(response.data);
+      const toursData = await api.getTours();
+      setTours(toursData);
     } catch (error) {
       console.error('Error fetching tours:', error);
     }
@@ -19,10 +17,10 @@ const TourViewer = () => {
 
   const fetchTourSteps = async (tourId) => {
     try {
-      const response = await axios.get(`http://localhost:8000/tour-steps/${tourId}`);
+      const stepsData = await api.getTourSteps(tourId);
       setTourSteps(prevSteps => ({
         ...prevSteps,
-        [tourId]: response.data
+        [tourId]: stepsData
       }));
     } catch (error) {
       console.error('Error fetching tour steps:', error);
