@@ -187,6 +187,11 @@ const Admin = () => {
     fetchToursInfo(); // Refresh the tours info to reflect the updated steps
   };
 
+  const openNewTourModal = () => {
+    setNewTourSteps([]); // Reset steps
+    setNewTourModalOpen(true);
+  };
+
   return (
     <div>
       <div className="header">
@@ -305,7 +310,7 @@ const Admin = () => {
         </div>
       ) : (
         <div>
-          <button onClick={() => setNewTourModalOpen(true)}>Add New Tour</button>
+          <button onClick={openNewTourModal}>Add New Tour</button>
           <h2>Tours</h2>
           {tours.map(tour => (
             <div key={tour.id_tours}>
