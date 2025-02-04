@@ -253,6 +253,18 @@ app.get('/rooms', (req, res) => {
     });
 });
 
+app.get('/room-details/:id', (req, res) => {
+    const id_rooms = req.params.id;
+    getRoomNameById(id_rooms, (err, room) => {
+        if (err) {
+            console.error('Error fetching room details', err);
+            res.sendStatus(500);
+        } else {
+            res.json(room);
+        }
+    });
+});
+
 app.get('/pictures-by-room/:id', (req, res) => {
     const id_rooms = req.params.id;
     getPicturesByRoomId(id_rooms, (err, pictures) => {

@@ -50,6 +50,15 @@ const Admin = () => {
     }
   };
 
+  const fetchRooms = async () => {
+    try {
+        const roomsData = await api.getRooms();
+        setRooms(roomsData);
+    } catch (error) {
+        console.error('Error fetching rooms:', error);
+    }
+};
+
   const fetchToursInfo = async () => {
     try {
       const toursData = await tourApi.getTours();
@@ -66,7 +75,7 @@ const Admin = () => {
   };
 
   useEffect(() => {
-    fetchRoomsInfo();
+    fetchRooms();
     fetchToursInfo();
   }, []);
 
@@ -414,14 +423,19 @@ const Admin = () => {
                     placeholder="Step Number"
                     readOnly
                   />
-                  <input
-                    type="text"
+                  <select
                     name={`steps[${index}][id_rooms]`}
                     value={step.id_rooms}
-                    placeholder="Room ID"
                     onChange={(e) => handleNewTourStepChange(index, 'id_rooms', e.target.value)}
                     required
-                  />
+                  >
+                    <option value="">Select Room</option>
+                    {rooms.map(room => (
+                        <option key={room.id_rooms} value={room.id_rooms}>
+                            {room.name} ({room.number})
+                        </option>
+                    ))}
+                  </select>
                 </div>
               ))}
               <button type="button" onClick={handleAddNewTourStep}>Add Step</button>
@@ -443,7 +457,18 @@ const Admin = () => {
                   <h4>Step {index + 1}</h4>
                   <input type="hidden" name={`steps[${index}][id_tour_steps]`} value={step.id_tour_steps} />
                   <input type="text" name={`steps[${index}][step_number]`} defaultValue={step.step_number} placeholder="Step Number" required />
-                  <input type="text" name={`steps[${index}][id_rooms]`} defaultValue={step.id_rooms} placeholder="Room ID" required />
+                  <select
+                    name={`steps[${index}][id_rooms]`}
+                    defaultValue={step.id_rooms}
+                    required
+                  >
+                    <option value="">Select Room</option>
+                    {rooms.map(room => (
+                        <option key={room.id_rooms} value={room.id_rooms}>
+                            {room.name} ({room.number})
+                        </option>
+                    ))}
+                  </select>
                 </div>
               ))}
               {[...Array(newStepCount)].map((_, index) => (
@@ -451,7 +476,17 @@ const Admin = () => {
                   <h4>New Step {tourSteps[selectedTour.id_tours]?.length + index + 1}</h4>
                   <input type="hidden" name={`steps[${tourSteps[selectedTour.id_tours]?.length + index}][id_tour_steps]`} value={`new_${index}`} />
                   <input type="text" name={`steps[${tourSteps[selectedTour.id_tours]?.length + index}][step_number]`} placeholder="Step Number" required />
-                  <input type="text" name={`steps[${tourSteps[selectedTour.id_tours]?.length + index}][id_rooms]`} placeholder="Room ID" required />
+                  <select
+                    name={`steps[${tourSteps[selectedTour.id_tours]?.length + index}][id_rooms]`}
+                    required
+                  >
+                    <option value="">Select Room</option>
+                    {rooms.map(room => (
+                        <option key={room.id_rooms} value={room.id_rooms}>
+                            {room.name} ({room.number})
+                        </option>
+                    ))}
+                  </select>
                 </div>
               ))}
               <button type="button" onClick={handleAddStep}>Add Step</button>

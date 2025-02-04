@@ -112,6 +112,16 @@ const getImage = async (id) => {
   }
 };
 
+const getRooms = async () => {
+    try {
+        const response = await axios.get(`${url}/rooms`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching rooms', error);
+        return [];
+    }
+};
+
 export {
     getTables,
     getTours,
@@ -123,5 +133,6 @@ export {
     getRoomDetails,
     getPicturesByRoomId,
     getFirstPictureByRoomId,
-    getImage
+    getImage,
+    getRooms
 };

@@ -270,10 +270,10 @@ async function fetchImageById(id) {
 }
 
 const getRoomNameById = (id_rooms, callback) => {
-    const sql = `SELECT * FROM Rooms WHERE id_rooms = ?`;
+    const sql = `SELECT name, number FROM Rooms WHERE id_rooms = ?`;
     db.get(sql, [id_rooms], (err, row) => {
         if (err) {
-            console.error('Error fetching room name', err);
+            console.error('Error fetching room details', err);
             callback(err, null);
         } else {
             callback(null, row);

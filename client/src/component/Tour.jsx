@@ -55,12 +55,22 @@ const TourViewer = () => {
     }
   };
 
+  const fetchRooms = async () => {
+    try {
+        const roomsData = await api.getRooms();
+        setRooms(roomsData);
+    } catch (error) {
+        console.error('Error fetching rooms:', error);
+    }
+  };
+
   const handleTourClick = (tourId) => {
     history.push(`/pano?tour_id=${tourId}`);
   };
 
   useEffect(() => {
     fetchTours();
+    fetchRooms();
   }, []);
 
   return (
