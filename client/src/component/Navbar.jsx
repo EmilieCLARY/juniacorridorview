@@ -16,7 +16,9 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="navbar">
+    
+    
+      <nav className="navbar bg-junia-purple">
         <div className="navbar-container">
           <div className="navbar-left">
             <NavLink to="/" className="navbar-logo">

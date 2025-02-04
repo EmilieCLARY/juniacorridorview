@@ -2,7 +2,7 @@
 
 /* General Section Styling */
 .home-section {
-    background-color: #f6f0ff;
+    /*background-color: #f6f0ff;*/
     width: 100%;
     min-height: 100vh;
     padding: 20px;
@@ -62,11 +62,11 @@
     text-decoration: none;
     font-weight: bold;
   }
-  
+
   .main-button:hover {
     background-color: #ff5722;
   }
-  
+
   /* Info Boxes */
   .info-container {
     margin-top: 40px;
@@ -77,7 +77,7 @@
   }
   
   .info-box {
-    width: 80%;
+    width: 100%;
     max-width: 600px;
     padding: 20px;
     border-radius: 10px;

@@ -5,6 +5,8 @@ import App from './App';
 import { BrowserRouter} from 'react-router-dom';
 
 
+import './output.css'; // Importing the CSS file
+
 ReactDOM.render(
   <BrowserRouter>
     <App />

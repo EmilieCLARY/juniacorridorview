@@ -1,3 +1,18 @@
+@import "tailwindcss";
+
+@theme {
+  --color-junia-purple: #3c2c53;
+  --color-junia-orange: #f06b42;
+  --color-junia-orange-accent:  #e85c30;
+  --color-junia-lavender: #f7f1fd;
+  --color-junia-salmon: #fff3f0;
+}
+
+/* Tailwind CSS Directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 *{
   padding: 0;
   margin: 0;
@@ -32,3 +47,5 @@ h1{
 #formm{
   padding-top: 150px;
   }
+
+  
