@@ -67,7 +67,7 @@ const getTourSteps = (tourId, callback) => {
                 step_number: row.step_number,
                 id_tours: row.id_tours
             }));
-            console.log('Fetched', steps.length, 'tour steps');
+            console.log('Fetched', steps.length, 'tour steps for tour', tourId);
             callback(null, steps);
         }
     });
@@ -94,7 +94,7 @@ const getTourStepsWithRoomInfo = (tourId, callback) => {
                 room_name: row.room_name,
                 room_number: row.room_number
             }));
-            console.log('Fetched', steps.length, 'tour steps');
+            console.log('Fetched', steps.length, 'tour steps for tour', tourId);
             callback(null, steps);
         }
     });
@@ -222,7 +222,7 @@ function retrieveInfoPopUpByIdPicture(id_pictures, callback) {
                 title: row.title,
                 image: row.image
             }));
-            console.log('Fetched', infoPopUp.length, 'info popup');
+            console.log('Fetched', infoPopUp.length, 'info popup for picture', id_pictures);
             callback(null, infoPopUp);
         }
     });
@@ -243,7 +243,7 @@ function retrieveLinkByIdPicture(id_pictures, callback) {
                 position_z: row.position_z,
                 id_pictures_destination: row.id_pictures_destination
             }));
-            console.log('Fetched', links.length, 'links');
+            console.log('Fetched', links.length, 'links for picture', id_pictures);
             callback(null, links);
         }
     });
