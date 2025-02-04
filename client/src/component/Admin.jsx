@@ -22,9 +22,11 @@ const Admin = () => {
   const [selectedTour, setSelectedTour] = useState(null);
   const [newStepCount, setNewStepCount] = useState(0);
   const [newTourSteps, setNewTourSteps] = useState([]);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
 
   const fetchRoomsInfo = async () => {
     try {
+      console.log('Fetching rooms info...');
       const roomsData = await api.getRooms();
       const roomsInfo = await Promise.all(roomsData.map(async room => {
         const pictures = await api.getPicturesByRoomId(room.id_rooms);
@@ -77,6 +79,7 @@ const Admin = () => {
 
   useEffect(() => {
     fetchRooms();
+    fetchRoomsInfo();
     fetchToursInfo();
   }, []);
 
@@ -224,6 +227,37 @@ const handleEditTourSubmit = async (event) => {
     }));
 };
 
+  const sortedRooms = React.useMemo(() => {
+    let sortableRooms = [...rooms];
+    if (sortConfig.key !== null) {
+      sortableRooms.sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableRooms;
+  }, [rooms, sortConfig]);
+
+  const requestSort = (key) => {
+    let direction = 'ascending';
+    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortIcon = (key) => {
+    if (sortConfig.key === key) {
+      return sortConfig.direction === 'ascending' ? '▲' : '▼';
+    }
+    return '⇅';
+  };
+
   return (
     <div>
       <div className="header">
@@ -237,17 +271,17 @@ const handleEditTourSubmit = async (event) => {
           <table>
             <thead>
               <tr>
-                <th>Room ID</th>
-                <th>Name</th>
-                <th>Number</th>
-                <th>Number of Pictures</th>
-                <th>Number of Info Spots</th>
-                <th>Number of Links</th>
-                <th>Building</th>
+                <th onClick={() => requestSort('id_rooms')}>Room ID {getSortIcon('id_rooms')}</th>
+                <th onClick={() => requestSort('name')}>Name {getSortIcon('name')}</th>
+                <th onClick={() => requestSort('number')}>Number {getSortIcon('number')}</th>
+                <th onClick={() => requestSort('numberOfPictures')}>Number of Pictures {getSortIcon('numberOfPictures')}</th>
+                <th onClick={() => requestSort('numberOfInfoSpots')}>Number of Info Spots {getSortIcon('numberOfInfoSpots')}</th>
+                <th onClick={() => requestSort('numberOfLinks')}>Number of Links {getSortIcon('numberOfLinks')}</th>
+                <th onClick={() => requestSort('building')}>Building {getSortIcon('building')}</th>
               </tr>
             </thead>
             <tbody>
-              {rooms.map(room => (
+              {sortedRooms.map(room => (
                 <React.Fragment key={room.id_rooms}>
                   <tr>
                     <td>{room.id_rooms}</td>
