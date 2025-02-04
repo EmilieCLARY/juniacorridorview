@@ -3,3 +3,5 @@
 
 
 /client/public/img/*
+
+/server/db.db
