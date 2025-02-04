@@ -32,6 +32,46 @@ const getTourSteps = async (tourId) => {
     }
 };
 
+const updateTourSteps = async (data) => {
+    try {
+        await axios.post(`${url}/update-tour-steps`, data);
+        alert('Tour steps updated successfully');
+    } catch (error) {
+        console.error('Error updating tour steps:', error);
+        alert('Tour steps update failed');
+    }
+};
+
+const addTourStep = async (data) => {
+    try {
+        await axios.post(`${url}/add-tour-step`, data);
+        alert('Tour step added successfully');
+    } catch (error) {
+        console.error('Error adding tour step:', error);
+        alert('Tour step addition failed');
+    }
+};
+
+const createTour = async (data) => {
+    try {
+        await axios.post(`${url}/create-tour`, data);
+        alert('Tour created successfully');
+    } catch (error) {
+        console.error('Error creating tour:', error);
+        alert('Tour creation failed');
+    }
+};
+
+const deleteTour = async (id_tours) => {
+    try {
+        await axios.delete(`${url}/delete-tour/${id_tours}`);
+        alert('Tour deleted successfully');
+    } catch (error) {
+        console.error('Error deleting tour:', error);
+        alert('Tour deletion failed');
+    }
+};
+
 const getRoomDetails = async (id_rooms) => {
     try {
         const response = await axios.get(`${url}/room/${id_rooms}`);
@@ -76,6 +116,10 @@ export {
     getTables,
     getTours,
     getTourSteps,
+    updateTourSteps,
+    addTourStep,
+    createTour,
+    deleteTour, // Ensure this is exported
     getRoomDetails,
     getPicturesByRoomId,
     getFirstPictureByRoomId,
