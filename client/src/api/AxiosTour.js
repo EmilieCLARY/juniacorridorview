@@ -32,6 +32,54 @@ const getTourSteps = async (tourId) => {
     }
 };
 
+const updateTourSteps = async (data) => {
+    try {
+        const stepsWithNumbers = data.steps.map((step, index) => ({
+            ...step,
+            step_number: index + 1
+        }));
+        await axios.post(`${url}/update-tour-steps`, { id_tours: data.id_tours, steps: stepsWithNumbers, title: data.title, description: data.description });
+        alert('Tour steps updated successfully');
+    } catch (error) {
+        console.error('Error updating tour steps:', error);
+        alert('Tour steps update failed');
+    }
+};
+
+const addTourStep = async (data) => {
+    try {
+        await axios.post(`${url}/add-tour-step`, data);
+        alert('Tour step added successfully');
+    } catch (error) {
+        console.error('Error adding tour step:', error);
+        alert('Tour step addition failed');
+    }
+};
+
+const createTour = async (data) => {
+    try {
+        const stepsWithNumbers = data.steps.map((step, index) => ({
+            ...step,
+            step_number: index + 1
+        }));
+        await axios.post(`${url}/create-tour`, { ...data, steps: stepsWithNumbers });
+        alert('Tour created successfully');
+    } catch (error) {
+        console.error('Error creating tour:', error);
+        alert('Tour creation failed');
+    }
+};
+
+const deleteTour = async (id_tours) => {
+    try {
+        await axios.delete(`${url}/delete-tour/${id_tours}`);
+        alert('Tour deleted successfully');
+    } catch (error) {
+        console.error('Error deleting tour:', error);
+        alert('Tour deletion failed');
+    }
+};
+
 const getRoomDetails = async (id_rooms) => {
     try {
         const response = await axios.get(`${url}/room/${id_rooms}`);
@@ -72,12 +120,27 @@ const getImage = async (id) => {
   }
 };
 
+const getRooms = async () => {
+    try {
+        const response = await axios.get(`${url}/rooms`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching rooms', error);
+        return [];
+    }
+};
+
 export {
     getTables,
     getTours,
     getTourSteps,
+    updateTourSteps,
+    addTourStep,
+    createTour,
+    deleteTour, // Ensure this is exported
     getRoomDetails,
     getPicturesByRoomId,
     getFirstPictureByRoomId,
-    getImage
+    getImage,
+    getRooms
 };

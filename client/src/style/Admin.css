@@ -94,3 +94,23 @@ tbody tr:last-of-type {
   text-decoration: none;
   cursor: pointer;
 }
+
+.draggable-step {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.draggable-step h4 {
+    margin: 0;
+    margin-right: 10px;
+}
+
+.drag-icon {
+    cursor: grab;
+    margin-right: 10px;
+}

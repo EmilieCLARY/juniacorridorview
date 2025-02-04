@@ -7,7 +7,7 @@ const cookieparser = require("cookie-parser")
 const session = require("express-session");
 const fileUpload = require('express-fileupload'); // Add this line
 const saltRounds = 10;
-const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture, getTours, getTourSteps, getRoomNameById, getRoomIdByPictureId, getRooms, getPicturesByRoomId, getFirstPictureByRoomId, updateImage, updateInfospot, updateLink, addRoom } = require('./database');
+const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture, getTours, getTourStepsWithRoomInfo, updateTourSteps, addTourStep, createTourWithSteps, deleteTour, getRoomNameById, getRoomIdByPictureId, getRooms, getPicturesByRoomId, getFirstPictureByRoomId, updateImage, updateInfospot, updateLink, addRoom } = require('./database');
 
 const PORT = process.env.PORT || 8000;
 
@@ -160,12 +160,68 @@ app.get("/tours", (req, res) => {
 
 app.get("/tour-steps/:id", (req, res) => {
     const tourId = req.params.id;
-    getTourSteps(tourId, (err, steps) => {
+    getTourStepsWithRoomInfo(tourId, (err, steps) => {
         if (err) {
             console.error('Error fetching tour steps', err.message);
             res.status(500).send('Error fetching tour steps');
         } else {
             res.json(steps);
+        }
+    });
+});
+
+app.post("/update-tour-steps", (req, res) => {
+    const { id_tours, steps, title, description } = req.body;
+    const stepsWithNumbers = steps.map((step, index) => ({
+        ...step,
+        step_number: index + 1
+    }));
+    updateTourSteps(id_tours, stepsWithNumbers, title, description, (err) => {
+        if (err) {
+            console.error('Error updating tour steps', err.message);
+            res.status(500).send('Error updating tour steps');
+        } else {
+            res.sendStatus(200);
+        }
+    });
+});
+
+app.post("/add-tour-step", (req, res) => {
+    const { id_tours, step } = req.body;
+    addTourStep(id_tours, step, (err) => {
+        if (err) {
+            console.error('Error adding tour step', err.message);
+            res.status(500).send('Error adding tour step');
+        } else {
+            res.sendStatus(200);
+        }
+    });
+});
+
+app.post("/create-tour", (req, res) => {
+    const { title, description, steps } = req.body;
+    const stepsWithNumbers = steps.map((step, index) => ({
+        ...step,
+        step_number: index + 1
+    }));
+    createTourWithSteps(title, description, stepsWithNumbers, (err) => {
+        if (err) {
+            console.error('Error creating tour', err.message);
+            res.status(500).send('Error creating tour');
+        } else {
+            res.sendStatus(200);
+        }
+    });
+});
+
+app.delete("/delete-tour/:id", (req, res) => {
+    const tourId = req.params.id;
+    deleteTour(tourId, (err) => {
+        if (err) {
+            console.error('Error deleting tour', err.message);
+            res.status(500).send('Error deleting tour');
+        } else {
+            res.sendStatus(200);
         }
     });
 });
@@ -201,6 +257,18 @@ app.get('/rooms', (req, res) => {
             res.sendStatus(500);
         } else {
             res.json(rooms);
+        }
+    });
+});
+
+app.get('/room-details/:id', (req, res) => {
+    const id_rooms = req.params.id;
+    getRoomNameById(id_rooms, (err, room) => {
+        if (err) {
+            console.error('Error fetching room details', err);
+            res.sendStatus(500);
+        } else {
+            res.json(room);
         }
     });
 });

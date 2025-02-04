@@ -73,6 +73,33 @@ const getTourSteps = (tourId, callback) => {
     });
 };
 
+const getTourStepsWithRoomInfo = (tourId, callback) => {
+    const sql = `
+        SELECT Tour_Steps.*, Rooms.name as room_name, Rooms.number as room_number
+        FROM Tour_Steps
+        JOIN Rooms ON Tour_Steps.id_rooms = Rooms.id_rooms
+        WHERE Tour_Steps.id_tours = ?
+        ORDER BY Tour_Steps.step_number
+    `;
+    db.all(sql, [tourId], (err, rows) => {
+        if (err) {
+            console.error('Error fetching tour steps', err);
+            callback(err, null);
+        } else {
+            const steps = rows.map(row => ({
+                id_tour_steps: row.id_tour_steps,
+                id_rooms: row.id_rooms,
+                step_number: row.step_number,
+                id_tours: row.id_tours,
+                room_name: row.room_name,
+                room_number: row.room_number
+            }));
+            console.log('Fetched', steps.length, 'tour steps');
+            callback(null, steps);
+        }
+    });
+};
+
 const getRooms = (callback) => {
     const sql = `
         SELECT Rooms.*, Buildings.name as building_name 
@@ -243,10 +270,10 @@ async function fetchImageById(id) {
 }
 
 const getRoomNameById = (id_rooms, callback) => {
-    const sql = `SELECT * FROM Rooms WHERE id_rooms = ?`;
+    const sql = `SELECT name, number FROM Rooms WHERE id_rooms = ?`;
     db.get(sql, [id_rooms], (err, row) => {
         if (err) {
-            console.error('Error fetching room name', err);
+            console.error('Error fetching room details', err);
             callback(err, null);
         } else {
             callback(null, row);
@@ -294,6 +321,98 @@ const getFirstPictureByRoomId = (id_rooms, callback) => {
     });
 };
 
+const updateTourSteps = (id_tours, steps, title, description, callback) => {
+    const updateTourSql = `UPDATE Tours SET title = ?, description = ? WHERE id_tours = ?`;
+    db.run(updateTourSql, [title, description, id_tours], (err) => {
+        if (err) {
+            callback(err);
+        } else {
+            const deleteSql = `DELETE FROM Tour_Steps WHERE id_tours = ?`;
+            db.run(deleteSql, [id_tours], (err) => {
+                if (err) {
+                    callback(err);
+                } else {
+                    const insertSql = `INSERT INTO Tour_Steps (id_tour_steps, id_tours, id_rooms, step_number) VALUES (?, ?, ?, ?)`;
+                    const stmt = db.prepare(insertSql);
+                    steps.forEach(step => {
+                        const newId = step.id_tour_steps.startsWith('new_') ? generateUniqueId() : step.id_tour_steps;
+                        stmt.run(newId, id_tours, step.id_rooms, step.step_number);
+                    });
+                    stmt.finalize(callback);
+                }
+            });
+        }
+    });
+};
+
+const addTourStep = (id_tours, step, callback) => {
+    const newId = generateUniqueId();
+    const sql = `INSERT INTO Tour_Steps (id_tour_steps, id_tours, id_rooms, step_number) VALUES (?, ?, ?, ?)`;
+    db.run(sql, [newId, id_tours, step.id_rooms, step.step_number], (err) => {
+        callback(err);
+    });
+};
+
+const generateUniqueId = () => {
+    return `id_${Math.random().toString(36).substr(2, 9)}`;
+};
+
+const createTour = (title, description, callback) => {
+    db.get(`SELECT MAX(id_tours) as maxId FROM Tours`, (err, row) => {
+        if (err) {
+            callback(err);
+        } else {
+            const newId = (row.maxId || 0) + 1;
+            const sql = `INSERT INTO Tours (id_tours, title, description) VALUES (?, ?, ?)`;
+            db.run(sql, [newId, title, description], (err) => {
+                callback(err);
+            });
+        }
+    });
+};
+
+const createTourWithSteps = (title, description, steps, callback) => {
+    db.get(`SELECT MAX(id_tours) as maxId FROM Tours`, (err, row) => {
+        if (err) {
+            callback(err);
+        } else {
+            const newId = (row.maxId || 0) + 1;
+            const sql = `INSERT INTO Tours (id_tours, title, description) VALUES (?, ?, ?)`;
+            db.run(sql, [newId, title, description], (err) => {
+                if (err) {
+                    callback(err);
+                } else {
+                    if (Array.isArray(steps)) {
+                        const insertStepSql = `INSERT INTO Tour_Steps (id_tour_steps, id_tours, id_rooms, step_number) VALUES (?, ?, ?, ?)`;
+                        const stmt = db.prepare(insertStepSql);
+                        steps.forEach(step => {
+                            const stepId = generateUniqueId();
+                            stmt.run(stepId, newId, step.id_rooms, step.step_number);
+                        });
+                        stmt.finalize(callback);
+                    } else {
+                        callback(new Error('Steps should be an array'));
+                    }
+                }
+            });
+        }
+    });
+};
+
+const deleteTour = (id_tours, callback) => {
+    const deleteStepsSql = `DELETE FROM Tour_Steps WHERE id_tours = ?`;
+    db.run(deleteStepsSql, [id_tours], (err) => {
+        if (err) {
+            callback(err);
+        } else {
+            const deleteTourSql = `DELETE FROM Tours WHERE id_tours = ?`;
+            db.run(deleteTourSql, [id_tours], (err) => {
+                callback(err);
+            });
+        }
+    });
+};
+
 module.exports = {
     db,
     getTables,
@@ -305,7 +424,11 @@ module.exports = {
     insertLink,
     retrieveLinkByIdPicture,
     getTours,
-    getTourSteps,
+    getTourStepsWithRoomInfo, // Ensure this is exported
+    updateTourSteps, // Ensure this is exported
+    addTourStep, // Ensure this is exported
+    createTourWithSteps, // Ensure this is exported
+    deleteTour, // Ensure this is exported
     getRoomNameById,
     getRoomIdByPictureId,
     getRooms,
