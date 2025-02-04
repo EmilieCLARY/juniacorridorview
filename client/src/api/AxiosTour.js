@@ -34,7 +34,11 @@ const getTourSteps = async (tourId) => {
 
 const updateTourSteps = async (data) => {
     try {
-        await axios.post(`${url}/update-tour-steps`, data);
+        const stepsWithNumbers = data.steps.map((step, index) => ({
+            ...step,
+            step_number: index + 1
+        }));
+        await axios.post(`${url}/update-tour-steps`, { id_tours: data.id_tours, steps: stepsWithNumbers, title: data.title, description: data.description });
         alert('Tour steps updated successfully');
     } catch (error) {
         console.error('Error updating tour steps:', error);
@@ -54,7 +58,11 @@ const addTourStep = async (data) => {
 
 const createTour = async (data) => {
     try {
-        await axios.post(`${url}/create-tour`, data);
+        const stepsWithNumbers = data.steps.map((step, index) => ({
+            ...step,
+            step_number: index + 1
+        }));
+        await axios.post(`${url}/create-tour`, { ...data, steps: stepsWithNumbers });
         alert('Tour created successfully');
     } catch (error) {
         console.error('Error creating tour:', error);

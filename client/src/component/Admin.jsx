@@ -3,6 +3,7 @@ import * as api from '../api/AxiosAdmin';
 import * as tourApi from '../api/AxiosTour';
 import '../style/Admin.css';
 import { NavLink } from 'react-router-dom';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 const Admin = () => {
   const [rooms, setRooms] = useState([]);
@@ -154,10 +155,37 @@ const Admin = () => {
     fetchToursInfo(); // Refresh the tours info to reflect the new tour
   };
 
-  const handleEditTour = (tour) => {
+  const handleEditTour = async (tour) => {
     setSelectedTour(tour);
+    if (!tourSteps[tour.id_tours]) {
+        const stepsData = await tourApi.getTourSteps(tour.id_tours);
+        setTourSteps(prevSteps => ({
+            ...prevSteps,
+            [tour.id_tours]: stepsData
+        }));
+    }
     setEditTourModalOpen(true);
-  };
+};
+
+const handleEditTourSubmit = async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const steps = Array.from(formData.entries()).reduce((acc, [key, value]) => {
+        const match = key.match(/steps\[(\d+)\]\[(\w+)\]/);
+        if (match) {
+            const [_, index, field] = match;
+            if (!acc[index]) acc[index] = {};
+            acc[index][field] = value;
+        }
+        return acc;
+    }, []);
+    const title = formData.get('title');
+    const description = formData.get('description');
+    await tourApi.updateTourSteps({ id_tours: selectedTour.id_tours, steps, title, description });
+    setEditTourModalOpen(false);
+    setNewStepCount(0);
+    fetchToursInfo(); // Refresh the tours info to reflect the updated steps
+};
 
   const handleDeleteTour = async (tourId) => {
     await tourApi.deleteTour(tourId);
@@ -169,7 +197,7 @@ const Admin = () => {
   };
 
   const handleAddNewTourStep = () => {
-    setNewTourSteps([...newTourSteps, { step_number: newTourSteps.length + 1, id_rooms: '' }]);
+    setNewTourSteps([...newTourSteps, { id_rooms: '' }]);
   };
 
   const handleNewTourStepChange = (index, field, value) => {
@@ -178,28 +206,23 @@ const Admin = () => {
     setNewTourSteps(updatedSteps);
   };
 
-  const handleEditTourSubmit = async (event) => {
-    event.preventDefault();
-    const formData = new FormData(event.target);
-    const steps = Array.from(formData.entries()).reduce((acc, [key, value]) => {
-      const match = key.match(/steps\[(\d+)\]\[(\w+)\]/);
-      if (match) {
-        const [_, index, field] = match;
-        if (!acc[index]) acc[index] = {};
-        acc[index][field] = value;
-      }
-      return acc;
-    }, []);
-    await tourApi.updateTourSteps({ id_tours: selectedTour.id_tours, steps });
-    setEditTourModalOpen(false);
-    setNewStepCount(0);
-    fetchToursInfo(); // Refresh the tours info to reflect the updated steps
-  };
-
   const openNewTourModal = () => {
     setNewTourSteps([]); // Reset steps
     setNewTourModalOpen(true);
   };
+
+  const onDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const reorderedSteps = Array.from(tourSteps[selectedTour.id_tours]);
+    const [removed] = reorderedSteps.splice(result.source.index, 1);
+    reorderedSteps.splice(result.destination.index, 0, removed);
+
+    setTourSteps(prevSteps => ({
+        ...prevSteps,
+        [selectedTour.id_tours]: reorderedSteps
+    }));
+};
 
   return (
     <div>
@@ -413,31 +436,42 @@ const Admin = () => {
             <form onSubmit={handleNewTour}>
               <input type="text" name="title" placeholder="Tour Title" required />
               <textarea name="description" placeholder="Tour Description" required></textarea>
-              {newTourSteps.map((step, index) => (
-                <div key={index}>
-                  <h4>Step {index + 1}</h4>
-                  <input
-                    type="text"
-                    name={`steps[${index}][step_number]`}
-                    value={step.step_number}
-                    placeholder="Step Number"
-                    readOnly
-                  />
-                  <select
-                    name={`steps[${index}][id_rooms]`}
-                    value={step.id_rooms}
-                    onChange={(e) => handleNewTourStepChange(index, 'id_rooms', e.target.value)}
-                    required
-                  >
-                    <option value="">Select Room</option>
-                    {rooms.map(room => (
-                        <option key={room.id_rooms} value={room.id_rooms}>
-                            {room.name} ({room.number})
-                        </option>
-                    ))}
-                  </select>
-                </div>
-              ))}
+              <DragDropContext onDragEnd={onDragEnd}>
+                <Droppable droppableId="steps">
+                  {(provided) => (
+                    <div {...provided.droppableProps} ref={provided.innerRef}>
+                      {newTourSteps.map((step, index) => (
+                        <Draggable key={index} draggableId={`step-${index}`} index={index}>
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className="draggable-step"
+                            >
+                              <h4>Step {index + 1}</h4>
+                              <select
+                                name={`steps[${index}][id_rooms]`}
+                                value={step.id_rooms}
+                                onChange={(e) => handleNewTourStepChange(index, 'id_rooms', e.target.value)}
+                                required
+                              >
+                                <option value="">Select Room</option>
+                                {rooms.map(room => (
+                                    <option key={room.id_rooms} value={room.id_rooms}>
+                                        {room.name} ({room.number})
+                                    </option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
               <button type="button" onClick={handleAddNewTourStep}>Add Step</button>
               <button type="submit">Add Tour</button>
             </form>
@@ -451,46 +485,75 @@ const Admin = () => {
             <span className="close" onClick={() => setEditTourModalOpen(false)}>&times;</span>
             <h2>Edit Tour</h2>
             <form onSubmit={handleEditTourSubmit}>
-              <input type="hidden" name="id_tours" value={selectedTour.id_tours} />
-              {tourSteps[selectedTour.id_tours]?.map((step, index) => (
-                <div key={step.id_tour_steps}>
-                  <h4>Step {index + 1}</h4>
-                  <input type="hidden" name={`steps[${index}][id_tour_steps]`} value={step.id_tour_steps} />
-                  <input type="text" name={`steps[${index}][step_number]`} defaultValue={step.step_number} placeholder="Step Number" required />
-                  <select
-                    name={`steps[${index}][id_rooms]`}
-                    defaultValue={step.id_rooms}
-                    required
-                  >
-                    <option value="">Select Room</option>
-                    {rooms.map(room => (
-                        <option key={room.id_rooms} value={room.id_rooms}>
-                            {room.name} ({room.number})
-                        </option>
-                    ))}
-                  </select>
-                </div>
-              ))}
-              {[...Array(newStepCount)].map((_, index) => (
-                <div key={`new_${index}`}>
-                  <h4>New Step {tourSteps[selectedTour.id_tours]?.length + index + 1}</h4>
-                  <input type="hidden" name={`steps[${tourSteps[selectedTour.id_tours]?.length + index}][id_tour_steps]`} value={`new_${index}`} />
-                  <input type="text" name={`steps[${tourSteps[selectedTour.id_tours]?.length + index}][step_number]`} placeholder="Step Number" required />
-                  <select
-                    name={`steps[${tourSteps[selectedTour.id_tours]?.length + index}][id_rooms]`}
-                    required
-                  >
-                    <option value="">Select Room</option>
-                    {rooms.map(room => (
-                        <option key={room.id_rooms} value={room.id_rooms}>
-                            {room.name} ({room.number})
-                        </option>
-                    ))}
-                  </select>
-                </div>
-              ))}
-              <button type="button" onClick={handleAddStep}>Add Step</button>
-              <button type="submit">Update Tour</button>
+                <input type="hidden" name="id_tours" value={selectedTour.id_tours} />
+                <input type="text" name="title" defaultValue={selectedTour.title} placeholder="Tour Title" required />
+                <textarea name="description" defaultValue={selectedTour.description} placeholder="Tour Description" required></textarea>
+                <DragDropContext onDragEnd={onDragEnd}>
+                    <Droppable droppableId="steps">
+                        {(provided) => (
+                            <div {...provided.droppableProps} ref={provided.innerRef}>
+                                {tourSteps[selectedTour.id_tours]?.map((step, index) => (
+                                    <Draggable key={step.id_tour_steps} draggableId={`step-${step.id_tour_steps}`} index={index}>
+                                        {(provided) => (
+                                            <div
+                                                ref={provided.innerRef}
+                                                {...provided.draggableProps}
+                                                {...provided.dragHandleProps}
+                                                className="draggable-step"
+                                            >
+                                                <span className="drag-icon">☰</span>
+                                                <h4>Step {index + 1}</h4>
+                                                <input type="hidden" name={`steps[${index}][id_tour_steps]`} value={step.id_tour_steps} />
+                                                <select
+                                                    name={`steps[${index}][id_rooms]`}
+                                                    defaultValue={step.id_rooms}
+                                                    required
+                                                >
+                                                    <option value="">Select Room</option>
+                                                    {rooms.map(room => (
+                                                        <option key={room.id_rooms} value={room.id_rooms}>
+                                                            {room.name} ({room.number})
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        )}
+                                    </Draggable>
+                                ))}
+                                {[...Array(newStepCount)].map((_, index) => (
+                                    <Draggable key={`new_${index}`} draggableId={`new-step-${index}`} index={index}>
+                                        {(provided) => (
+                                            <div
+                                                ref={provided.innerRef}
+                                                {...provided.draggableProps}
+                                                {...provided.dragHandleProps}
+                                                className="draggable-step"
+                                            >
+                                                <span className="drag-icon">☰</span>
+                                                <h4>New Step {tourSteps[selectedTour.id_tours]?.length + index + 1}</h4>
+                                                <input type="hidden" name={`steps[${tourSteps[selectedTour.id_tours]?.length + index}][id_tour_steps]`} value={`new_${index}`} />
+                                                <select
+                                                    name={`steps[${tourSteps[selectedTour.id_tours]?.length + index}][id_rooms]`}
+                                                    required
+                                                >
+                                                    <option value="">Select Room</option>
+                                                    {rooms.map(room => (
+                                                        <option key={room.id_rooms} value={room.id_rooms}>
+                                                            {room.name} ({room.number})
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        )}
+                                    </Draggable>
+                                ))}
+                                {provided.placeholder}
+                            </div>
+                        )}
+                    </Droppable>
+                </DragDropContext>
+                <button type="button" onClick={handleAddStep}>Add Step</button>
+                <button type="submit">Update Tour</button>
             </form>
           </div>
         </div>

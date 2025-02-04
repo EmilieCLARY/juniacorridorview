@@ -171,8 +171,12 @@ app.get("/tour-steps/:id", (req, res) => {
 });
 
 app.post("/update-tour-steps", (req, res) => {
-    const { id_tours, steps } = req.body;
-    updateTourSteps(id_tours, steps, (err) => {
+    const { id_tours, steps, title, description } = req.body;
+    const stepsWithNumbers = steps.map((step, index) => ({
+        ...step,
+        step_number: index + 1
+    }));
+    updateTourSteps(id_tours, stepsWithNumbers, title, description, (err) => {
         if (err) {
             console.error('Error updating tour steps', err.message);
             res.status(500).send('Error updating tour steps');
@@ -196,7 +200,11 @@ app.post("/add-tour-step", (req, res) => {
 
 app.post("/create-tour", (req, res) => {
     const { title, description, steps } = req.body;
-    createTourWithSteps(title, description, steps, (err) => {
+    const stepsWithNumbers = steps.map((step, index) => ({
+        ...step,
+        step_number: index + 1
+    }));
+    createTourWithSteps(title, description, stepsWithNumbers, (err) => {
         if (err) {
             console.error('Error creating tour', err.message);
             res.status(500).send('Error creating tour');

@@ -321,19 +321,26 @@ const getFirstPictureByRoomId = (id_rooms, callback) => {
     });
 };
 
-const updateTourSteps = (id_tours, steps, callback) => {
-    const deleteSql = `DELETE FROM Tour_Steps WHERE id_tours = ?`;
-    db.run(deleteSql, [id_tours], (err) => {
+const updateTourSteps = (id_tours, steps, title, description, callback) => {
+    const updateTourSql = `UPDATE Tours SET title = ?, description = ? WHERE id_tours = ?`;
+    db.run(updateTourSql, [title, description, id_tours], (err) => {
         if (err) {
             callback(err);
         } else {
-            const insertSql = `INSERT INTO Tour_Steps (id_tour_steps, id_tours, id_rooms, step_number) VALUES (?, ?, ?, ?)`;
-            const stmt = db.prepare(insertSql);
-            steps.forEach(step => {
-                const newId = step.id_tour_steps.startsWith('new_') ? generateUniqueId() : step.id_tour_steps;
-                stmt.run(newId, id_tours, step.id_rooms, step.step_number);
+            const deleteSql = `DELETE FROM Tour_Steps WHERE id_tours = ?`;
+            db.run(deleteSql, [id_tours], (err) => {
+                if (err) {
+                    callback(err);
+                } else {
+                    const insertSql = `INSERT INTO Tour_Steps (id_tour_steps, id_tours, id_rooms, step_number) VALUES (?, ?, ?, ?)`;
+                    const stmt = db.prepare(insertSql);
+                    steps.forEach(step => {
+                        const newId = step.id_tour_steps.startsWith('new_') ? generateUniqueId() : step.id_tour_steps;
+                        stmt.run(newId, id_tours, step.id_rooms, step.step_number);
+                    });
+                    stmt.finalize(callback);
+                }
             });
-            stmt.finalize(callback);
         }
     });
 };
