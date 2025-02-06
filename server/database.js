@@ -1,20 +1,33 @@
-const sqlite3 = require('sqlite3').verbose();
+const mysql = require('mysql');
+require('dotenv').config({ path: __dirname + '/database.env' });
 
-const db = new sqlite3.Database('./db.db', (err) => {
+const db = mysql.createConnection({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    port: process.env.DB_PORT
+});
+
+db.connect((err) => {
     if (err) {
-        console.error('Error opening database', err.message);
+        console.error('Error connecting to MySQL database:', err.message);
+        console.error('Host:', process.env.DB_HOST);
+        console.error('User:', process.env.DB_USER);
+        console.error('Database:', process.env.DB_NAME);
+        console.error('Port:', process.env.DB_PORT);
     } else {
-        console.log('Connected to the SQLite database.');
+        console.log('Connected to the MySQL database.');
     }
 });
 
 const getTables = (callback) => {
     console.log('Fetching tables');
-    db.all("SELECT name FROM sqlite_master WHERE type='table'", (err, tables) => {
+    db.query("SHOW TABLES", (err, tables) => {
         if (err) {
             callback(err, null);
         } else {
-            const tableNames = tables.map(table => table.name);
+            const tableNames = tables.map(table => Object.values(table)[0]);
             callback(null, tableNames);
         }
     });
@@ -22,7 +35,7 @@ const getTables = (callback) => {
 
 const getAllPictures = (callback) => {
     const sql = `SELECT id_pictures FROM Pictures`;
-    db.all(sql, [], (err, rows) => {
+    db.query(sql, (err, rows) => {
         if (err) {
             console.error('Error fetching pictures', err);
             callback(err, null);
@@ -38,7 +51,7 @@ const getAllPictures = (callback) => {
 
 const getTours = (callback) => {
     const sql = `SELECT * FROM Tours`;
-    db.all(sql, [], (err, rows) => {
+    db.query(sql, (err, rows) => {
         if (err) {
             console.error('Error fetching tours', err);
             callback(err, null);
@@ -56,7 +69,7 @@ const getTours = (callback) => {
 
 const getTourSteps = (tourId, callback) => {
     const sql = `SELECT * FROM Tour_Steps WHERE id_tours = ? ORDER BY step_number`;
-    db.all(sql, [tourId], (err, rows) => {
+    db.query(sql, [tourId], (err, rows) => {
         if (err) {
             console.error('Error fetching tour steps', err);
             callback(err, null);
@@ -81,7 +94,7 @@ const getTourStepsWithRoomInfo = (tourId, callback) => {
         WHERE Tour_Steps.id_tours = ?
         ORDER BY Tour_Steps.step_number
     `;
-    db.all(sql, [tourId], (err, rows) => {
+    db.query(sql, [tourId], (err, rows) => {
         if (err) {
             console.error('Error fetching tour steps', err);
             callback(err, null);
@@ -106,7 +119,7 @@ const getRooms = (callback) => {
         FROM Rooms 
         LEFT JOIN Buildings ON Rooms.id_buildings = Buildings.id_buildings
     `;
-    db.all(sql, [], (err, rows) => {
+    db.query(sql, (err, rows) => {
         if (err) {
             console.error('Error fetching rooms', err);
             callback(err, null);
@@ -116,7 +129,7 @@ const getRooms = (callback) => {
                 name: row.name,
                 number: row.number,
                 id_buildings: row.id_buildings,
-                building_name: row.building_name // Add this line
+                building_name: row.building_name
             }));
             console.log('Fetched', rooms.length, 'rooms');
             callback(null, rooms);
@@ -125,89 +138,59 @@ const getRooms = (callback) => {
 };
 
 function insertImage(id_rooms, data, callback) {
-    db.get(`SELECT MAX(id_pictures) as maxId FROM Pictures`, (err, row) => {
-        if (err) {
-            callback(err);
-        } else {
-            const newId = (row.maxId || 0) + 1;
-            const stmt = db.prepare(`INSERT INTO Pictures (id_pictures, id_rooms, picture) VALUES (?, ?, ?)`);
-            stmt.run(newId, id_rooms, data, (err) => {
-                callback(err);
-            });
-            stmt.finalize();
-        }
+    const sql = `INSERT INTO Pictures (id_rooms, picture) VALUES (?, ?)`;
+    db.query(sql, [id_rooms, data], (err) => {
+        callback(err);
     });
 }
 
 function updateImage(id_pictures, data, callback) {
     const sql = `UPDATE Pictures SET picture = ? WHERE id_pictures = ?`;
-    db.run(sql, [data, id_pictures], (err) => {
+    db.query(sql, [data, id_pictures], (err) => {
         callback(err);
     });
 }
 
 function updateInfospot(id_info_popup, id_pictures, posX, posY, posZ, text, title, image, callback) {
     const sql = `UPDATE Info_Popup SET id_pictures = ?, position_x = ?, position_y = ?, position_z = ?, text = ?, title = ?, image = ? WHERE id_info_popup = ?`;
-    db.run(sql, [id_pictures, posX, posY, posZ, text, title, image, id_info_popup], (err) => {
+    db.query(sql, [id_pictures, posX, posY, posZ, text, title, image, id_info_popup], (err) => {
         callback(err);
     });
 }
 
 function insertInfoPopUp(id_pictures, posX, posY, posZ, text, title, image, callback) {
-    db.get(`SELECT MAX(id_info_popup) as maxId FROM Info_Popup`, (err, row) => {
-        if (err) {
-            callback(err);
-        } else {
-            const newId = (row.maxId || 0) + 1;
-            const stmt = db.prepare(`INSERT INTO Info_Popup (id_info_popup, id_pictures, position_x, position_y, position_z, text, title, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
-            stmt.run(newId, id_pictures, posX, posY, posZ, text, title, image, (err) => {
-                callback(err);
-            });
-            stmt.finalize();
-        }
+    console.log('Inserting info popup for picture', id_pictures);
+    const sql = `INSERT INTO Info_Popup (id_pictures, position_x, position_y, position_z, text, title, image) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    const params = [id_pictures, posX, posY, posZ, text, title, image || null];
+    db.query(sql, params, (err) => {
+        callback(err);
     });
 }
 
 function insertLink(id_pictures, posX, posY, posZ, id_pictures_destination, callback) {
-    db.get(`SELECT MAX(id_links) as maxId FROM Links`, (err, row) => {
-        if (err) {
-            callback(err);
-        } else {
-            const newId = (row.maxId || 0) + 1;
-            const stmt = db.prepare(`INSERT INTO Links (id_links, id_pictures, position_x, position_y, position_z, id_pictures_destination) VALUES (?, ?, ?, ?, ?, ?)`);
-            stmt.run(newId, id_pictures, posX, posY, posZ, id_pictures_destination, (err) => {
-                callback(err);
-            });
-            stmt.finalize();
-        }
+    const sql = `INSERT INTO Links (id_pictures, position_x, position_y, position_z, id_pictures_destination) VALUES (?, ?, ?, ?, ?)`;
+    db.query(sql, [id_pictures, posX, posY, posZ, id_pictures_destination], (err) => {
+        callback(err);
     });
 }
 
 function updateLink(id_links, id_pictures, posX, posY, posZ, id_pictures_destination, callback) {
     const sql = `UPDATE Links SET id_pictures = ?, position_x = ?, position_y = ?, position_z = ?, id_pictures_destination = ? WHERE id_links = ?`;
-    db.run(sql, [id_pictures, posX, posY, posZ, id_pictures_destination, id_links], (err) => {
+    db.query(sql, [id_pictures, posX, posY, posZ, id_pictures_destination, id_links], (err) => {
         callback(err);
     });
 }
 
 function addRoom(name, number, id_buildings, callback) {
-    db.get(`SELECT MAX(id_rooms) as maxId FROM Rooms`, (err, row) => {
-        if (err) {
-            callback(err);
-        } else {
-            const newId = (row.maxId || 0) + 1;
-            const stmt = db.prepare(`INSERT INTO Rooms (id_rooms, name, number, id_buildings) VALUES (?, ?, ?, ?)`);
-            stmt.run(newId, name, number, id_buildings, (err) => {
-                if (callback) callback(err); // Ensure callback is a function
-            });
-            stmt.finalize();
-        }
+    const sql = `INSERT INTO Rooms (name, number, id_buildings) VALUES (?, ?, ?)`;
+    db.query(sql, [name, number, id_buildings], (err) => {
+        callback(err);
     });
 }
 
 function retrieveInfoPopUpByIdPicture(id_pictures, callback) {
     const sql = `SELECT * FROM Info_Popup WHERE id_pictures = ?`;
-    db.all(sql, [id_pictures], (err, rows) => {
+    db.query(sql, [id_pictures], (err, rows) => {
         if (err) {
             console.error('Error fetching info popup', err);
             callback(err, null);
@@ -230,7 +213,7 @@ function retrieveInfoPopUpByIdPicture(id_pictures, callback) {
 
 function retrieveLinkByIdPicture(id_pictures, callback) {
     const sql = `SELECT * FROM Links WHERE id_pictures = ?`;
-    db.all(sql, [id_pictures], (err, rows) => {
+    db.query(sql, [id_pictures], (err, rows) => {
         if (err) {
             console.error('Error fetching links', err);
             callback(err, null);
@@ -250,17 +233,18 @@ function retrieveLinkByIdPicture(id_pictures, callback) {
 }
 
 async function fetchImageById(id) {
-    const FileType = await import('file-type'); // Use dynamic import
+    const FileType = await import('file-type');
     return new Promise((resolve, reject) => {
-        db.get(`SELECT picture FROM Pictures WHERE id_pictures = ?`, [id], async (err, row) => {
+        const sql = `SELECT picture FROM Pictures WHERE id_pictures = ?`;
+        db.query(sql, [id], async (err, rows) => {
             if (err) {
                 reject(err);
-            } else if (row) {
-                const contentType = await FileType.fileTypeFromBuffer(row.picture); // Determine MIME type
+            } else if (rows.length > 0) {
+                const contentType = await FileType.fileTypeFromBuffer(rows[0].picture);
                 if (contentType) {
-                    resolve({ picture: row.picture, mime: contentType.mime });
+                    resolve({ picture: rows[0].picture, mime: contentType.mime });
                 } else {
-                    resolve({ picture: row.picture, mime: 'application/octet-stream' }); // Default MIME type
+                    resolve({ picture: rows[0].picture, mime: 'application/octet-stream' });
                 }
             } else {
                 resolve({ picture: null });
@@ -271,31 +255,31 @@ async function fetchImageById(id) {
 
 const getRoomNameById = (id_rooms, callback) => {
     const sql = `SELECT name, number FROM Rooms WHERE id_rooms = ?`;
-    db.get(sql, [id_rooms], (err, row) => {
+    db.query(sql, [id_rooms], (err, rows) => {
         if (err) {
             console.error('Error fetching room details', err);
             callback(err, null);
         } else {
-            callback(null, row);
+            callback(null, rows[0]);
         }
     });
 };
 
 const getRoomIdByPictureId = (id_pictures, callback) => {
     const sql = `SELECT id_rooms FROM Pictures WHERE id_pictures = ?`;
-    db.get(sql, [id_pictures], (err, row) => {
+    db.query(sql, [id_pictures], (err, rows) => {
         if (err) {
             console.error('Error fetching room ID by picture ID', err);
             callback(err, null);
         } else {
-            callback(null, row.id_rooms);
+            callback(null, rows[0].id_rooms);
         }
     });
 };
 
 const getPicturesByRoomId = (id_rooms, callback) => {
     const sql = `SELECT id_pictures FROM Pictures WHERE id_rooms = ?`;
-    db.all(sql, [id_rooms], (err, rows) => {
+    db.query(sql, [id_rooms], (err, rows) => {
         if (err) {
             console.error('Error fetching pictures by room ID', err);
             callback(err, null);
@@ -311,34 +295,37 @@ const getPicturesByRoomId = (id_rooms, callback) => {
 
 const getFirstPictureByRoomId = (id_rooms, callback) => {
     const sql = `SELECT id_pictures FROM Pictures WHERE id_rooms = ? LIMIT 1`;
-    db.get(sql, [id_rooms], (err, row) => {
+    db.query(sql, [id_rooms], (err, rows) => {
         if (err) {
             console.error('Error fetching first picture by room ID', err);
             callback(err, null);
         } else {
-            callback(null, row);
+            callback(null, rows[0]);
         }
     });
 };
 
 const updateTourSteps = (id_tours, steps, title, description, callback) => {
     const updateTourSql = `UPDATE Tours SET title = ?, description = ? WHERE id_tours = ?`;
-    db.run(updateTourSql, [title, description, id_tours], (err) => {
+    db.query(updateTourSql, [title, description, id_tours], (err) => {
         if (err) {
             callback(err);
         } else {
             const deleteSql = `DELETE FROM Tour_Steps WHERE id_tours = ?`;
-            db.run(deleteSql, [id_tours], (err) => {
+            db.query(deleteSql, [id_tours], (err) => {
                 if (err) {
                     callback(err);
                 } else {
                     const insertSql = `INSERT INTO Tour_Steps (id_tour_steps, id_tours, id_rooms, step_number) VALUES (?, ?, ?, ?)`;
-                    const stmt = db.prepare(insertSql);
                     steps.forEach(step => {
                         const newId = step.id_tour_steps.startsWith('new_') ? generateUniqueId() : step.id_tour_steps;
-                        stmt.run(newId, id_tours, step.id_rooms, step.step_number);
+                        db.query(insertSql, [newId, id_tours, step.id_rooms, step.step_number], (err) => {
+                            if (err) {
+                                callback(err);
+                            }
+                        });
                     });
-                    stmt.finalize(callback);
+                    callback(null);
                 }
             });
         }
@@ -348,7 +335,7 @@ const updateTourSteps = (id_tours, steps, title, description, callback) => {
 const addTourStep = (id_tours, step, callback) => {
     const newId = generateUniqueId();
     const sql = `INSERT INTO Tour_Steps (id_tour_steps, id_tours, id_rooms, step_number) VALUES (?, ?, ?, ?)`;
-    db.run(sql, [newId, id_tours, step.id_rooms, step.step_number], (err) => {
+    db.query(sql, [newId, id_tours, step.id_rooms, step.step_number], (err) => {
         callback(err);
     });
 };
@@ -358,55 +345,49 @@ const generateUniqueId = () => {
 };
 
 const createTour = (title, description, callback) => {
-    db.get(`SELECT MAX(id_tours) as maxId FROM Tours`, (err, row) => {
+    const sql = `INSERT INTO Tours (title, description) VALUES (?, ?)`;
+    db.query(sql, [title, description], (err, result) => {
         if (err) {
             callback(err);
         } else {
-            const newId = (row.maxId || 0) + 1;
-            const sql = `INSERT INTO Tours (id_tours, title, description) VALUES (?, ?, ?)`;
-            db.run(sql, [newId, title, description], (err) => {
-                callback(err);
-            });
+            callback(null, result.insertId);
         }
     });
 };
 
 const createTourWithSteps = (title, description, steps, callback) => {
-    db.get(`SELECT MAX(id_tours) as maxId FROM Tours`, (err, row) => {
+    const sql = `INSERT INTO Tours (title, description) VALUES (?, ?)`;
+    db.query(sql, [title, description], (err, result) => {
         if (err) {
             callback(err);
         } else {
-            const newId = (row.maxId || 0) + 1;
-            const sql = `INSERT INTO Tours (id_tours, title, description) VALUES (?, ?, ?)`;
-            db.run(sql, [newId, title, description], (err) => {
-                if (err) {
-                    callback(err);
-                } else {
-                    if (Array.isArray(steps)) {
-                        const insertStepSql = `INSERT INTO Tour_Steps (id_tour_steps, id_tours, id_rooms, step_number) VALUES (?, ?, ?, ?)`;
-                        const stmt = db.prepare(insertStepSql);
-                        steps.forEach(step => {
-                            const stepId = generateUniqueId();
-                            stmt.run(stepId, newId, step.id_rooms, step.step_number);
-                        });
-                        stmt.finalize(callback);
-                    } else {
-                        callback(new Error('Steps should be an array'));
-                    }
-                }
-            });
+            const tourId = result.insertId;
+            if (Array.isArray(steps)) {
+                const insertStepSql = `INSERT INTO Tour_Steps (id_tour_steps, id_tours, id_rooms, step_number) VALUES (?, ?, ?, ?)`;
+                steps.forEach(step => {
+                    const stepId = generateUniqueId();
+                    db.query(insertStepSql, [stepId, tourId, step.id_rooms, step.step_number], (err) => {
+                        if (err) {
+                            callback(err);
+                        }
+                    });
+                });
+                callback(null);
+            } else {
+                callback(new Error('Steps should be an array'));
+            }
         }
     });
 };
 
 const deleteTour = (id_tours, callback) => {
     const deleteStepsSql = `DELETE FROM Tour_Steps WHERE id_tours = ?`;
-    db.run(deleteStepsSql, [id_tours], (err) => {
+    db.query(deleteStepsSql, [id_tours], (err) => {
         if (err) {
             callback(err);
         } else {
             const deleteTourSql = `DELETE FROM Tours WHERE id_tours = ?`;
-            db.run(deleteTourSql, [id_tours], (err) => {
+            db.query(deleteTourSql, [id_tours], (err) => {
                 callback(err);
             });
         }
@@ -424,11 +405,11 @@ module.exports = {
     insertLink,
     retrieveLinkByIdPicture,
     getTours,
-    getTourStepsWithRoomInfo, // Ensure this is exported
-    updateTourSteps, // Ensure this is exported
-    addTourStep, // Ensure this is exported
-    createTourWithSteps, // Ensure this is exported
-    deleteTour, // Ensure this is exported
+    getTourStepsWithRoomInfo,
+    updateTourSteps,
+    addTourStep,
+    createTourWithSteps,
+    deleteTour,
     getRoomNameById,
     getRoomIdByPictureId,
     getRooms,
@@ -437,5 +418,5 @@ module.exports = {
     updateImage,
     updateInfospot,
     updateLink,
-    addRoom // Ensure this is exported
+    addRoom
 };
