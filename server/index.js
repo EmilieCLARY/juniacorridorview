@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 const cookieparser = require("cookie-parser")
 const session = require("express-session");
 const fileUpload = require('express-fileupload'); // Add this line
+const mysql = require('mysql');
 const saltRounds = 10;
 const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture, getTours, getTourStepsWithRoomInfo, updateTourSteps, addTourStep, createTourWithSteps, deleteTour, getRoomNameById, getRoomIdByPictureId, getRooms, getPicturesByRoomId, getFirstPictureByRoomId, updateImage, updateInfospot, updateLink, addRoom } = require('./database');
 
@@ -120,8 +121,9 @@ app.post("/retrieveLinkByIdPicture/", (req, res) => {
 app.post("/insertInfoPopUp", (req, res) => {
     const { id_pictures, posX, posY, posZ, text, title } = req.body;
     const pic = req.files ? req.files.pic : null;
-    if (pic) {
-        insertInfoPopUp(id_pictures, posX, posY, posZ, text, title, pic.data, (err) => {
+    console.log('id_pictures:', id_pictures, 'posX:', posX, 'posY:', posY, 'posZ:', posZ, 'text:', text, 'title:', title, 'pic:', pic);
+    if (id_pictures && posX && posY && posZ && text && title) {
+        insertInfoPopUp(id_pictures, posX, posY, posZ, text, title, pic ? pic.data : null, (err) => {
             if (err) {
                 console.error('Error inserting info popup:', err);
                 res.sendStatus(500);
