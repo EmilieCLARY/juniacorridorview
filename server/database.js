@@ -137,6 +137,23 @@ const getRooms = (callback) => {
     });
 };
 
+const getBuildings = (callback) => {
+    const sql = `SELECT id_buildings, name FROM Buildings`;
+    db.query(sql, (err, rows) => {
+        if (err) {
+            console.error('Error fetching buildings', err);
+            callback(err, null);
+        } else {
+            const buildings = rows.map(row => ({
+                id_buildings: row.id_buildings,
+                name: row.name
+            }));
+            console.log('Fetched', buildings.length, 'buildings');
+            callback(null, buildings);
+        }
+    });
+};
+
 function insertImage(id_rooms, data, callback) {
     const sql = `INSERT INTO Pictures (id_rooms, picture) VALUES (?, ?)`;
     db.query(sql, [id_rooms, data], (err) => {
@@ -422,5 +439,6 @@ module.exports = {
     updateImage,
     updateInfospot,
     updateLink,
-    addRoom
+    addRoom,
+    getBuildings
 };

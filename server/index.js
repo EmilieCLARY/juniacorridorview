@@ -8,7 +8,7 @@ const session = require("express-session");
 const fileUpload = require('express-fileupload'); // Add this line
 const mysql = require('mysql');
 const saltRounds = 10;
-const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture, getTours, getTourStepsWithRoomInfo, updateTourSteps, addTourStep, createTourWithSteps, deleteTour, getRoomNameById, getRoomIdByPictureId, getRooms, getPicturesByRoomId, getFirstPictureByRoomId, updateImage, updateInfospot, updateLink, addRoom } = require('./database');
+const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture, getTours, getTourStepsWithRoomInfo, updateTourSteps, addTourStep, createTourWithSteps, deleteTour, getRoomNameById, getRoomIdByPictureId, getRooms, getPicturesByRoomId, getFirstPictureByRoomId, updateImage, updateInfospot, updateLink, addRoom, getBuildings } = require('./database');
 
 const PORT = process.env.PORT || 8000;
 
@@ -359,6 +359,17 @@ app.post('/add-room', (req, res) => {
             res.sendStatus(500);
         } else {
             res.json({ id_rooms: roomId });
+        }
+    });
+});
+
+app.get('/buildings', (req, res) => {
+    getBuildings((err, buildings) => {
+        if (err) {
+            console.error('Error fetching buildings', err);
+            res.sendStatus(500);
+        } else {
+            res.json(buildings);
         }
     });
 });
