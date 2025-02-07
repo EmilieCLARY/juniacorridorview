@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import * as api from '../api/AxiosLogin';
 import '../style/Navbar.css';
+// Importer l'image
+//import logo from '/img/logojunia.png';
 
 const Navbar = () => {
   const [login, setLogin] = useState(false);
@@ -16,32 +18,18 @@ const Navbar = () => {
 
   return (
     <>
-    
-    
-      <nav className="navbar bg-junia-purple">
-        <div className="navbar-container">
-          <div className="navbar-left">
-            <NavLink to="/" className="navbar-logo">
-              JUNIA
-            </NavLink>
-            <p className="navbar-subtitle">Grande école d'ingénieurs</p>
-          </div>
-          <div className="navbar-right">
-            <NavLink to="/" className="navbar-item">
-              Home
-            </NavLink>
-            {login ? (
-              <NavLink to="/logout" className="navbar-item">
-                Logout
-              </NavLink>
-            ) : (
-              <NavLink to="/login" className="navbar-item">
-                Login
-              </NavLink>
-            )}
-          </div>
+      <nav className="relative justify-between bg-white px-2 shadow-lg">
+        <div className="flex items-center">
+          <img src="/img/logojunia.png" alt="Logo JUNIA" className="h-3/4"></img>
+        </div>
+        <div className=" flex items-center text-5xl text-junia-purple font-title"> 
+          Menu Principal 
+        </div>
+        <div className="flex items-center text-xl text-junia-orange font-title">
+          Login Admin
         </div>
       </nav>
+
     </>
   );
 };
