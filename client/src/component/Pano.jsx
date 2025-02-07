@@ -4,8 +4,10 @@ import * as THREE from "three";
 import * as api from '../api/AxiosPano';
 import { getTourSteps } from '../api/AxiosTour'; // Add this line
 import '../style/Pano.css';
+import { Buffer } from 'buffer';
 
 const PanoramaViewer = ({ location }) => {
+  Buffer.from = Buffer.from || require('buffer').Buffer;
   const viewerRef = useRef(null);
   const [images, setImages] = useState([]);
   const [viewer, setViewer] = useState(null);
