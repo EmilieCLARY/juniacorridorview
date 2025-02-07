@@ -183,8 +183,12 @@ function updateLink(id_links, id_pictures, posX, posY, posZ, id_pictures_destina
 
 function addRoom(name, number, id_buildings, callback) {
     const sql = `INSERT INTO Rooms (name, number, id_buildings) VALUES (?, ?, ?)`;
-    db.query(sql, [name, number, id_buildings], (err) => {
-        callback(err);
+    db.query(sql, [name, number, id_buildings], (err, result) => {
+        if (err) {
+            callback(err, null);
+        } else {
+            callback(null, result.insertId);
+        }
     });
 }
 

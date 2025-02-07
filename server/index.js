@@ -353,12 +353,12 @@ app.post('/update-link', (req, res) => {
 
 app.post('/add-room', (req, res) => {
     const { name, number, id_buildings } = req.body;
-    addRoom(name, number, id_buildings, (err) => {
+    addRoom(name, number, id_buildings, (err, roomId) => {
         if (err) {
             console.error('Error adding room:', err);
             res.sendStatus(500);
         } else {
-            res.sendStatus(200);
+            res.json({ id_rooms: roomId });
         }
     });
 });

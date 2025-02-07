@@ -39,6 +39,7 @@ const Admin = () => {
   const [posY, setPosY] = useState('');
   const [posZ, setPosZ] = useState('');
   const [isSelectingPosition, setIsSelectingPosition] = useState(false);
+  const [fromNewRoom, setFromNewRoom] = useState(false); // Add this line
 
   const fetchRoomsInfo = async () => {
     try {
@@ -156,13 +157,31 @@ const Admin = () => {
     fetchRoomsInfo(); // Refresh the rooms info to reflect the updated link
   };
 
-  const handleNewRoom = async (event) => {
+  const handleNewRoom = async (event, nextStep = false) => {
     event.preventDefault();
-    const formData = new FormData(event.target);
-    await api.addRoom(formData);
-    setNewRoomModalOpen(false);
+    const form = event.target.closest('form');
+    const formData = new FormData(form);
+    const roomId = await api.addRoom(formData); // Ensure roomId is returned from the API
+    if (!roomId) {
+        console.error('Failed to add room');
+        return;
+    }
+    const pictures = formData.getAll('pictures');
+    for (const picture of pictures) {
+        const pictureFormData = new FormData();
+        pictureFormData.append('id_rooms', roomId);
+        pictureFormData.append('pic', picture);
+        await api.uploadFile(pictureFormData);
+    }
+    if (nextStep) {
+        setFromNewRoom(true); // Set the flag to true
+        setNewRoomModalOpen(false); // Close the new room modal
+        handleNewLink(roomId);
+    } else {
+        setNewRoomModalOpen(false);
+    }
     fetchRoomsInfo(); // Refresh the rooms info to reflect the new room
-  };
+};
 
   const handleNewTour = async (event) => {
     event.preventDefault();
@@ -282,6 +301,7 @@ const handleEditTourSubmit = async (event) => {
       return { ...pic, imageUrl };
     }));
     setRoomPictures(picturesWithUrls);
+    setNewLinkModalOpen(false); // Close the new link modal
     setNewInfospotModalOpen(true);
   };
 
@@ -289,9 +309,11 @@ const handleEditTourSubmit = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
     await api.insertInfoPopUp(formData);
-    setNewInfospotModalOpen(false);
+    if (!fromNewRoom) { // Check the flag
+        setNewInfospotModalOpen(false);
+    }
     fetchRoomsInfo(); // Refresh the rooms info to reflect the new infospot
-  };
+};
 
   const handleNewLink = async (roomId) => {
     setSelectedRoomId(roomId);
@@ -308,9 +330,11 @@ const handleEditTourSubmit = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
     await api.insertLink(formData);
-    setNewLinkModalOpen(false);
+    if (!fromNewRoom) { // Check the flag
+        setNewLinkModalOpen(false);
+    }
     fetchRoomsInfo(); // Refresh the rooms info to reflect the new link
-  };
+};
 
   const handlePreviewClick = async (imageUrl, pictureId) => {
     setSelectedPreviewImage(imageUrl);
@@ -596,11 +620,13 @@ const handleEditTourSubmit = async (event) => {
           <div className="modal-content">
             <span className="close" onClick={() => setNewRoomModalOpen(false)}>&times;</span>
             <h2>Add New Room</h2>
-            <form onSubmit={handleNewRoom}>
+            <form onSubmit={(e) => handleNewRoom(e, false)}>
               <input type="text" name="name" placeholder="Room Name" required />
               <input type="text" name="number" placeholder="Room Number" required />
               <input type="text" name="id_buildings" placeholder="Building ID" required />
-              <button type="submit">Add Room</button>
+              <input type="file" name="pictures" multiple />
+              <button type="submit">Valider et fermer</button>
+              <button type="button" onClick={(e) => handleNewRoom(e, true)}>Valider et Suivant : Liens</button>
             </form>
           </div>
         </div>
@@ -740,7 +766,7 @@ const handleEditTourSubmit = async (event) => {
       {newInfospotModalOpen && (
         <div className="modal">
           <div className="modal-content">
-            <span className="close" onClick={() => setNewInfospotModalOpen(false)}>&times;</span>
+            <span className="close" onClick={() => { setNewInfospotModalOpen(false); setFromNewRoom(false); }}>&times;</span>
             <h2>Add New Infospot</h2>
             <div className="modal-body">
               <div className="image-preview-column">
@@ -774,13 +800,14 @@ const handleEditTourSubmit = async (event) => {
       {newLinkModalOpen && (
         <div className="modal">
           <div className="modal-content">
-            <span className="close" onClick={() => setNewLinkModalOpen(false)}>&times;</span>
+            <span className="close" onClick={() => { setNewLinkModalOpen(false); setFromNewRoom(false); }}>&times;</span>
             <h2>Add New Link</h2>
             <div className="modal-body">
               <div className="image-preview-column">
                 {roomPictures.map(picture => (
                   <div key={picture.id_pictures} className="image-preview" onClick={() => handlePreviewClick(picture.imageUrl, picture.id_pictures)}>
                     <img src={picture.imageUrl} alt={`Preview of ${picture.id_pictures}`} />
+                    <p>ID : {picture.id_pictures}</p>
                   </div>
                 ))}
               </div>
@@ -797,6 +824,9 @@ const handleEditTourSubmit = async (event) => {
                   <input type="text" name="id_pictures_destination" placeholder="Picture Destination ID" required/>
                   <button type="submit">Add Link</button>
                 </form>
+                {fromNewRoom && (
+                    <button type="button" onClick={() => handleNewInfospot(selectedRoomId)}>Valider et Suivant : Infospot</button>
+                )}
               </div>
             </div>
           </div>
