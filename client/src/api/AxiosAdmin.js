@@ -103,6 +103,15 @@ const insertInfoPopUp = async (formData) => {
   }
 };
 
+const insertLink = async (data) => {
+  try {
+      await axios.post('http://localhost:8000/insertLink', data);
+      alert('Link inserted successfully');
+  } catch (error) {
+      console.error('Error inserting link:', error);
+      alert('Link insertion failed');
+  }
+};
 
 export {
   getRooms,
@@ -114,5 +123,6 @@ export {
   updateInfospot,
   updateLink,
   addRoom,
-  insertInfoPopUp
+  insertInfoPopUp,
+  insertLink
 };

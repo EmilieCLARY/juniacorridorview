@@ -28,6 +28,7 @@ const Admin = () => {
   const [newTourSteps, setNewTourSteps] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
   const [newInfospotModalOpen, setNewInfospotModalOpen] = useState(false);
+  const [newLinkModalOpen, setNewLinkModalOpen] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState(null);
   const [roomPictures, setRoomPictures] = useState([]);
   const [selectedPreviewImage, setSelectedPreviewImage] = useState(null);
@@ -290,6 +291,25 @@ const handleEditTourSubmit = async (event) => {
     fetchRoomsInfo(); // Refresh the rooms info to reflect the new infospot
   };
 
+  const handleNewLink = async (roomId) => {
+    setSelectedRoomId(roomId);
+    const pictures = await api.getPicturesByRoomId(roomId);
+    const picturesWithUrls = await Promise.all(pictures.map(async pic => {
+      const imageUrl = await api.getImage(pic.id_pictures);
+      return { ...pic, imageUrl };
+    }));
+    setRoomPictures(picturesWithUrls);
+    setNewLinkModalOpen(true);
+  };
+
+  const handleNewLinkSubmit = async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    await api.insertLink(formData);
+    setNewLinkModalOpen(false);
+    fetchRoomsInfo(); // Refresh the rooms info to reflect the new link
+  };
+
   const handlePreviewClick = async (imageUrl, pictureId) => {
     setSelectedPreviewImage(imageUrl);
     if (viewer) {
@@ -360,6 +380,17 @@ const handleEditTourSubmit = async (event) => {
     }
   }, [newInfospotModalOpen]);
 
+  useEffect(() => {
+    if (newLinkModalOpen && !viewer) {
+      const viewerInstance = new Viewer({
+        container: viewerRef.current,
+        autoRotate: false,
+        autoRotateSpeed: 0.3,
+      });
+      setViewer(viewerInstance);
+    }
+  }, [newLinkModalOpen]);
+
   return (
     <div>
       <div className="header">
@@ -407,6 +438,7 @@ const handleEditTourSubmit = async (event) => {
                     <td>{room.building}</td>
                     <td>
                       <button onClick={() => handleNewInfospot(room.id_rooms)}>Add Infospot</button>
+                      <button onClick={() => handleNewLink(room.id_rooms)}>Add Link</button>
                     </td>
                   </tr>
                   {expandedRoom === room.id_rooms && expandedCategory === 'pictures' && (
@@ -724,6 +756,37 @@ const handleEditTourSubmit = async (event) => {
                   <input type="text" name="title" placeholder="Title" required />
                   <input type="file" name="pic" />
                   <button type="submit">Add Infospot</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {newLinkModalOpen && (
+        <div className="modal">
+          <div className="modal-content">
+            <span className="close" onClick={() => setNewLinkModalOpen(false)}>&times;</span>
+            <h2>Add New Link</h2>
+            <div className="modal-body">
+              <div className="image-preview-column">
+                {roomPictures.map(picture => (
+                  <div key={picture.id_pictures} className="image-preview" onClick={() => handlePreviewClick(picture.imageUrl, picture.id_pictures)}>
+                    <img src={picture.imageUrl} alt={`Preview of ${picture.id_pictures}`} />
+                  </div>
+                ))}
+              </div>
+              <div className="viewer-column">
+                <div ref={viewerRef} className="panorama-viewer"></div>
+              </div>
+              <div className="form-column">
+                <form onSubmit={handleNewLinkSubmit}>
+                  <input type="hidden" name="id_pictures" value={selectedRoomId} />
+                  <input type="text" name="posX" placeholder="Position X" value={Math.round(posX)} onChange={(e) => setPosX(e.target.value)} required />
+                  <input type="text" name="posY" placeholder="Position Y" value={Math.round(posY)} onChange={(e) => setPosY(e.target.value)} required />
+                  <input type="text" name="posZ" placeholder="Position Z" value={Math.round(posZ)} onChange={(e) => setPosZ(e.target.value)} required />
+                  <input type="text" name="id_pictures_destination" placeholder="Picture Destination ID" required />
+                  <button type="submit">Add Link</button>
                 </form>
               </div>
             </div>
