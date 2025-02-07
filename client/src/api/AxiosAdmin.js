@@ -93,6 +93,17 @@ const addRoom = async (formData) => {
   }
 };
 
+const insertInfoPopUp = async (formData) => {
+  try {
+      await axios.post('http://localhost:8000/insertInfoPopUp', formData);
+      alert('Info popup inserted successfully');
+  } catch (error) {
+      console.error('Error inserting info popup:', error);
+      alert('Info popup insertion failed');
+  }
+};
+
+
 export {
   getRooms,
   getPicturesByRoomId,
@@ -102,5 +113,6 @@ export {
   updateImage,
   updateInfospot,
   updateLink,
-  addRoom // Ensure this is exported
+  addRoom,
+  insertInfoPopUp
 };

@@ -76,9 +76,40 @@ tbody tr:last-of-type {
   background-color: #fefefe;
   padding: 20px;
   border: 1px solid #888;
-  width: 80%;
-  max-width: 500px;
+  width: 80.67%; /* 2/3 of the screen width */
+  max-width: none; /* Remove the max-width constraint */
   border-radius: 10px;
+}
+
+.modal-body {
+  display: flex;
+}
+
+.image-preview-column {
+  flex: 1;
+}
+
+.image-preview-column .image-preview img {
+  width: 50px;
+  height: 50px;
+}
+
+.viewer-column {
+  flex: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.viewer-column .panorama-viewer {
+  width: 100%;
+  height: 250px; /* Adjusted height to make it wider than tall */
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.form-column {
+  flex: 1;
 }
 
 .close {
