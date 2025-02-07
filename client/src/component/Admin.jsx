@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import * as api from '../api/AxiosAdmin';
 import * as tourApi from '../api/AxiosTour';
 import '../style/Admin.css';
 import { NavLink } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Buffer } from 'buffer';
+import { Viewer, ImagePanorama, Infospot } from 'panolens';
+import * as THREE from 'three';
 
 const Admin = () => {
   Buffer.from = Buffer.from || require('buffer').Buffer;
@@ -25,6 +27,12 @@ const Admin = () => {
   const [newStepCount, setNewStepCount] = useState(0);
   const [newTourSteps, setNewTourSteps] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
+  const [newInfospotModalOpen, setNewInfospotModalOpen] = useState(false);
+  const [selectedRoomId, setSelectedRoomId] = useState(null);
+  const [roomPictures, setRoomPictures] = useState([]);
+  const [selectedPreviewImage, setSelectedPreviewImage] = useState(null);
+  const viewerRef = useRef(null);
+  const [viewer, setViewer] = useState(null);
 
   const fetchRoomsInfo = async () => {
     try {
@@ -260,6 +268,69 @@ const handleEditTourSubmit = async (event) => {
     return '⇅';
   };
 
+  const handleNewInfospot = async (roomId) => {
+    setSelectedRoomId(roomId);
+    const pictures = await api.getPicturesByRoomId(roomId);
+    const picturesWithUrls = await Promise.all(pictures.map(async pic => {
+      const imageUrl = await api.getImage(pic.id_pictures);
+      return { ...pic, imageUrl };
+    }));
+    setRoomPictures(picturesWithUrls);
+    setNewInfospotModalOpen(true);
+  };
+
+  const handleNewInfospotSubmit = async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    await api.insertInfoPopUp(formData);
+    setNewInfospotModalOpen(false);
+    fetchRoomsInfo(); // Refresh the rooms info to reflect the new infospot
+  };
+
+  const handlePreviewClick = async (imageUrl, pictureId) => {
+    setSelectedPreviewImage(imageUrl);
+    if (viewer) {
+      const panorama = new ImagePanorama(imageUrl);
+
+      // Retrieve and add infospots
+      const infospots = await api.getInfoPopup(pictureId);
+      infospots.forEach(infospot => {
+        const position = new THREE.Vector3(infospot.position_x, infospot.position_y, infospot.position_z);
+        const spot = new Infospot(350);
+        spot.position.copy(position);
+        spot.addHoverText(infospot.title);
+        panorama.add(spot);
+      });
+
+      // Retrieve and add links
+      const links = await api.getLinks(pictureId);
+      links.forEach(link => {
+        const position = new THREE.Vector3(link.position_x, link.position_y, link.position_z);
+        const spot = new Infospot(350, '/img/chain.png');
+        spot.position.copy(position);
+        spot.addHoverText(`Go to panorama ${link.id_pictures_destination}`);
+        spot.addEventListener('click', async () => {
+          const newImageUrl = await api.getImage(link.id_pictures_destination);
+          handlePreviewClick(newImageUrl, link.id_pictures_destination);
+        });
+        panorama.add(spot);
+      });
+      viewer.add(panorama);
+      viewer.setPanorama(panorama);
+    }
+  };
+
+  useEffect(() => {
+    if (newInfospotModalOpen && !viewer) {
+      const viewerInstance = new Viewer({
+        container: viewerRef.current,
+        autoRotate: false,
+        autoRotateSpeed: 0.3,
+      });
+      setViewer(viewerInstance);
+    }
+  }, [newInfospotModalOpen]);
+
   return (
     <div>
       <div className="header">
@@ -305,6 +376,9 @@ const handleEditTourSubmit = async (event) => {
                       </span>
                     </td>
                     <td>{room.building}</td>
+                    <td>
+                      <button onClick={() => handleNewInfospot(room.id_rooms)}>Add Infospot</button>
+                    </td>
                   </tr>
                   {expandedRoom === room.id_rooms && expandedCategory === 'pictures' && (
                     <tr>
@@ -591,6 +665,39 @@ const handleEditTourSubmit = async (event) => {
                 <button type="button" onClick={handleAddStep}>Add Step</button>
                 <button type="submit">Update Tour</button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {newInfospotModalOpen && (
+        <div className="modal">
+          <div className="modal-content">
+            <span className="close" onClick={() => setNewInfospotModalOpen(false)}>&times;</span>
+            <h2>Add New Infospot</h2>
+            <div className="modal-body">
+              <div className="image-preview-column">
+                {roomPictures.map(picture => (
+                  <div key={picture.id_pictures} className="image-preview" onClick={() => handlePreviewClick(picture.imageUrl, picture.id_pictures)}>
+                    <img src={picture.imageUrl} alt={`Preview of ${picture.id_pictures}`} />
+                  </div>
+                ))}
+              </div>
+              <div className="viewer-column">
+                <div ref={viewerRef} className="panorama-viewer"></div>
+              </div>
+              <div className="form-column">
+                <form onSubmit={handleNewInfospotSubmit}>
+                  <input type="hidden" name="id_pictures" value={selectedRoomId} />
+                  <input type="text" name="posX" placeholder="Position X" required />
+                  <input type="text" name="posY" placeholder="Position Y" required />
+                  <input type="text" name="posZ" placeholder="Position Z" required />
+                  <input type="text" name="text" placeholder="Text" required />
+                  <input type="text" name="title" placeholder="Title" required />
+                  <input type="file" name="pic" />
+                  <button type="submit">Add Infospot</button>
+                </form>
+              </div>
+            </div>
           </div>
         </div>
       )}
