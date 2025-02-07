@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
 import * as api from '../api/AxiosTour';
 import '../style/Tour.css';
+import { Buffer } from 'buffer';
 
 const TourViewer = () => {
+  Buffer.from = Buffer.from || require('buffer').Buffer;
   const [tours, setTours] = useState([]);
   const [tourSteps, setTourSteps] = useState({});
   const [rooms, setRooms] = useState({});
