@@ -1,10 +1,10 @@
+import { Buffer } from 'buffer';
 import { ImagePanorama, Infospot, Viewer } from "panolens";
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import * as api from '../api/AxiosPano';
 import { getTourSteps } from '../api/AxiosTour'; // Add this line
 import '../style/Pano.css';
-import { Buffer } from 'buffer';
 
 const PanoramaViewer = ({ location }) => {
   Buffer.from = Buffer.from || require('buffer').Buffer;
@@ -182,19 +182,16 @@ const PanoramaViewer = ({ location }) => {
   };
 
   const handlePanoramaClick = (event) => {
-    const mouse = new THREE.Vector2();
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-  
-    const raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(mouse, viewer.camera);
-  
-    const intersects = raycaster.intersectObjects(viewer.scene.children, true);
+    if (!viewer || !viewer.panorama) return;
+
+    const intersects = viewer.raycaster.intersectObject(viewer.panorama, true);
+    
     if (intersects.length > 0) {
-      const point = intersects[0].point;
-      console.log(`Coordinates: x=${point.x}, y=${point.y}, z=${point.z}`);
-    }
-  };
+      const { x, y, z } = intersects[0].point;
+
+      console.log(`Clicked Position: X: ${-x}, Y: ${y}, Z: ${z}`);
+    };
+  }
 
   const handleRoomClick = async (id_rooms) => {
     const pictures = await api.getPicturesByRoomId(id_rooms);
