@@ -32,6 +32,7 @@ const Admin = () => {
   const [selectedRoomId, setSelectedRoomId] = useState(null);
   const [roomPictures, setRoomPictures] = useState([]);
   const [selectedPreviewImage, setSelectedPreviewImage] = useState(null);
+  const [selectedImageId, setSelectedImageId] = useState(null); // Add this line
   const viewerRef = useRef(null);
   const [viewer, setViewer] = useState(null);
   const [posX, setPosX] = useState('');
@@ -313,6 +314,7 @@ const handleEditTourSubmit = async (event) => {
 
   const handlePreviewClick = async (imageUrl, pictureId) => {
     setSelectedPreviewImage(imageUrl);
+    setSelectedImageId(pictureId); // Add this line
     if (viewer) {
       const panorama = new ImagePanorama(imageUrl);
 
@@ -754,7 +756,7 @@ const handleEditTourSubmit = async (event) => {
               <div className="form-column">
                 <button type="button" onClick={() => setIsSelectingPosition(true)}>Select Position</button>
                 <form onSubmit={handleNewInfospotSubmit}>
-                  <input type="hidden" name="id_pictures" value={selectedRoomId} />
+                  <input type="hidden" name="id_pictures" value={selectedImageId} />
                   <input type="text" name="posX" placeholder="Position X" value={Math.round(posX)} onChange={(e) => setPosX(e.target.value)} required readOnly/>
                   <input type="text" name="posY" placeholder="Position Y" value={Math.round(posY)} onChange={(e) => setPosY(e.target.value)} required readOnly/>
                   <input type="text" name="posZ" placeholder="Position Z" value={Math.round(posZ)} onChange={(e) => setPosZ(e.target.value)} required readOnly/>
@@ -788,7 +790,7 @@ const handleEditTourSubmit = async (event) => {
               <div className="form-column">
                 <button type="button" onClick={() => setIsSelectingPosition(true)}>Select Position</button>
                 <form onSubmit={handleNewLinkSubmit}>
-                  <input type="hidden" name="id_pictures" value={selectedRoomId} />
+                  <input type="hidden" name="id_pictures" value={selectedImageId} />
                   <input type="text" name="posX" placeholder="Position X" value={Math.round(posX)} onChange={(e) => setPosX(e.target.value)} required readOnly/>
                   <input type="text" name="posY" placeholder="Position Y" value={Math.round(posY)} onChange={(e) => setPosY(e.target.value)} required readOnly/>
                   <input type="text" name="posZ" placeholder="Position Z" value={Math.round(posZ)} onChange={(e) => setPosZ(e.target.value)} required readOnly/>
