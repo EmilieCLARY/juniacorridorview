@@ -4,8 +4,10 @@ import * as tourApi from '../api/AxiosTour';
 import '../style/Admin.css';
 import { NavLink } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { Buffer } from 'buffer';
 
 const Admin = () => {
+  Buffer.from = Buffer.from || require('buffer').Buffer;
   const [rooms, setRooms] = useState([]);
   const [expandedRoom, setExpandedRoom] = useState(null);
   const [expandedCategory, setExpandedCategory] = useState(null);
