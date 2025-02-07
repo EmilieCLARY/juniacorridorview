@@ -85,11 +85,13 @@ const updateLink = async (formData) => {
 const addRoom = async (formData) => {
   try {
     const data = Object.fromEntries(formData.entries());
-    await axios.post(`${url}/add-room`, data);
+    const response = await axios.post(`${url}/add-room`, data);
     alert('Room added successfully');
+    return response.data.id_rooms; // Ensure roomId is returned from the API
   } catch (error) {
     console.error('Error adding room:', error);
     alert('Room addition failed');
+    return null;
   }
 };
 
@@ -113,6 +115,16 @@ const insertLink = async (data) => {
   }
 };
 
+const uploadFile = async (formData) => {
+  try {
+      await axios.post('http://localhost:8000/upload', formData);
+      alert('File uploaded successfully');
+  } catch (error) {
+      console.error('Error uploading file:', error);
+      alert('File upload failed');
+  }
+};
+
 export {
   getRooms,
   getPicturesByRoomId,
@@ -124,5 +136,6 @@ export {
   updateLink,
   addRoom,
   insertInfoPopUp,
-  insertLink
+  insertLink,
+  uploadFile
 };
