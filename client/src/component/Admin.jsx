@@ -33,6 +33,9 @@ const Admin = () => {
   const [selectedPreviewImage, setSelectedPreviewImage] = useState(null);
   const viewerRef = useRef(null);
   const [viewer, setViewer] = useState(null);
+  const [posX, setPosX] = useState('');
+  const [posY, setPosY] = useState('');
+  const [posZ, setPosZ] = useState('');
 
   const fetchRoomsInfo = async () => {
     try {
@@ -319,6 +322,32 @@ const handleEditTourSubmit = async (event) => {
       viewer.setPanorama(panorama);
     }
   };
+
+  const handlePanoramaClick = (event) => {
+    if (!viewer || !viewer.panorama) return;
+
+    const intersects = viewer.raycaster.intersectObject(viewer.panorama, true);
+    
+    if (intersects.length > 0) {
+      const { x, y, z } = intersects[0].point;
+
+      console.log(`Clicked Position: X: ${-x}, Y: ${y}, Z: ${z}`);
+      setPosX(-x);
+      setPosY(y);
+      setPosZ(z);
+    }
+  };
+
+  useEffect(() => {
+    if (viewer) {
+      viewer.container.addEventListener('click', handlePanoramaClick);
+    }
+    return () => {
+      if (viewer) {
+        viewer.container.removeEventListener('click', handlePanoramaClick);
+      }
+    };
+  }, [viewer]);
 
   useEffect(() => {
     if (newInfospotModalOpen && !viewer) {
@@ -688,9 +717,9 @@ const handleEditTourSubmit = async (event) => {
               <div className="form-column">
                 <form onSubmit={handleNewInfospotSubmit}>
                   <input type="hidden" name="id_pictures" value={selectedRoomId} />
-                  <input type="text" name="posX" placeholder="Position X" required />
-                  <input type="text" name="posY" placeholder="Position Y" required />
-                  <input type="text" name="posZ" placeholder="Position Z" required />
+                  <input type="text" name="posX" placeholder="Position X" value={Math.round(posX)} onChange={(e) => setPosX(e.target.value)} required />
+                  <input type="text" name="posY" placeholder="Position Y" value={Math.round(posY)} onChange={(e) => setPosY(e.target.value)} required />
+                  <input type="text" name="posZ" placeholder="Position Z" value={Math.round(posZ)} onChange={(e) => setPosZ(e.target.value)} required />
                   <input type="text" name="text" placeholder="Text" required />
                   <input type="text" name="title" placeholder="Title" required />
                   <input type="file" name="pic" />
