@@ -32,11 +32,13 @@ const Admin = () => {
   const [selectedRoomId, setSelectedRoomId] = useState(null);
   const [roomPictures, setRoomPictures] = useState([]);
   const [selectedPreviewImage, setSelectedPreviewImage] = useState(null);
+  const [selectedImageId, setSelectedImageId] = useState(null); // Add this line
   const viewerRef = useRef(null);
   const [viewer, setViewer] = useState(null);
   const [posX, setPosX] = useState('');
   const [posY, setPosY] = useState('');
   const [posZ, setPosZ] = useState('');
+  const [isSelectingPosition, setIsSelectingPosition] = useState(false);
 
   const fetchRoomsInfo = async () => {
     try {
@@ -312,6 +314,7 @@ const handleEditTourSubmit = async (event) => {
 
   const handlePreviewClick = async (imageUrl, pictureId) => {
     setSelectedPreviewImage(imageUrl);
+    setSelectedImageId(pictureId); // Add this line
     if (viewer) {
       const panorama = new ImagePanorama(imageUrl);
 
@@ -352,9 +355,13 @@ const handleEditTourSubmit = async (event) => {
       const { x, y, z } = intersects[0].point;
 
       console.log(`Clicked Position: X: ${-x}, Y: ${y}, Z: ${z}`);
-      setPosX(-x);
-      setPosY(y);
-      setPosZ(z);
+
+      if (isSelectingPosition) {
+        setPosX(-x);
+        setPosY(y);
+        setPosZ(z);
+        setIsSelectingPosition(false);
+      }
     }
   };
 
@@ -367,7 +374,7 @@ const handleEditTourSubmit = async (event) => {
         viewer.container.removeEventListener('click', handlePanoramaClick);
       }
     };
-  }, [viewer]);
+  }, [viewer, isSelectingPosition]);
 
   useEffect(() => {
     if (newInfospotModalOpen && !viewer) {
@@ -747,11 +754,12 @@ const handleEditTourSubmit = async (event) => {
                 <div ref={viewerRef} className="panorama-viewer"></div>
               </div>
               <div className="form-column">
+                <button type="button" onClick={() => setIsSelectingPosition(true)}>Select Position</button>
                 <form onSubmit={handleNewInfospotSubmit}>
-                  <input type="hidden" name="id_pictures" value={selectedRoomId} />
-                  <input type="text" name="posX" placeholder="Position X" value={Math.round(posX)} onChange={(e) => setPosX(e.target.value)} required />
-                  <input type="text" name="posY" placeholder="Position Y" value={Math.round(posY)} onChange={(e) => setPosY(e.target.value)} required />
-                  <input type="text" name="posZ" placeholder="Position Z" value={Math.round(posZ)} onChange={(e) => setPosZ(e.target.value)} required />
+                  <input type="hidden" name="id_pictures" value={selectedImageId} />
+                  <input type="text" name="posX" placeholder="Position X" value={Math.round(posX)} onChange={(e) => setPosX(e.target.value)} required readOnly/>
+                  <input type="text" name="posY" placeholder="Position Y" value={Math.round(posY)} onChange={(e) => setPosY(e.target.value)} required readOnly/>
+                  <input type="text" name="posZ" placeholder="Position Z" value={Math.round(posZ)} onChange={(e) => setPosZ(e.target.value)} required readOnly/>
                   <input type="text" name="text" placeholder="Text" required />
                   <input type="text" name="title" placeholder="Title" required />
                   <input type="file" name="pic" />
@@ -780,12 +788,13 @@ const handleEditTourSubmit = async (event) => {
                 <div ref={viewerRef} className="panorama-viewer"></div>
               </div>
               <div className="form-column">
+                <button type="button" onClick={() => setIsSelectingPosition(true)}>Select Position</button>
                 <form onSubmit={handleNewLinkSubmit}>
-                  <input type="hidden" name="id_pictures" value={selectedRoomId} />
-                  <input type="text" name="posX" placeholder="Position X" value={Math.round(posX)} onChange={(e) => setPosX(e.target.value)} required />
-                  <input type="text" name="posY" placeholder="Position Y" value={Math.round(posY)} onChange={(e) => setPosY(e.target.value)} required />
-                  <input type="text" name="posZ" placeholder="Position Z" value={Math.round(posZ)} onChange={(e) => setPosZ(e.target.value)} required />
-                  <input type="text" name="id_pictures_destination" placeholder="Picture Destination ID" required />
+                  <input type="hidden" name="id_pictures" value={selectedImageId} />
+                  <input type="text" name="posX" placeholder="Position X" value={Math.round(posX)} onChange={(e) => setPosX(e.target.value)} required readOnly/>
+                  <input type="text" name="posY" placeholder="Position Y" value={Math.round(posY)} onChange={(e) => setPosY(e.target.value)} required readOnly/>
+                  <input type="text" name="posZ" placeholder="Position Z" value={Math.round(posZ)} onChange={(e) => setPosZ(e.target.value)} required readOnly/>
+                  <input type="text" name="id_pictures_destination" placeholder="Picture Destination ID" required/>
                   <button type="submit">Add Link</button>
                 </form>
               </div>
