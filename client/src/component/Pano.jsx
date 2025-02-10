@@ -5,6 +5,7 @@ import * as THREE from "three";
 import * as api from '../api/AxiosPano';
 import { getTourSteps } from '../api/AxiosTour'; // Add this line
 import '../style/Pano.css';
+import { getImage } from '../api/AxiosPano';
 
 const PanoramaViewer = ({ location }) => {
   Buffer.from = Buffer.from || require('buffer').Buffer;
@@ -23,6 +24,7 @@ const PanoramaViewer = ({ location }) => {
   const [roomPreviews, setRoomPreviews] = useState({});
   const [visitType, setVisitType] = useState('Visite libre');
   const [tourSteps, setTourSteps] = useState([]);
+  const [roomPreviewsData, setRoomPreviewsData] = useState([]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -78,11 +80,17 @@ const PanoramaViewer = ({ location }) => {
   };
 
   const fetchImage = async (id) => {
-    const imageUrl = await api.getImage(id);
-    setImages(prevImages => [...prevImages, { id, imageUrl }]);
+    try {
+      const imageBlob = await api.getImage(id);
+      setImages(prevImages => [...prevImages, { id, imageBlob }]);
+    }
+    catch (error) {
+      console.error('Error fetching image:', error);
+    }
   };
 
   const fetchPictures = async () => {
+    setImages([]); // Clear the images state before fetching new pictures
     const pictures = await api.getPictures();
     
     await Promise.all(
@@ -100,13 +108,13 @@ const PanoramaViewer = ({ location }) => {
       rooms.map(async room => {
         const picture = await api.getFirstPictureByRoomId(room.id_rooms);
         if (picture) {
-          const imageUrl = await api.getImage(picture.id_pictures);
-          return { id_rooms: room.id_rooms, imageUrl };
+          const imageBlob = await api.getImage(picture.id_pictures);
+          return { id_rooms: room.id_rooms, imageBlob };
         }
-        return { id_rooms: room.id_rooms, imageUrl: null };
+        return { id_rooms: room.id_rooms, imageBlob: null };
       })
     );
-    setRoomPreviews(Object.fromEntries(roomPreviewsData.map(preview => [preview.id_rooms, preview.imageUrl])));
+    setRoomPreviews(Object.fromEntries(roomPreviewsData.map(preview => [preview.id_rooms, URL.createObjectURL(preview.imageBlob)])));
   };
 
   const cleanUrlParams = () => {
@@ -129,7 +137,7 @@ const PanoramaViewer = ({ location }) => {
     setCurrentRoomNumber(room.number);
   };
 
-  const displayImage = async (imageUrl, id) => {
+  const displayImage = async (imageBlob, id) => {
     setCurrentImageId(id);
     const retrievedPopups = await handleRetrieveInfoPopUp(id); // Wait for the retrieval
     setInfoPopups(prevInfoPopups => ({
@@ -137,7 +145,7 @@ const PanoramaViewer = ({ location }) => {
       [id]: retrievedPopups
     }));
 
-    const panorama = new ImagePanorama(imageUrl);
+    const panorama = new ImagePanorama(URL.createObjectURL(imageBlob));
 
     // Add all infospots
     if (retrievedPopups) {
@@ -165,8 +173,8 @@ const PanoramaViewer = ({ location }) => {
         infospot.position.copy(position);
         infospot.addHoverText(`Go to panorama ${link.id_pictures_destination}`);
         infospot.addEventListener('click', async () => {
-          const newImageUrl = await api.getImage(link.id_pictures_destination);
-          displayImage(newImageUrl, link.id_pictures_destination);
+          const newImageBlob = await api.getImage(link.id_pictures_destination);
+          displayImage(newImageBlob, link.id_pictures_destination);
         });
         panorama.add(infospot);
       });
@@ -197,8 +205,8 @@ const PanoramaViewer = ({ location }) => {
     const pictures = await api.getPicturesByRoomId(id_rooms);
     if (pictures.length > 0) {
       const firstPicture = pictures[0];
-      const imageUrl = await api.getImage(firstPicture.id_pictures);
-      displayImage(imageUrl, firstPicture.id_pictures);
+      const imageBlob = await api.getImage(firstPicture.id_pictures);
+      displayImage(imageBlob, firstPicture.id_pictures);
     }
   };
 
@@ -215,7 +223,7 @@ const PanoramaViewer = ({ location }) => {
 
   useEffect(() => {
       if(images.length > 0 && !isLoading && firstLoad) {   
-        displayImage(images[0].imageUrl, images[0].id);
+        displayImage(images[0].imageBlob, images[0].id);
         setFirstLoad(false); // Ensure this is only called once
       } 
   }, [images, isLoading]);
@@ -237,7 +245,7 @@ const PanoramaViewer = ({ location }) => {
       viewerInstance.dispose();
     };
   }, []);
-
+                    
   const filteredRooms = visitType.startsWith('Visite guidée') 
     ? rooms.filter(room => tourSteps.some(step => step.id_rooms === room.id_rooms))
     : rooms;
@@ -265,7 +273,7 @@ const PanoramaViewer = ({ location }) => {
           <div>
             <h2>Current Room: {currentRoomName} ({currentRoomNumber})</h2>
             {images.map((image, index) => (
-              <button key={`${image.id}-${index}`} onClick={() => displayImage(image.imageUrl, image.id)}>
+              <button key={`${image.id}-${index}`} onClick={() => displayImage(image.imageBlob, image.id)}>
                 Display Image {image.id}
               </button>
             ))}
