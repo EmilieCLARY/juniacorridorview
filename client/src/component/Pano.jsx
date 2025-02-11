@@ -74,13 +74,6 @@ const PanoramaViewer = ({ location }) => {
       setRoomPreviews(Object.fromEntries(roomPreviewsData.map(preview => [preview.id_rooms, preview.imageBlob ? URL.createObjectURL(preview.imageBlob) : null])));
 
       setIsLoading(false);
-      console.log('Tour steps:', stepsData);
-      console.log('Room IDs from tour steps:', stepsData.map(step => step.id_rooms));
-
-      console.log('Rooms data:', roomsData);
-      console.log('Room previews:', roomPreviews);
-      console.log('Room previews data:', roomPreviewsData);
-
     } catch (error) {
       console.error('Error fetching tour steps:', error);
     }
@@ -88,7 +81,6 @@ const PanoramaViewer = ({ location }) => {
 
   const fetchTables = async () => {
     const tables = await api.getTables();
-    console.log('Fetched tables:', tables);
   };
 
   const handleUpload = async (event) => {
@@ -145,7 +137,6 @@ const PanoramaViewer = ({ location }) => {
   const fetchRooms = async () => {
     const rooms = await api.getRooms();
     setRooms(rooms);
-    console.log('Fetched rooms:', rooms);
     const roomPreviewsData = await Promise.all(
       rooms.map(async room => {
         const picture = await api.getFirstPictureByRoomId(room.id_rooms);
