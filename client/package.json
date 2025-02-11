@@ -51,6 +51,9 @@
   "overrides": {
     "vite": {
       "esbuild": "^0.25.0"
+    },
+    "panolens": {
+      "three": "^0.125.2"
     }
   }
 }
