@@ -40,6 +40,7 @@ const Admin = () => {
   const [posZ, setPosZ] = useState('');
   const [isSelectingPosition, setIsSelectingPosition] = useState(false);
   const [fromNewRoom, setFromNewRoom] = useState(false); // Add this line
+  const [buildings, setBuildings] = useState([]); // Add this line
 
   const fetchRoomsInfo = async () => {
     try {
@@ -94,10 +95,20 @@ const Admin = () => {
     }
   };
 
+  const fetchBuildings = async () => {
+    try {
+      const response = await api.getBuildings();
+      setBuildings(response);
+    } catch (error) {
+      console.error('Error fetching buildings:', error);
+    }
+  };
+
   useEffect(() => {
     fetchRooms();
     fetchRoomsInfo();
     fetchToursInfo();
+    fetchBuildings(); // Add this line
   }, []);
 
   const toggleExpand = (roomId, category) => {
@@ -623,7 +634,14 @@ const handleEditTourSubmit = async (event) => {
             <form onSubmit={(e) => handleNewRoom(e, false)}>
               <input type="text" name="name" placeholder="Room Name" required />
               <input type="text" name="number" placeholder="Room Number" required />
-              <input type="text" name="id_buildings" placeholder="Building ID" required />
+              <select name="id_buildings" required>
+                <option value="">Select Building</option>
+                {buildings.map(building => (
+                  <option key={building.id_buildings} value={building.id_buildings}>
+                    {building.name}
+                  </option>
+                ))}
+              </select>
               <input type="file" name="pictures" multiple />
               <button type="submit">Valider et fermer</button>
               <button type="button" onClick={(e) => handleNewRoom(e, true)}>Valider et Suivant : Liens</button>

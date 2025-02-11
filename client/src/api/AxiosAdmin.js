@@ -125,6 +125,16 @@ const uploadFile = async (formData) => {
   }
 };
 
+const getBuildings = async () => {
+  try {
+    const response = await axios.get(`${url}/buildings`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching buildings', error);
+    return [];
+  }
+};
+
 export {
   getRooms,
   getPicturesByRoomId,
@@ -137,5 +147,6 @@ export {
   addRoom,
   insertInfoPopUp,
   insertLink,
-  uploadFile
+  uploadFile,
+  getBuildings
 };
