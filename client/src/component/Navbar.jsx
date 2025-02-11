@@ -39,13 +39,16 @@ const Navbar = () => {
     <>
       <nav className="relative justify-between bg-white px-2 shadow-lg">
         <div className="flex items-center">
-          <img src="/img/logojunia.png" alt="Logo JUNIA" className="h-3/4"></img>
+          <NavLink to="/">
+            <img src="/img/logojunia.png" alt="Logo JUNIA" className="h-3/4"></img>
+          </NavLink>
         </div>
         <div className="flex items-center text-5xl text-junia-purple font-title">
           {routeName}
         </div>
         <div className="flex items-center text-xl text-junia-orange font-title">
-          Login Admin
+          <NavLink to="/" className="text-inherit no-underline hover:text-inherit">Home</NavLink>
+          <NavLink to="/admin" className="text-inherit no-underline hover:text-inherit">Admin</NavLink>
         </div>
       </nav>
     </>

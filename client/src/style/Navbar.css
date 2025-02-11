@@ -1,2 +1,11 @@
 /* Navbar.css */
 /* Importer la police */
+nav a {
+  color: inherit; /* Inherit color from parent */
+  text-decoration: none; /* Remove underline */
+}
+
+nav a:hover {
+  color: inherit; /* Inherit color from parent */
+  text-decoration: none; /* Remove underline */
+}
