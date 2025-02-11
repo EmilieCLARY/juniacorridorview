@@ -37,7 +37,7 @@ const PanoramaViewer = ({ location }) => {
 
   const fetchTourSteps = async (tourId) => {
     try {
-      const stepsData = await getTourSteps(tourId); // Use getTourSteps from AxiosTour
+      const stepsData = await getTourSteps(tourId);
       setTourSteps(stepsData);
     } catch (error) {
       console.error('Error fetching tour steps:', error);
@@ -90,7 +90,7 @@ const PanoramaViewer = ({ location }) => {
   };
 
   const fetchPictures = async () => {
-    setImages([]); // Clear the images state before fetching new pictures
+    setImages([]);
     const pictures = await api.getPictures();
     
     await Promise.all(
@@ -187,7 +187,7 @@ const PanoramaViewer = ({ location }) => {
 
     viewer.add(panorama);
     viewer.setPanorama(panorama);
-    cleanUrlParams(); // Clean URL parameters after loading the panorama
+    cleanUrlParams();
 
     // Fetch and set the room details
     const roomId = await api.getRoomIdByPictureId(id);
@@ -229,13 +229,12 @@ const PanoramaViewer = ({ location }) => {
   useEffect(() => {
       if(images.length > 0 && !isLoading && firstLoad) {   
         displayImage(images[0].imageBlob, images[0].id);
-        setFirstLoad(false); // Ensure this is only called once
+        setFirstLoad(false);
       } 
   }, [images, isLoading]);
 
-
   useEffect(() => {
-    if (!viewerRef.current || viewer) return; // Évite de créer plusieurs viewers
+    if (!viewerRef.current || viewer) return;
     
     const viewerInstance = new Viewer({
       container: viewerRef.current,
@@ -245,21 +244,20 @@ const PanoramaViewer = ({ location }) => {
 
     setViewer(viewerInstance);
 
+    return () => {
+      viewerInstance.dispose();
+      viewerRef.current.innerHTML = "";
+    };
+  }, []);  
+
+  useEffect(() => {
+    if (!viewer) return;
+    
     fetchPictures();
     fetchRooms();
     setCurrentImageId(0);
+  }, [viewer]);
 
-    return () => {
-      viewerInstance.dispose();
-      viewerRef.current.innerHTML = ""; // Supprime tout ce qui était dans le conteneur
-    };
-    
-}, []); // S'exécute une seule fois
-useEffect(() => {
-  console.log(viewerRef.current?.childNodes); // Vérifie combien de canvas sont créés
-}, [viewer]);
-
-  
                     
   const filteredRooms = visitType.startsWith('Visite guidée') 
     ? rooms.filter(room => tourSteps.some(step => step.id_rooms === room.id_rooms))
