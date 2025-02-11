@@ -7,6 +7,7 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Buffer } from 'buffer';
 import { Viewer, ImagePanorama, Infospot } from 'panolens';
 import * as THREE from 'three';
+import {toast} from "sonner";
 
 const Admin = () => {
   Buffer.from = Buffer.from || require('buffer').Buffer;
@@ -41,6 +42,8 @@ const Admin = () => {
   const [isSelectingPosition, setIsSelectingPosition] = useState(false);
   const [fromNewRoom, setFromNewRoom] = useState(false); // Add this line
   const [buildings, setBuildings] = useState([]); // Add this line
+
+  const loading = useRef(false);
 
   const fetchRoomsInfo = async () => {
     try {
@@ -104,11 +107,26 @@ const Admin = () => {
     }
   };
 
+  const fetchData = async () => {
+    const fetchRoomsInfoPromise = fetchRoomsInfo();
+    const fetchToursInfoPromise = fetchToursInfo();
+    const fetchBuildingsPromise = fetchBuildings();
+
+    toast.promise(Promise.all([fetchRoomsInfoPromise, fetchToursInfoPromise, fetchBuildingsPromise]), {
+      loading: 'Chargement...',
+      success: 'Chargement des données réussi',
+      error: 'Erreur lors du chargement des données',
+    });
+  };
+
   useEffect(() => {
     //fetchRooms();
-    fetchRoomsInfo();
-    fetchToursInfo();
-    fetchBuildings(); // Add this line
+    if (loading.current) return;
+    loading.current = true;
+
+    fetchData().then(r => {
+      loading.current = false;
+    });
   }, []);
 
   const toggleExpand = (roomId, category) => {

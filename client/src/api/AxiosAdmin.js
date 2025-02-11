@@ -1,4 +1,5 @@
 import axios from "axios";
+import {toast} from "sonner";
 
 const api = axios.create({
   baseURL: process.env.BASE_URL, // Use the environment variable
@@ -59,30 +60,30 @@ const getImage = async (id) => {
 const updateImage = async (formData) => {
   try {
     await api.post('/update-image', formData);
-    alert('Image updated successfully');
+    toast.success('Image mise à jour avec succès');
   } catch (error) {
     console.error('Error updating image:', error);
-    alert('Image update failed');
+    toast.error('La mise à jour de l\'image a échoué');
   }
 };
 
 const updateInfospot = async (formData) => {
   try {
     await api.post('/update-infospot', formData);
-    alert('Infospot updated successfully');
+    toast.success('Bulle d\'information mise à jour avec succès');
   } catch (error) {
     console.error('Error updating infospot:', error);
-    alert('Infospot update failed');
+    toast.error('La mise à jour de la bulle d\'information a échoué');
   }
 };
 
 const updateLink = async (formData) => {
   try {
     await api.post('/update-link', formData);
-    alert('Link updated successfully');
+    toast.success('Lien mis à jour avec succès');
   } catch (error) {
     console.error('Error updating link:', error);
-    alert('Link update failed');
+    toast.error('La mise à jour du lien a échoué');
   }
 };
 
@@ -90,11 +91,11 @@ const addRoom = async (formData) => {
   try {
     const data = Object.fromEntries(formData.entries());
     const response = await api.post('/add-room', data);
-    alert('Room added successfully');
+    toast.success('Salle ajoutée avec succès');
     return response.data.id_rooms; // Ensure roomId is returned from the API
   } catch (error) {
     console.error('Error adding room:', error);
-    alert('Room addition failed');
+    toast.error('L\'ajout de la salle a échoué');
     return null;
   }
 };
@@ -102,30 +103,30 @@ const addRoom = async (formData) => {
 const insertInfoPopUp = async (formData) => {
   try {
       await api.post('/insertInfoPopUp', formData);
-      alert('Info popup inserted successfully');
+      toast.success('Bulle d\'information ajoutée avec succès');
   } catch (error) {
       console.error('Error inserting info popup:', error);
-      alert('Info popup insertion failed');
+      toast.error('L\'ajout de la bulle d\'information a échoué');
   }
 };
 
 const insertLink = async (data) => {
   try {
       await api.post('/insertLink', data);
-      alert('Link inserted successfully');
+      toast.success('Lien ajouté avec succès');
   } catch (error) {
       console.error('Error inserting link:', error);
-      alert('Link insertion failed');
+      toast.error('L\'ajout du lien a échoué');
   }
 };
 
 const uploadFile = async (formData) => {
   try {
       await api.post('/upload', formData);
-      alert('File uploaded successfully');
+      toast.success('Fichier téléversé avec succès');
   } catch (error) {
       console.error('Error uploading file:', error);
-      alert('File upload failed');
+      toast.error('Le téléversement du fichier a échoué');
   }
 };
 
