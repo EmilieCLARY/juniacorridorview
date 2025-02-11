@@ -145,6 +145,11 @@ const PanoramaViewer = ({ location }) => {
       [id]: retrievedPopups
     }));
 
+    // Supprimer tous les panoramas avant d'en ajouter un nouveau
+    if (viewer && viewer.panorama) {
+      viewer.remove(viewer.panorama);
+    }
+
     const panorama = new ImagePanorama(URL.createObjectURL(imageBlob));
 
     // Add all infospots
@@ -227,28 +232,34 @@ const PanoramaViewer = ({ location }) => {
         setFirstLoad(false); // Ensure this is only called once
       } 
   }, [images, isLoading]);
-  
+
+
   useEffect(() => {
+    if (!viewerRef.current || viewer) return; // Évite de créer plusieurs viewers
     
+    const viewerInstance = new Viewer({
+      container: viewerRef.current,
+      autoRotate: false,
+      autoRotateSpeed: 0.3,
+    });
+
+    setViewer(viewerInstance);
+
     fetchPictures();
     fetchRooms();
     setCurrentImageId(0);
+
+    return () => {
+      viewerInstance.dispose();
+      viewerRef.current.innerHTML = ""; // Supprime tout ce qui était dans le conteneur
+    };
     
-    if (!viewer) { // Ensure viewer is initialized only once
-      const viewerInstance = new Viewer({
-        container: viewerRef.current,
-        autoRotate: false,
-        autoRotateSpeed: 0.3,
-      });
-      
-      setViewer(viewerInstance);
+}, []); // S'exécute une seule fois
+useEffect(() => {
+  console.log(viewerRef.current?.childNodes); // Vérifie combien de canvas sont créés
+}, [viewer]);
 
-      return () => {
-        viewerInstance.dispose();
-      };
-    }
-
-  }, []); // Only run once on mount
+  
                     
   const filteredRooms = visitType.startsWith('Visite guidée') 
     ? rooms.filter(room => tourSteps.some(step => step.id_rooms === room.id_rooms))
