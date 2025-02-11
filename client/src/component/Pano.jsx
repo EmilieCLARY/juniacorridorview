@@ -171,6 +171,7 @@ const PanoramaViewer = ({ location }) => {
   };
 
   const displayImage = async (imageBlob, id) => {
+    cleanUrlParams();
     setCurrentImageId(id);
     const retrievedPopups = await handleRetrieveInfoPopUp(id); // Wait for the retrieval
     setInfoPopups(prevInfoPopups => ({
@@ -220,7 +221,6 @@ const PanoramaViewer = ({ location }) => {
 
     viewer.add(panorama);
     viewer.setPanorama(panorama);
-    cleanUrlParams();
 
     // Fetch and set the room details
     const roomId = await api.getRoomIdByPictureId(id);

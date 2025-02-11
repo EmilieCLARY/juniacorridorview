@@ -1,11 +1,5 @@
 import axios from 'axios';
 
-const instance = axios.create({
-  baseURL: '/api', // Proxy through Vite
-  timeout: 180000, // Increase the timeout to 180 seconds
-  withCredentials: true // Ensure credentials are included
-});
-
 const api = axios.create({
   baseURL: process.env.BASE_URL, // Use the environment variable
   timeout: 180000, // Increase the timeout to 180 seconds
@@ -67,7 +61,7 @@ const getLinks = async (imageId) => {
 
 export const getImage = async (id, retries = 3, delay = 1000) => {
   try {
-    const response = await instance.get(`/fetch/${id}`, { responseType: 'blob' });
+    const response = await api.get(`/fetch/${id}`, { responseType: 'blob' });
     return response.data;
   } catch (error) {
     if (error.code === 'ECONNABORTED') {

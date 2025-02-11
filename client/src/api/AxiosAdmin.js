@@ -1,10 +1,14 @@
 import axios from "axios";
 
-const url = 'http://localhost:8000';
+const api = axios.create({
+  baseURL: process.env.BASE_URL, // Use the environment variable
+  timeout: 180000, // Increase the timeout to 180 seconds
+  withCredentials: true // Si vous utilisez des cookies ou des sessions
+});
 
 const getRooms = async () => {
   try {
-    const response = await axios.get(`${url}/rooms`);
+    const response = await api.get('/rooms');
     return response.data;
   } catch (error) {
     console.error('Error fetching rooms', error);
@@ -14,7 +18,7 @@ const getRooms = async () => {
 
 const getPicturesByRoomId = async (id_rooms) => {
   try {
-    const response = await axios.get(`${url}/pictures-by-room/${id_rooms}`);
+    const response = await api.get(`/pictures-by-room/${id_rooms}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching pictures by room ID', error);
@@ -24,7 +28,7 @@ const getPicturesByRoomId = async (id_rooms) => {
 
 const getInfoPopup = async (id_pictures) => {
   try {
-    const response = await axios.post(`${url}/retrieveInfoPopUpByIdPicture`, { id_pictures });
+    const response = await api.post('/retrieveInfoPopUpByIdPicture', { id_pictures });
     return response.data;
   } catch (error) {
     console.error('Error fetching info popups', error);
@@ -34,7 +38,7 @@ const getInfoPopup = async (id_pictures) => {
 
 const getLinks = async (id_pictures) => {
   try {
-    const response = await axios.post(`${url}/retrieveLinkByIdPicture`, { id_pictures });
+    const response = await api.post('/retrieveLinkByIdPicture', { id_pictures });
     return response.data;
   } catch (error) {
     console.error('Error fetching links', error);
@@ -44,7 +48,7 @@ const getLinks = async (id_pictures) => {
 
 const getImage = async (id) => {
   try {
-    const response = await axios.get(`http://localhost:8000/fetch/${id}`, { responseType: 'blob' });
+    const response = await api.get(`/fetch/${id}`, { responseType: 'blob' });
     const imageUrl = URL.createObjectURL(response.data);
     return imageUrl;
   } catch (error) {
@@ -54,7 +58,7 @@ const getImage = async (id) => {
 
 const updateImage = async (formData) => {
   try {
-    await axios.post(`${url}/update-image`, formData);
+    await api.post('/update-image', formData);
     alert('Image updated successfully');
   } catch (error) {
     console.error('Error updating image:', error);
@@ -64,7 +68,7 @@ const updateImage = async (formData) => {
 
 const updateInfospot = async (formData) => {
   try {
-    await axios.post(`${url}/update-infospot`, formData);
+    await api.post('/update-infospot', formData);
     alert('Infospot updated successfully');
   } catch (error) {
     console.error('Error updating infospot:', error);
@@ -74,7 +78,7 @@ const updateInfospot = async (formData) => {
 
 const updateLink = async (formData) => {
   try {
-    await axios.post(`${url}/update-link`, formData);
+    await api.post('/update-link', formData);
     alert('Link updated successfully');
   } catch (error) {
     console.error('Error updating link:', error);
@@ -85,7 +89,7 @@ const updateLink = async (formData) => {
 const addRoom = async (formData) => {
   try {
     const data = Object.fromEntries(formData.entries());
-    const response = await axios.post(`${url}/add-room`, data);
+    const response = await api.post('/add-room', data);
     alert('Room added successfully');
     return response.data.id_rooms; // Ensure roomId is returned from the API
   } catch (error) {
@@ -97,7 +101,7 @@ const addRoom = async (formData) => {
 
 const insertInfoPopUp = async (formData) => {
   try {
-      await axios.post('http://localhost:8000/insertInfoPopUp', formData);
+      await api.post('/insertInfoPopUp', formData);
       alert('Info popup inserted successfully');
   } catch (error) {
       console.error('Error inserting info popup:', error);
@@ -107,7 +111,7 @@ const insertInfoPopUp = async (formData) => {
 
 const insertLink = async (data) => {
   try {
-      await axios.post('http://localhost:8000/insertLink', data);
+      await api.post('/insertLink', data);
       alert('Link inserted successfully');
   } catch (error) {
       console.error('Error inserting link:', error);
@@ -117,7 +121,7 @@ const insertLink = async (data) => {
 
 const uploadFile = async (formData) => {
   try {
-      await axios.post('http://localhost:8000/upload', formData);
+      await api.post('/upload', formData);
       alert('File uploaded successfully');
   } catch (error) {
       console.error('Error uploading file:', error);
@@ -127,7 +131,7 @@ const uploadFile = async (formData) => {
 
 const getBuildings = async () => {
   try {
-    const response = await axios.get(`${url}/buildings`);
+    const response = await api.get('/buildings');
     return response.data;
   } catch (error) {
     console.error('Error fetching buildings', error);

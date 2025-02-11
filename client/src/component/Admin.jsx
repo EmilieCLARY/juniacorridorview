@@ -105,7 +105,7 @@ const Admin = () => {
   };
 
   useEffect(() => {
-    fetchRooms();
+    //fetchRooms();
     fetchRoomsInfo();
     fetchToursInfo();
     fetchBuildings(); // Add this line
@@ -129,6 +129,10 @@ const Admin = () => {
   const handleChangeInfospot = (infospot) => {
     setSelectedInfospot(infospot);
     setModalOpen(true);
+    if (infospot.image) {
+      const imageUrl = `data:image/jpeg;base64,${Buffer.from(infospot.image).toString('base64')}`;
+      setSelectedInfospot(prev => ({ ...prev, imageUrl }));
+    }
   };
 
   const handleChangeLink = (link) => {
@@ -155,9 +159,18 @@ const Admin = () => {
   const handleInfospotUpdate = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
+    if (!formData.get('pic')) {
+      formData.append('pic', selectedInfospot.image);
+    }
     await api.updateInfospot(formData);
     handleModalClose();
-    fetchRoomsInfo(); // Refresh the rooms info to reflect the updated infospot
+    const updatedInfospot = await api.getInfoPopup(selectedInfospot.id_pictures);
+    setRooms(prevRooms => prevRooms.map(room => ({
+      ...room,
+      infoPopups: room.infoPopups.map(infospot => 
+        infospot.id_info_popup === selectedInfospot.id_info_popup ? updatedInfospot.find(i => i.id_info_popup === selectedInfospot.id_info_popup) : infospot
+      )
+    })));
   };
 
   const handleLinkUpdate = async (event) => {
@@ -601,7 +614,13 @@ const handleEditTourSubmit = async (event) => {
               <input type="text" name="posZ" defaultValue={selectedInfospot.position_z} placeholder="Position Z" required />
               <input type="text" name="title" defaultValue={selectedInfospot.title} placeholder="Title" required />
               <input type="text" name="text" defaultValue={selectedInfospot.text} placeholder="Text" required />
-              <input type="file" name="pic" />
+                <div>
+                {selectedInfospot.imageUrl && (
+                  <img src={selectedInfospot.imageUrl} alt="Infospot" />
+                )}
+
+                  <input type="file" name="pic" />
+                </div>
               <button type="submit">Update</button>
             </form>
           </div>
