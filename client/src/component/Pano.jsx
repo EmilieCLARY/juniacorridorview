@@ -114,7 +114,7 @@ const PanoramaViewer = ({ location }) => {
         return { id_rooms: room.id_rooms, imageBlob: null };
       })
     );
-    setRoomPreviews(Object.fromEntries(roomPreviewsData.map(preview => [preview.id_rooms, URL.createObjectURL(preview.imageBlob)])));
+    setRoomPreviews(Object.fromEntries(roomPreviewsData.map(preview => [preview.id_rooms, preview.imageBlob ? URL.createObjectURL(preview.imageBlob) : null])));
   };
 
   const cleanUrlParams = () => {
@@ -229,22 +229,26 @@ const PanoramaViewer = ({ location }) => {
   }, [images, isLoading]);
   
   useEffect(() => {
+    
     fetchPictures();
     fetchRooms();
     setCurrentImageId(0);
-
-    const viewerInstance = new Viewer({
-      container: viewerRef.current,
-      autoRotate: false,
-      autoRotateSpeed: 0.3,
-    });
     
-    setViewer(viewerInstance);
+    if (!viewer) { // Ensure viewer is initialized only once
+      const viewerInstance = new Viewer({
+        container: viewerRef.current,
+        autoRotate: false,
+        autoRotateSpeed: 0.3,
+      });
+      
+      setViewer(viewerInstance);
 
-    return () => {
-      viewerInstance.dispose();
-    };
-  }, []);
+      return () => {
+        viewerInstance.dispose();
+      };
+    }
+
+  }, []); // Only run once on mount
                     
   const filteredRooms = visitType.startsWith('Visite guidée') 
     ? rooms.filter(room => tourSteps.some(step => step.id_rooms === room.id_rooms))
