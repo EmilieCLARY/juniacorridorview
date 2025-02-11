@@ -14,9 +14,11 @@ const PORT = process.env.PORT || 8000;
 
 const app = express();
 
+// Configure CORS
 app.use(cors({
-    origin: "http://localhost:3000",
-    credentials: true,
+  origin: 'http://localhost:5173', // Update to Vite's default port
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Autoriser les méthodes HTTP nécessaires
+  credentials: true // Si vous utilisez des cookies ou des sessions
 }));
 
 app.use(express.json());
@@ -375,5 +377,5 @@ app.get('/buildings', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`app running in ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
