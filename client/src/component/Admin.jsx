@@ -45,6 +45,14 @@ const Admin = () => {
 
   const loading = useRef(false);
 
+  const showLoading = (promises, textLoading, textSuccess, textError) => {
+    return toast.promise(Promise.all(promises), {
+        loading: textLoading,
+        success: textSuccess,
+        error: textError,
+    });
+  }
+
   const fetchRoomsInfo = async () => {
     try {
       console.log('Fetching rooms info...');
@@ -112,11 +120,7 @@ const Admin = () => {
     const fetchToursInfoPromise = fetchToursInfo();
     const fetchBuildingsPromise = fetchBuildings();
 
-    toast.promise(Promise.all([fetchRoomsInfoPromise, fetchToursInfoPromise, fetchBuildingsPromise]), {
-      loading: 'Chargement...',
-      success: 'Chargement des données réussi',
-      error: 'Erreur lors du chargement des données',
-    });
+    showLoading([fetchRoomsInfoPromise, fetchToursInfoPromise, fetchBuildingsPromise], 'Chargement...', 'Chargement des données réussi', 'Erreur lors du chargement des données');
   };
 
   useEffect(() => {
@@ -169,10 +173,17 @@ const Admin = () => {
     event.preventDefault();
     const formData = new FormData(event.target);
     formData.append('id_pictures', selectedPictureId);
-    await api.updateImage(formData);
-    handleModalClose();
-    fetchRoomsInfo(); // Refresh the rooms info to reflect the updated image
+
+    const updateImagePromise = api.updateImage(formData);
+    const fetchRoomsInfoPromise = updateImagePromise.then(() => fetchRoomsInfo());
+
+    showLoading([updateImagePromise, fetchRoomsInfoPromise], 'Mise à jour de l\'image...', 'Image mise à jour avec succès', 'La mise à jour de l\'image a échoué');
+
+    fetchRoomsInfoPromise.then(() => {
+      handleModalClose();
+    });
   };
+
 
   const handleInfospotUpdate = async (event) => {
     event.preventDefault();
@@ -180,69 +191,97 @@ const Admin = () => {
     if (!formData.get('pic')) {
       formData.append('pic', selectedInfospot.image);
     }
-    await api.updateInfospot(formData);
-    handleModalClose();
-    const updatedInfospot = await api.getInfoPopup(selectedInfospot.id_pictures);
-    setRooms(prevRooms => prevRooms.map(room => ({
-      ...room,
-      infoPopups: room.infoPopups.map(infospot => 
-        infospot.id_info_popup === selectedInfospot.id_info_popup ? updatedInfospot.find(i => i.id_info_popup === selectedInfospot.id_info_popup) : infospot
-      )
-    })));
+    const updateInfospotPromise = api.updateInfospot(formData);
+    const updatedInfospotPromise = updateInfospotPromise.then(() => api.getInfoPopup(selectedInfospot.id_pictures));
+
+    showLoading([updateInfospotPromise, updatedInfospotPromise], 'Mise à jour de l\'infobulle...', 'Infobulle mise à jour avec succès', 'La mise à jour de l\'infobulle a échoué');
+
+    updatedInfospotPromise.then((updatedInfospots) => {
+      setRooms(prevRooms => prevRooms.map(room => ({
+        ...room,
+        infoPopups: room.infoPopups.map(infospot =>
+            infospot.id_info_popup === selectedInfospot.id_info_popup ? updatedInfospots.find(i => i.id_info_popup === selectedInfospot.id_info_popup) : infospot
+        )
+      })));
+      handleModalClose();
+    });
   };
 
   const handleLinkUpdate = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
-    await api.updateLink(formData);
-    handleModalClose();
-    fetchRoomsInfo(); // Refresh the rooms info to reflect the updated link
+    const updateLinkPromise = api.updateLink(formData);
+    const fetchRoomsInfoPromise = updateLinkPromise.then(() => fetchRoomsInfo());
+
+    showLoading([updateLinkPromise, fetchRoomsInfoPromise], 'Mise à jour du lien...', 'Lien mis à jour avec succès', 'La mise à jour du lien a échoué');
+
+    fetchRoomsInfoPromise.then(() => {
+      handleModalClose();
+    });
   };
 
   const handleNewRoom = async (event, nextStep = false) => {
     event.preventDefault();
     const form = event.target.closest('form');
     const formData = new FormData(form);
-    const roomId = await api.addRoom(formData); // Ensure roomId is returned from the API
-    if (!roomId) {
+
+    let roomId;
+    const addRoomPromise = api.addRoom(formData).then(id => {
+      if (!id) {
         console.error('Failed to add room');
-        return;
-    }
-    const pictures = formData.getAll('pictures');
-    for (const picture of pictures) {
+        return Promise.reject('Failed to add room');
+      }
+      roomId = id;
+
+      const pictures = formData.getAll('pictures');
+      const uploadPromises = pictures.map(picture => {
         const pictureFormData = new FormData();
         pictureFormData.append('id_rooms', roomId);
         pictureFormData.append('pic', picture);
-        await api.uploadFile(pictureFormData);
-    }
-    if (nextStep) {
+        return api.uploadFile(pictureFormData);
+      });
+
+      return Promise.all(uploadPromises).then(() => fetchRoomsInfo());
+    });
+
+    showLoading([addRoomPromise], 'Ajout de la salle...', 'Salle ajoutée avec succès', 'L\'ajout de la salle a échoué');
+
+    addRoomPromise.then(() => {
+      if (nextStep) {
         setFromNewRoom(true); // Set the flag to true
         setNewRoomModalOpen(false); // Close the new room modal
         handleNewLink(roomId);
-    } else {
+      } else {
         setNewRoomModalOpen(false);
-    }
-    fetchRoomsInfo(); // Refresh the rooms info to reflect the new room
-};
+      }
+    });
+  };
 
   const handleNewTour = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
     const data = Object.fromEntries(formData.entries());
     data.steps = newTourSteps; // Ensure steps are correctly formatted as an array
-    await tourApi.createTour(data);
-    setNewTourModalOpen(false);
-    fetchToursInfo(); // Refresh the tours info to reflect the new tour
+    const createTourPromise = tourApi.createTour(data);
+    const fetchToursInfoPromise = createTourPromise.then(() => fetchToursInfo());
+    showLoading([createTourPromise, fetchToursInfoPromise], 'Ajout du parcours...', 'Parcours ajouté avec succès', 'L\'ajout du parcours a échoué');
+    fetchToursInfoPromise.then(() => {
+      setNewTourModalOpen(false);
+      handleModalClose();
+    });
   };
 
   const handleEditTour = async (tour) => {
     setSelectedTour(tour);
     if (!tourSteps[tour.id_tours]) {
-        const stepsData = await tourApi.getTourSteps(tour.id_tours);
-        setTourSteps(prevSteps => ({
+        const stepsDataPromise = tourApi.getTourSteps(tour.id_tours);
+        showLoading([stepsDataPromise], 'Modification du parcours...', 'Parcours modifié avec succès', 'La modification du parcours a échoué');
+        stepsDataPromise.then(stepsData => {
+          setTourSteps(prevSteps => ({
             ...prevSteps,
             [tour.id_tours]: stepsData
-        }));
+          }));
+        });
     }
     setEditTourModalOpen(true);
 };
@@ -261,15 +300,19 @@ const handleEditTourSubmit = async (event) => {
     }, []);
     const title = formData.get('title');
     const description = formData.get('description');
-    await tourApi.updateTourSteps({ id_tours: selectedTour.id_tours, steps, title, description });
-    setEditTourModalOpen(false);
+    const updateTourStepsPromise = tourApi.updateTourSteps({ id_tours: selectedTour.id_tours, steps, title, description });
     setNewStepCount(0);
-    fetchToursInfo(); // Refresh the tours info to reflect the updated steps
+    const fetchToursInfoPromise = updateTourStepsPromise.then(() => fetchToursInfo()); // Refresh the tours info to reflect the updated steps
+    showLoading([updateTourStepsPromise, fetchToursInfoPromise], 'Modification du parcours...', 'Parcours modifié avec succès', 'La modification du parcours a échoué');
+    fetchToursInfoPromise.then(() => {
+      setEditTourModalOpen(false);
+    });
 };
 
   const handleDeleteTour = async (tourId) => {
-    await tourApi.deleteTour(tourId);
-    fetchToursInfo(); // Refresh the tours info to reflect the deleted tour
+    const deleteTourPromise = tourApi.deleteTour(tourId);
+    const fetchToursInfoPromise = deleteTourPromise.then(() => fetchToursInfo()); // Refresh the tours info to reflect the deleted tour
+    showLoading([deleteTourPromise, fetchToursInfoPromise], 'Suppression du parcours...', 'Parcours supprimé avec succès', 'La suppression du parcours a échoué');
   };
 
   const handleAddStep = () => {
@@ -350,11 +393,14 @@ const handleEditTourSubmit = async (event) => {
   const handleNewInfospotSubmit = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
-    await api.insertInfoPopUp(formData);
-    if (!fromNewRoom) { // Check the flag
+    const insertInfoPopupPromise = api.insertInfoPopUp(formData);
+    const fetchRoomsInfoPromise = insertInfoPopupPromise.then(() => fetchRoomsInfo());
+    showLoading([insertInfoPopupPromise, fetchRoomsInfoPromise], 'Ajout de l\'infobulle...', 'Infobulle ajoutée avec succès', 'L\'ajout de l\'infobulle a échoué');
+    fetchRoomsInfoPromise.then(() => {
+      if (!fromNewRoom) { // Check the flag
         setNewInfospotModalOpen(false);
-    }
-    fetchRoomsInfo(); // Refresh the rooms info to reflect the new infospot
+      }
+    });
 };
 
   const handleNewLink = async (roomId) => {
@@ -371,11 +417,14 @@ const handleEditTourSubmit = async (event) => {
   const handleNewLinkSubmit = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
-    await api.insertLink(formData);
-    if (!fromNewRoom) { // Check the flag
+    const insertLinkPromise = api.insertLink(formData);
+    const fetchRoomsInfoPromise = insertLinkPromise.then(() => fetchRoomsInfo());
+    showLoading([insertLinkPromise, fetchRoomsInfoPromise], 'Ajout du lien...', 'Lien ajouté avec succès', 'L\'ajout du lien a échoué');
+    fetchRoomsInfoPromise.then(() => {
+      if (!fromNewRoom) { // Check the flag
         setNewLinkModalOpen(false);
-    }
-    fetchRoomsInfo(); // Refresh the rooms info to reflect the new link
+      }
+    });
 };
 
   const handlePreviewClick = async (imageUrl, pictureId) => {

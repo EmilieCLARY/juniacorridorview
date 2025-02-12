@@ -1,5 +1,4 @@
 import axios from "axios";
-import {toast} from "sonner";
 
 const api = axios.create({
   baseURL: process.env.BASE_URL, // Use the environment variable
@@ -44,20 +43,16 @@ const updateTourSteps = async (data) => {
             step_number: index + 1
         }));
         await api.post('/update-tour-steps', { id_tours: data.id_tours, steps: stepsWithNumbers, title: data.title, description: data.description });
-        toast.success('Etapes mises à jour avec succès');
     } catch (error) {
         console.error('Error updating tour steps:', error);
-        toast.error('La mise à jour des étapes a échoué');
     }
 };
 
 const addTourStep = async (data) => {
     try {
         await api.post('/add-tour-step', data);
-        toast.success('Etape ajoutée avec succès');
     } catch (error) {
         console.error('Error adding tour step:', error);
-        toast.error('L\'ajout de l\'étape a échoué');
     }
 };
 
@@ -68,20 +63,16 @@ const createTour = async (data) => {
             step_number: index + 1
         }));
         await api.post('/create-tour', { ...data, steps: stepsWithNumbers });
-        toast.success('Visite créée avec succès');
     } catch (error) {
         console.error('Error creating tour:', error);
-        toast.error('La création de la visite a échoué');
     }
 };
 
 const deleteTour = async (id_tours) => {
     try {
         await api.delete(`/delete-tour/${id_tours}`);
-        toast.success('Visite supprimée avec succès');
     } catch (error) {
         console.error('Error deleting tour:', error);
-        toast.error('La suppression de la visite a échoué');
     }
 };
 
