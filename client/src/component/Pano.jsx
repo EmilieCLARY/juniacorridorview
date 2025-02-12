@@ -3,7 +3,7 @@ import { ImagePanorama, Infospot, Viewer } from "panolens";
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import * as api from '../api/AxiosPano';
-import { getTourSteps } from '../api/AxiosTour'; // Add this line
+import { getTourSteps } from '../api/AxiosTour';
 import '../style/Pano.css';
 import {toast} from "sonner";
 import { getImage } from '../api/AxiosPano';
@@ -27,7 +27,8 @@ const PanoramaViewer = ({ location }) => {
   const [tourSteps, setTourSteps] = useState([]);
   const [roomPreviewsData, setRoomPreviewsData] = useState([]);
 
-  const loading = useRef(false);
+  const loadingTourSteps = useRef(false);
+  const loadingImage = useRef(false);
 
   const fetchTourSteps = async (tourId) => {
     try {
@@ -167,58 +168,72 @@ const PanoramaViewer = ({ location }) => {
   const displayImage = async (imageBlob, id) => {
     cleanUrlParams();
     setCurrentImageId(id);
-    const retrievedPopups = await handleRetrieveInfoPopUp(id); // Wait for the retrieval
-    setInfoPopups(prevInfoPopups => ({
-      ...prevInfoPopups,
-      [id]: retrievedPopups
-    }));
-
-    // Supprimer tous les panoramas avant d'en ajouter un nouveau
-    if (viewer && viewer.panorama) {
-      viewer.remove(viewer.panorama);
-    }
-
     const panorama = new ImagePanorama(URL.createObjectURL(imageBlob));
 
-    // Add all infospots
-    if (retrievedPopups) {
-      retrievedPopups.forEach(popup => {
-        const position = new THREE.Vector3(popup.position_x, popup.position_y, popup.position_z);
-        const infospot = new Infospot(350);
-        infospot.position.copy(position);
-        infospot.addHoverText(popup.title);
-        infospot.addEventListener('click', () => handleInfospotClick(popup));
-        panorama.add(infospot);
-      });
-    }
-
-    // Add all links
-    const retrievedLinks = await handleRetrieveLinks(id);
-    setLinks(prevLinks => ({
-      ...prevLinks,
-      [id]: retrievedLinks
-    }));
-
-    if (retrievedLinks) {
-      retrievedLinks.forEach(link => {
-        const position = new THREE.Vector3(link.position_x, link.position_y, link.position_z);
-        const infospot = new Infospot(350, '/img/chain.png');
-        infospot.position.copy(position);
-        infospot.addHoverText(`Go to panorama ${link.id_pictures_destination}`);
-        infospot.addEventListener('click', async () => {
-          const newImageBlob = await api.getImage(link.id_pictures_destination);
-          displayImage(newImageBlob, link.id_pictures_destination);
-        });
-        panorama.add(infospot);
-      });
-    }
-
-    viewer.add(panorama);
-    viewer.setPanorama(panorama);
+    const retrievedPopupsPromise = handleRetrieveInfoPopUp(id);
+    const retrievedLinksPromise = handleRetrieveLinks(id);
 
     // Fetch and set the room details
-    const roomId = await api.getRoomIdByPictureId(id);
-    fetchRoomDetails(roomId);
+    const roomIdPromise = api.getRoomIdByPictureId(id);
+    const roomDetailsPromise = roomIdPromise.then(roomId => fetchRoomDetails(roomId));
+
+    if(!firstLoad) {
+      toast.promise(Promise.all([retrievedPopupsPromise, retrievedLinksPromise, roomIdPromise, roomDetailsPromise]), {
+          loading: 'Chargement...',
+          success: 'Chargement des données réussi',
+          error: 'Erreur lors du chargement des données',
+      });
+    }
+
+    retrievedPopupsPromise.then((retrievedPopupsPromise) => {
+      setInfoPopups(prevInfoPopups => ({
+        ...prevInfoPopups,
+        [id]: retrievedPopupsPromise
+      }));
+
+      // Supprimer tous les panoramas avant d'en ajouter un nouveau
+      if (viewer && viewer.panorama) {
+        viewer.remove(viewer.panorama);
+      }
+
+      // Add all infospots
+      if (retrievedPopupsPromise) {
+        retrievedPopupsPromise.forEach(popup => {
+          const position = new THREE.Vector3(popup.position_x, popup.position_y, popup.position_z);
+          const infospot = new Infospot(350);
+          infospot.position.copy(position);
+          infospot.addHoverText(popup.title);
+          infospot.addEventListener('click', () => handleInfospotClick(popup));
+          panorama.add(infospot);
+        });
+      }
+    });
+
+    retrievedLinksPromise.then((retrievedLinksPromise) => {
+      setLinks(prevLinks => ({
+        ...prevLinks,
+        [id]: retrievedLinksPromise
+      }));
+
+      if (retrievedLinksPromise) {
+        retrievedLinksPromise.forEach(link => {
+          const position = new THREE.Vector3(link.position_x, link.position_y, link.position_z);
+          const infospot = new Infospot(350, '/img/chain.png');
+          infospot.position.copy(position);
+          infospot.addHoverText(`Go to panorama ${link.id_pictures_destination}`);
+          infospot.addEventListener('click', async () => {
+            const newImageBlob = await api.getImage(link.id_pictures_destination);
+            displayImage(newImageBlob, link.id_pictures_destination);
+          });
+          panorama.add(infospot);
+        });
+      }
+    });
+
+    Promise.all([retrievedPopupsPromise, retrievedLinksPromise, roomIdPromise, roomDetailsPromise]).then(() => {
+      viewer.add(panorama);
+      viewer.setPanorama(panorama);
+    });
   };
 
   const handlePanoramaClick = (event) => {
@@ -243,15 +258,6 @@ const PanoramaViewer = ({ location }) => {
   };
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const tourId = params.get('tour_id');
-    if (tourId) {
-      setVisitType(`Visite guidée, Parcours ${tourId}`);
-      fetchTourSteps(tourId);
-    }
-  }, [location]);
-
-  useEffect(() => {
     if (viewer) {
       viewer.container.addEventListener('click', handlePanoramaClick);
     }
@@ -264,6 +270,8 @@ const PanoramaViewer = ({ location }) => {
 
   useEffect(() => {
     if (images.length > 0 && !isLoading && firstLoad) {
+      if(loadingImage.current) return;
+      loadingImage.current = true;
       displayImage(images[0].imageBlob, images[0].id);
       setFirstLoad(false);
     }
@@ -284,7 +292,28 @@ const PanoramaViewer = ({ location }) => {
       viewerInstance.dispose();
       viewerRef.current.innerHTML = "";
     };
-  }, []);  
+  }, []);
+
+
+  useEffect(() => {
+    if (loadingTourSteps.current) return;
+    loadingTourSteps.current = true;
+
+    const params = new URLSearchParams(location.search);
+    const tourId = params.get('tour_id');
+    if (tourId) {
+      setVisitType(`Visite guidée, Parcours ${tourId}`);
+      const tourStepsPromise = fetchTourSteps(tourId);
+      toast.promise(tourStepsPromise, {
+        loading: 'Chargement...',
+        success: 'Chargement des données réussi',
+        error: 'Erreur lors du chargement des données',
+      });
+      tourStepsPromise.then(() => {
+        loadingTourSteps.current = false;
+      });
+    }
+  }, [location]);
 
   useEffect(() => {
     if (!viewer) return;
@@ -292,8 +321,13 @@ const PanoramaViewer = ({ location }) => {
     const params = new URLSearchParams(location.search);
     const tourId = params.get('tour_id');
     if (!tourId) {
-      fetchPictures();
-      fetchRooms();
+      const picturePromise = fetchPictures();
+      const roomsPromise = fetchRooms();
+      toast.promise(Promise.all([picturePromise, roomsPromise]), {
+        loading: 'Chargement...',
+        success: 'Chargement des données réussi',
+        error: 'Erreur lors du chargement des données',
+      });
     }
     setCurrentImageId(0);
   }, [viewer]);
