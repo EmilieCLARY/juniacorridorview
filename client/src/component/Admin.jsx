@@ -697,10 +697,10 @@ const handleEditTourSubmit = async (event) => {
               <textarea name="description" placeholder="Tour Description" required></textarea>
               <DragDropContext onDragEnd={onDragEnd}>
                 <Droppable droppableId="steps">
-                  {(provided) => (
+                  {(provided, snapshot = {}) => (
                     <div {...provided.droppableProps} ref={provided.innerRef}>
                       {newTourSteps.map((step, index) => (
-                        <Draggable key={index} draggableId={`step-${index}`} index={index}>
+                        <Draggable key={`new-step-${index}`} draggableId={`new-step-${index}`} index={index}>
                           {(provided) => (
                             <div
                               ref={provided.innerRef}
@@ -749,7 +749,7 @@ const handleEditTourSubmit = async (event) => {
                 <textarea name="description" defaultValue={selectedTour.description} placeholder="Tour Description" required></textarea>
                 <DragDropContext onDragEnd={onDragEnd}>
                     <Droppable droppableId="steps">
-                        {(provided) => (
+                        {(provided, snapshot = {}) => (
                             <div {...provided.droppableProps} ref={provided.innerRef}>
                                 {tourSteps[selectedTour.id_tours]?.map((step, index) => (
                                     <Draggable key={step.id_tour_steps} draggableId={`step-${step.id_tour_steps}`} index={index}>
