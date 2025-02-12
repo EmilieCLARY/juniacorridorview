@@ -21,7 +21,7 @@ const Home = () => {
               <div className="flex flex-col basis-2/3 gap-12  justify-center">
                   <div className="bg-junia-purple">
                     <div className='text-xl font-title text-white inline-block text-center bg-junia-orange p-2 font-bold'> JUNIA Corridor View</div>
-                    <div className="px-3 py-2 text-white text-justify">
+                    <div className="px-3 py-2 text-white text-justify font-paragraphs">
                       Bienvenue dans la visite virtuelle de la Halle Technologique de Junia ! Découvrez un espace dédié à
                       l'innovation, où technologie et créativité se rencontrent pour façonner le futur. Plongez dans nos
                       installations, explorez nos projets, et laissez-vous inspirer par notre savoir-faire.

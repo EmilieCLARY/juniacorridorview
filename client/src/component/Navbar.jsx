@@ -19,13 +19,13 @@ const Navbar = () => {
   useEffect(() => {
     switch (location.pathname) {
       case '/':
-        setRouteName('Home');
+        setRouteName('Menu Principal');
         break;
       case '/pano':
         setRouteName('Panorama Viewer');
         break;
       case '/tour':
-        setRouteName('Tour Viewer');
+        setRouteName('Choix des Parcours');
         break;
       case '/admin':
         setRouteName('Admin Panel');
@@ -46,8 +46,8 @@ const Navbar = () => {
         <div className="flex items-center text-5xl text-junia-purple font-title">
           {routeName}
         </div>
-        <div className="flex items-center text-xl text-junia-orange font-title">
-          <NavLink to="/" className="text-inherit no-underline hover:text-inherit">Home</NavLink>
+        <div className="flex items-center text-xl text-junia-orange font-title gap-2">
+          <NavLink to="/" className="text-inherit no-underline hover:text-inherit">Menu</NavLink>
           <NavLink to="/admin" className="text-inherit no-underline hover:text-inherit">Admin</NavLink>
         </div>
       </nav>

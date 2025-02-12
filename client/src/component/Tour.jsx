@@ -3,6 +3,7 @@ import { useHistory } from "react-router-dom";
 import * as api from '../api/AxiosTour';
 import '../style/Tour.css';
 import { Buffer } from 'buffer';
+import RollingGallery from '../reactbits/Components/RollingGallery/RollingGallery';
 
 const TourViewer = () => {
   Buffer.from = Buffer.from || require('buffer').Buffer;
@@ -59,10 +60,10 @@ const TourViewer = () => {
 
   const fetchRooms = async () => {
     try {
-        const roomsData = await api.getRooms();
-        setRooms(roomsData);
+      const roomsData = await api.getRooms();
+      setRooms(roomsData);
     } catch (error) {
-        console.error('Error fetching rooms:', error);
+      console.error('Error fetching rooms:', error);
     }
   };
 
@@ -71,21 +72,40 @@ const TourViewer = () => {
   };
 
   useEffect(() => {
-    fetchTours();
-    fetchRooms();
+    const fetchAllData = async () => {
+      await fetchTours();
+      await fetchRooms();
+    };
+
+    fetchAllData();
   }, []);
 
+  useEffect(() => {
+    const fetchAllTourSteps = async () => {
+      for (const tour of tours) {
+        await fetchTourSteps(tour.id_tours);
+      }
+    };
+
+    if (tours.length > 0) {
+      fetchAllTourSteps();
+    }
+  }, [tours]);
+
+  const getPanoramaImagesForTour = (tourId) => {
+    if (!tourSteps[tourId]) return [];
+    return tourSteps[tourId].map(step => panoramaUrls[step.id_rooms]).filter(url => url);
+  };
+
   return (
-    <div>
-      <h1>Tours</h1>
-      <div className="tours-container">
+    <div> 
+      <div className="bg-junia-lavender grid grid-cols-3 grid-flow-col auto-cols-min gap-10 justify-between p-4">
         {tours.map(tour => (
-          <div key={tour.id_tours} className="tour-item">
-            <h2>Tour {tour.id_tours}</h2>
-            <h3>{tour.title}</h3>
-            <p>{tour.description}</p>
-            <button onClick={() => handleTourClick(tour.id_tours)}>Start Tour</button>
-            <button onClick={() => fetchTourSteps(tour.id_tours)}>Show Steps</button>
+          <div key={tour.id_tours} className="purpleborder text-justify bg-white border-5 border-junia-orange p-2 rounded-3xl">
+            <div className="font-title font-bold text-junia-orange text-3xl text-center">{tour.title}</div>
+            <div className="font-texts">{tour.description}</div>
+            <div onClick={() => handleTourClick(tour.id_tours)} className="font-texts" >Start Tour</div>
+            <RollingGallery  autoplay={true} pauseOnHover={true} images={getPanoramaImagesForTour(tour.id_tours)}/>
             {tourSteps[tour.id_tours] && (
               <ul>
                 {tourSteps[tour.id_tours].map(step => (
