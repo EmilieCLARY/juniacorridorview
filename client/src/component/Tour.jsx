@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useRef, useState} from "react";
 import { useHistory } from "react-router-dom";
 import * as api from '../api/AxiosTour';
 import '../style/Tour.css';
 import { Buffer } from 'buffer';
+import {toast} from "sonner";
 
 const TourViewer = () => {
   Buffer.from = Buffer.from || require('buffer').Buffer;
@@ -10,6 +11,7 @@ const TourViewer = () => {
   const [tourSteps, setTourSteps] = useState({});
   const [rooms, setRooms] = useState({});
   const [panoramaUrls, setPanoramaUrls] = useState({});
+  const loading = useRef(false);
   const history = useHistory();
 
   const fetchTours = async () => {
@@ -66,13 +68,28 @@ const TourViewer = () => {
     }
   };
 
+  const fetchData = async () => {
+    const fetchToursPromise = fetchTours();
+    const fetchRoomsPromise = fetchRooms();
+
+    toast.promise(Promise.all([fetchToursPromise, fetchRoomsPromise]), {
+      loading: 'Chargement...',
+      success: 'Chargement des données réussi',
+      error: 'Erreur lors du chargement des données',
+    });
+  };
+
   const handleTourClick = (tourId) => {
     history.push(`/pano?tour_id=${tourId}`);
   };
 
   useEffect(() => {
-    fetchTours();
-    fetchRooms();
+    if (loading.current) return;
+    loading.current = true;
+
+    fetchData().then(r => {
+      loading.current = false;
+    });
   }, []);
 
   return (

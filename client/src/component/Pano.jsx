@@ -5,6 +5,7 @@ import * as THREE from "three";
 import * as api from '../api/AxiosPano';
 import { getTourSteps } from '../api/AxiosTour'; // Add this line
 import '../style/Pano.css';
+import {toast} from "sonner";
 import { getImage } from '../api/AxiosPano';
 
 const PanoramaViewer = ({ location }) => {
@@ -26,14 +27,7 @@ const PanoramaViewer = ({ location }) => {
   const [tourSteps, setTourSteps] = useState([]);
   const [roomPreviewsData, setRoomPreviewsData] = useState([]);
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const tourId = params.get('tour_id');
-    if (tourId) {
-      setVisitType(`Visite guidée, Parcours ${tourId}`);
-      fetchTourSteps(tourId);
-    }
-  }, [location]);
+  const loading = useRef(false);
 
   const fetchTourSteps = async (tourId) => {
     try {
@@ -249,6 +243,15 @@ const PanoramaViewer = ({ location }) => {
   };
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tourId = params.get('tour_id');
+    if (tourId) {
+      setVisitType(`Visite guidée, Parcours ${tourId}`);
+      fetchTourSteps(tourId);
+    }
+  }, [location]);
+
+  useEffect(() => {
     if (viewer) {
       viewer.container.addEventListener('click', handlePanoramaClick);
     }
@@ -295,7 +298,7 @@ const PanoramaViewer = ({ location }) => {
     setCurrentImageId(0);
   }, [viewer]);
 
-                    
+
   const filteredRooms = visitType.startsWith('Visite guidée') 
     ? rooms.filter(room => tourSteps.some(step => step.id_rooms === room.id_rooms))
     : rooms;

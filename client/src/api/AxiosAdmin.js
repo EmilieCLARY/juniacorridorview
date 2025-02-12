@@ -59,30 +59,24 @@ const getImage = async (id) => {
 const updateImage = async (formData) => {
   try {
     await api.post('/update-image', formData);
-    alert('Image updated successfully');
   } catch (error) {
     console.error('Error updating image:', error);
-    alert('Image update failed');
   }
 };
 
 const updateInfospot = async (formData) => {
   try {
     await api.post('/update-infospot', formData);
-    alert('Infospot updated successfully');
   } catch (error) {
     console.error('Error updating infospot:', error);
-    alert('Infospot update failed');
   }
 };
 
 const updateLink = async (formData) => {
   try {
     await api.post('/update-link', formData);
-    alert('Link updated successfully');
   } catch (error) {
     console.error('Error updating link:', error);
-    alert('Link update failed');
   }
 };
 
@@ -90,11 +84,9 @@ const addRoom = async (formData) => {
   try {
     const data = Object.fromEntries(formData.entries());
     const response = await api.post('/add-room', data);
-    alert('Room added successfully');
     return response.data.id_rooms; // Ensure roomId is returned from the API
   } catch (error) {
     console.error('Error adding room:', error);
-    alert('Room addition failed');
     return null;
   }
 };
@@ -102,30 +94,24 @@ const addRoom = async (formData) => {
 const insertInfoPopUp = async (formData) => {
   try {
       await api.post('/insertInfoPopUp', formData);
-      alert('Info popup inserted successfully');
   } catch (error) {
       console.error('Error inserting info popup:', error);
-      alert('Info popup insertion failed');
   }
 };
 
 const insertLink = async (data) => {
   try {
       await api.post('/insertLink', data);
-      alert('Link inserted successfully');
   } catch (error) {
       console.error('Error inserting link:', error);
-      alert('Link insertion failed');
   }
 };
 
 const uploadFile = async (formData) => {
   try {
       await api.post('/upload', formData);
-      alert('File uploaded successfully');
   } catch (error) {
       console.error('Error uploading file:', error);
-      alert('File upload failed');
   }
 };
 

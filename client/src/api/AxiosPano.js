@@ -1,4 +1,5 @@
 import axios from 'axios';
+import {toast} from "sonner";
 
 const api = axios.create({
   baseURL: process.env.BASE_URL, // Use the environment variable
@@ -38,7 +39,7 @@ const getInfoPopup = async (imageId) => {
             console.error('Request canceled:', error.message);
         } else {
             console.error('Error retrieving info popup:', error);
-            alert('Info popup retrieval failed');
+            toast.error('La récupération de la bulle d\'information a échouée');
         }
         return [];
     }
@@ -53,7 +54,7 @@ const getLinks = async (imageId) => {
             console.error('Request canceled:', error.message);
         } else {
             console.error('Error retrieving links:', error);
-            alert('Link retrieval failed');
+            toast.error('La récupération des liens a échouée');
         }
         return [];
     }
@@ -144,30 +145,30 @@ const getFirstPictureByRoomId = async (id_rooms) => {
 const uploadFile = async (formData) => {
     try {
         await api.post('/upload', formData);
-        alert('File uploaded successfully');
+        toast.success('Fichier téléversé avec succès');
     } catch (error) {
         console.error('Error uploading file:', error);
-        alert('File upload failed');
+        toast.error('Le téléversement du fichier a échoué');
     }
 };
 
 const insertInfoPopUp = async (formData) => {
     try {
         await api.post('/insertInfoPopUp', formData);
-        alert('Info popup inserted successfully');
+        toast.success('Bulle d\'information ajoutée avec succès');
     } catch (error) {
         console.error('Error inserting info popup:', error);
-        alert('Info popup insertion failed');
+        toast.error('L\'ajout de la bulle d\'information a échoué');
     }
 };
 
 const insertLink = async (data) => {
     try {
         await api.post('/insertLink', data);
-        alert('Link inserted successfully');
+        toast.success('Lien ajouté avec succès');
     } catch (error) {
         console.error('Error inserting link:', error);
-        alert('Link insertion failed');
+        toast.error('L\'ajout du lien a échoué');
     }
 };
 

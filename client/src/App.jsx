@@ -10,17 +10,19 @@ import Admin from './component/Admin';
 import PanoramaViewer from './component/Pano';
 
 import './App.css';
+import {Toaster} from "sonner";
 
 const App = () => {
   return (
     <>
-    <Navbar/>
-    <Switch>
-      <Route exact path ="/" component={Home}/>
-      <Route exact path ="/pano" component={PanoramaViewer}/>
-      <Route exact path ="/tour" component={TourViewer}/>
-      <Route exact path ="/admin" component={Admin}/>
-    </Switch>
+      <Toaster />
+      <Navbar/>
+      <Switch>
+        <Route exact path ="/" component={Home}/>
+        <Route exact path ="/pano" component={PanoramaViewer}/>
+        <Route exact path ="/tour" component={TourViewer}/>
+        <Route exact path ="/admin" component={Admin}/>
+      </Switch>
     </>
   )
 }
