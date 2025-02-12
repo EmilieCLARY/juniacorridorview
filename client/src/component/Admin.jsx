@@ -380,14 +380,22 @@ const handleEditTourSubmit = async (event) => {
 
   const handleNewInfospot = async (roomId) => {
     setSelectedRoomId(roomId);
-    const pictures = await api.getPicturesByRoomId(roomId);
-    const picturesWithUrls = await Promise.all(pictures.map(async pic => {
-      const imageUrl = await api.getImage(pic.id_pictures);
-      return { ...pic, imageUrl };
-    }));
-    setRoomPictures(picturesWithUrls);
-    setNewLinkModalOpen(false); // Close the new link modal
-    setNewInfospotModalOpen(true);
+    const picturesPromise = api.getPicturesByRoomId(roomId);
+    const picturesWithUrlsPromise = picturesPromise.then(picturesPromise => {
+      const picturesWithUrls = Promise.all(picturesPromise.map(async pic => {
+        const imageUrl = await api.getImage(pic.id_pictures);
+        return {...pic, imageUrl};
+      }));
+      return picturesWithUrls;
+    });
+
+    showLoading([picturesPromise, picturesWithUrlsPromise], 'Chargement des images...', 'Images chargées avec succès', 'Le chargement des images a échoué');
+
+    picturesWithUrlsPromise.then(picturesWithUrlsPromise => {
+      setRoomPictures(picturesWithUrlsPromise);
+      setNewLinkModalOpen(false); // Close the new link modal
+      setNewInfospotModalOpen(true);
+    });
   };
 
   const handleNewInfospotSubmit = async (event) => {
@@ -405,13 +413,21 @@ const handleEditTourSubmit = async (event) => {
 
   const handleNewLink = async (roomId) => {
     setSelectedRoomId(roomId);
-    const pictures = await api.getPicturesByRoomId(roomId);
-    const picturesWithUrls = await Promise.all(pictures.map(async pic => {
-      const imageUrl = await api.getImage(pic.id_pictures);
-      return { ...pic, imageUrl };
-    }));
-    setRoomPictures(picturesWithUrls);
-    setNewLinkModalOpen(true);
+    const picturesPromise = api.getPicturesByRoomId(roomId);
+    const picturesWithUrlsPromise = picturesPromise.then(picturesPromise => {
+      const picturesWithUrls = Promise.all(picturesPromise.map(async pic => {
+        const imageUrl = await api.getImage(pic.id_pictures);
+        return {...pic, imageUrl};
+      }));
+      return picturesWithUrls;
+    });
+
+    showLoading([picturesPromise, picturesWithUrlsPromise], 'Chargement des images...', 'Images chargées avec succès', 'Le chargement des images a échoué');
+
+    picturesWithUrlsPromise.then(picturesWithUrlsPromise => {
+      setRoomPictures(picturesWithUrlsPromise);
+      setNewLinkModalOpen(true);
+    });
   };
 
   const handleNewLinkSubmit = async (event) => {
@@ -433,31 +449,42 @@ const handleEditTourSubmit = async (event) => {
     if (viewer) {
       const panorama = new ImagePanorama(imageUrl);
 
-      // Retrieve and add infospots
-      const infospots = await api.getInfoPopup(pictureId);
-      infospots.forEach(infospot => {
-        const position = new THREE.Vector3(infospot.position_x, infospot.position_y, infospot.position_z);
-        const spot = new Infospot(350);
-        spot.position.copy(position);
-        spot.addHoverText(infospot.title);
-        panorama.add(spot);
+      // Retrieve infospots
+      const infospotsPromise = api.getInfoPopup(pictureId);
+      // Retrieve links
+      const linksPromise = api.getLinks(pictureId);
+
+      showLoading([infospotsPromise, linksPromise], 'Chargement...', 'Chargement des données réussi', 'Erreur lors du chargement des données');
+
+      infospotsPromise.then(infospotsPromise => {
+        infospotsPromise.forEach(infospot => {
+          const position = new THREE.Vector3(infospot.position_x, infospot.position_y, infospot.position_z);
+          const spot = new Infospot(350);
+          spot.position.copy(position);
+          spot.addHoverText(infospot.title);
+          panorama.add(spot);
+        });
       });
 
-      // Retrieve and add links
-      const links = await api.getLinks(pictureId);
-      links.forEach(link => {
-        const position = new THREE.Vector3(link.position_x, link.position_y, link.position_z);
-        const spot = new Infospot(350, '/img/chain.png');
-        spot.position.copy(position);
-        spot.addHoverText(`Go to panorama ${link.id_pictures_destination}`);
-        spot.addEventListener('click', async () => {
-          const newImageUrl = await api.getImage(link.id_pictures_destination);
-          handlePreviewClick(newImageUrl, link.id_pictures_destination);
+      // Add links
+      linksPromise.then(linksPromise => {
+        linksPromise.forEach(link => {
+          const position = new THREE.Vector3(link.position_x, link.position_y, link.position_z);
+          const spot = new Infospot(350, '/img/chain.png');
+          spot.position.copy(position);
+          spot.addHoverText(`Go to panorama ${link.id_pictures_destination}`);
+          spot.addEventListener('click', async () => {
+            const newImageUrl = await api.getImage(link.id_pictures_destination);
+            handlePreviewClick(newImageUrl, link.id_pictures_destination);
+          });
+          panorama.add(spot);
         });
-        panorama.add(spot);
       });
-      viewer.add(panorama);
-      viewer.setPanorama(panorama);
+
+      Promise.all([infospotsPromise, linksPromise]).then(() => {
+        viewer.add(panorama);
+        viewer.setPanorama(panorama);
+      });
     }
   };
 
