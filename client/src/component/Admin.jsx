@@ -170,6 +170,7 @@ const Admin = () => {
 
     // Reset viewer and panorama
     if (viewer) {
+      viewer.dispose()
       viewer.remove(viewer.panorama);
     }
   };
@@ -508,7 +509,37 @@ const handleEditTourSubmit = async (event) => {
 
       // Load the first image of the room
       if (roomPictures.length > 0) {
-        handlePreviewClick(roomPictures[0].imageUrl, roomPictures[0].id_pictures);
+        const firstPicture = roomPictures[0];
+        const panorama = new ImagePanorama(firstPicture.imageUrl);
+
+        // Retrieve and add infospots
+        api.getInfoPopup(firstPicture.id_pictures).then(infospots => {
+          infospots.forEach(infospot => {
+            const position = new THREE.Vector3(infospot.position_x, infospot.position_y, infospot.position_z);
+            const spot = new Infospot(350);
+            spot.position.copy(position);
+            spot.addHoverText(infospot.title);
+            panorama.add(spot);
+          });
+        });
+
+        // Retrieve and add links
+        api.getLinks(firstPicture.id_pictures).then(links => {
+          links.forEach(link => {
+            const position = new THREE.Vector3(link.position_x, link.position_y, link.position_z);
+            const spot = new Infospot(350, '/img/chain.png');
+            spot.position.copy(position);
+            spot.addHoverText(`Go to panorama ${link.id_pictures_destination}`);
+            spot.addEventListener('click', async () => {
+              const newImageUrl = await api.getImage(link.id_pictures_destination);
+              handlePreviewClick(newImageUrl, link.id_pictures_destination);
+            });
+            panorama.add(spot);
+          });
+        });
+
+        viewerInstance.add(panorama);
+        viewerInstance.setPanorama(panorama);
       }
     }
   }, [newInfospotModalOpen, roomPictures]);
@@ -524,7 +555,37 @@ const handleEditTourSubmit = async (event) => {
 
       // Load the first image of the room
       if (roomPictures.length > 0) {
-        handlePreviewClick(roomPictures[0].imageUrl, roomPictures[0].id_pictures);
+        const firstPicture = roomPictures[0];
+        const panorama = new ImagePanorama(firstPicture.imageUrl);
+
+        // Retrieve and add infospots
+        api.getInfoPopup(firstPicture.id_pictures).then(infospots => {
+          infospots.forEach(infospot => {
+            const position = new THREE.Vector3(infospot.position_x, infospot.position_y, infospot.position_z);
+            const spot = new Infospot(350);
+            spot.position.copy(position);
+            spot.addHoverText(infospot.title);
+            panorama.add(spot);
+          });
+        });
+
+        // Retrieve and add links
+        api.getLinks(firstPicture.id_pictures).then(links => {
+          links.forEach(link => {
+            const position = new THREE.Vector3(link.position_x, link.position_y, link.position_z);
+            const spot = new Infospot(350, '/img/chain.png');
+            spot.position.copy(position);
+            spot.addHoverText(`Go to panorama ${link.id_pictures_destination}`);
+            spot.addEventListener('click', async () => {
+              const newImageUrl = await api.getImage(link.id_pictures_destination);
+              handlePreviewClick(newImageUrl, link.id_pictures_destination);
+            });
+            panorama.add(spot);
+          });
+        });
+
+        viewerInstance.add(panorama);
+        viewerInstance.setPanorama(panorama);
       }
     }
   }, [newLinkModalOpen, roomPictures]);
@@ -924,12 +985,12 @@ const handleEditTourSubmit = async (event) => {
             <h2>Add New Link</h2>
             <div className="modal-body">
               <div className="image-preview-column">
-                {roomPictures.map(picture => (
-                  <div key={picture.id_pictures} className="image-preview" onClick={() => handlePreviewClick(picture.imageUrl, picture.id_pictures)}>
-                    <img src={picture.imageUrl} alt={`Preview of ${picture.id_pictures}`} />
-                    <p>ID : {picture.id_pictures}</p>
-                  </div>
-                ))}
+              {roomPictures.map(picture => (
+  <div key={picture.id_pictures} className="image-preview" onClick={() => handlePreviewClick(picture.imageUrl, picture.id_pictures)}>
+    <img src={picture.imageUrl} alt={`Preview of ${picture.id_pictures}`} />
+    <p>ID : {picture.id_pictures}</p>
+  </div>
+))}
               </div>
               <div className="viewer-column">
                 <div ref={viewerRef} className="panorama-viewer"></div>
