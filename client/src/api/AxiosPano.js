@@ -4,7 +4,7 @@ import {toast} from "sonner";
 const api = axios.create({
   baseURL: process.env.BASE_URL, // Use the environment variable
   timeout: 180000, // Increase the timeout to 180 seconds
-  withCredentials: true // Si vous utilisez des cookies ou des sessions
+
 });
 
 /**

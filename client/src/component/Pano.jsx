@@ -7,6 +7,7 @@ import { getTourSteps } from '../api/AxiosTour';
 import '../style/Pano.css';
 import {toast} from "sonner";
 import { getImage } from '../api/AxiosPano';
+import Panorama360 from './Panorama360';
 
 const PanoramaViewer = ({ location }) => {
   Buffer.from = Buffer.from || require('buffer').Buffer;
@@ -356,6 +357,7 @@ const PanoramaViewer = ({ location }) => {
           </ul>
         </div>
         <div className="panorama-content">
+          <Panorama360 infoPopups={infoPopups[currentImageId] || []} links={links[currentImageId] || []} />
           <div>
             <h2>Current Room: {currentRoomName} ({currentRoomNumber})</h2>
             {images.map((image, index) => (
@@ -404,6 +406,7 @@ const PanoramaViewer = ({ location }) => {
           <input type="submit" value="Add Link" />
         </form>
       </div>
+      <div id="panorama-container-dev"></div>
     </div>
   );
 };
