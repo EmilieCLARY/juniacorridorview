@@ -986,11 +986,11 @@ const handleEditTourSubmit = async (event) => {
             <div className="modal-body">
               <div className="image-preview-column">
               {roomPictures.map(picture => (
-  <div key={picture.id_pictures} className="image-preview" onClick={() => handlePreviewClick(picture.imageUrl, picture.id_pictures)}>
-    <img src={picture.imageUrl} alt={`Preview of ${picture.id_pictures}`} />
-    <p>ID : {picture.id_pictures}</p>
-  </div>
-))}
+                <div key={picture.id_pictures} className="image-preview" onClick={() => handlePreviewClick(picture.imageUrl, picture.id_pictures)}>
+                  <img src={picture.imageUrl} alt={`Preview of ${picture.id_pictures}`} />
+                  <p>ID : {picture.id_pictures}</p>
+                </div>
+              ))}
               </div>
               <div className="viewer-column">
                 <div ref={viewerRef} className="panorama-viewer"></div>
