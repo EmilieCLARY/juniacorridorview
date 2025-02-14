@@ -8,6 +8,7 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick }) => {
   const infoMeshes = [];
   const linksTexture = new THREE.TextureLoader().load("/img/links.png");                      
   const linksMeshes = [];
+  const displayedPopups = [];
 
   useEffect(() => {
     const scene = new THREE.Scene();
@@ -40,9 +41,8 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick }) => {
     };
     window.addEventListener("resize", onWindowResize);
 
-    // Add info spots from props
+    // Ajout des infospots
     if (infoPopups) {
-      console.log("Info popups", infoPopups);
       infoPopups.forEach(popup => {
         const infoGeometry = new THREE.PlaneGeometry(20, 20);
         const infoMaterial = new THREE.MeshBasicMaterial({ map: infoTexture, transparent: true });
@@ -54,7 +54,7 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick }) => {
       });
     }
 
-    // Add links from props
+    // Ajout des liens
     if (links) {
       links.forEach(link => {
         const linksGeometry = new THREE.PlaneGeometry(20, 20);
@@ -70,16 +70,15 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick }) => {
     const createInfoPopup = (popup) => {
       const popupGroup = new THREE.Group();
       
-      // Title canvas
+      // Titre
       const titleCanvas = document.createElement('canvas');
       const titleContext = titleCanvas.getContext('2d');
       titleContext.font = 'Bold 70px Arial';
       const titleWidth = titleContext.measureText(popup.title).width;
-      titleCanvas.width = titleWidth + 20; // Add some padding
+      titleCanvas.width = titleWidth + 20;
       titleCanvas.height = 50;
       titleContext.font = 'Bold 70px Arial';
       titleContext.fillStyle = 'red';
-      // put text in capital letters
       titleContext.fillText(popup.title.toUpperCase(), 10, 50);
       const titleTexture = new THREE.CanvasTexture(titleCanvas);
       const titleMaterial = new THREE.MeshBasicMaterial({ map: titleTexture, transparent: true });
@@ -88,13 +87,13 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick }) => {
       titleMesh.position.set(0, 50, 0);
       popupGroup.add(titleMesh);
       
-      // Text canvas
+      // Texte
       const textCanvas = document.createElement('canvas');
       const textContext = textCanvas.getContext('2d');
       textContext.font = 'Normal 50px Arial';
       const textWidth = textContext.measureText(popup.text).width;
-      textCanvas.width = textWidth + 20; // Add some padding
-      textCanvas.height = 256; // Set canvas height
+      textCanvas.width = textWidth + 20;
+      textCanvas.height = 256;
       textContext.font = 'Normal 50px Arial';
       textContext.fillStyle = 'red';
       textContext.fillText(popup.text, 10, 50);
@@ -102,15 +101,15 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick }) => {
       const textMaterial = new THREE.MeshBasicMaterial({ map: textTexture, transparent: true });
       const textGeometry = new THREE.PlaneGeometry(textWidth / 5, 50);
       const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-      textMesh.position.set(-textWidth / 10, 0, 0); // Adjusted position to the left
+      textMesh.position.set(-textWidth / 10, 0, 0);
       popupGroup.add(textMesh);
       
-      // Image canvas
-      const imageGeometry = new THREE.PlaneGeometry(100, 75); // Adjusted size
+      // Image
+      const imageGeometry = new THREE.PlaneGeometry(100, 75);
       const imageTexture = new THREE.TextureLoader().load(URL.createObjectURL(new Blob([new Uint8Array(popup.image.data)], { type: 'image/png' })));
       const imageMaterial = new THREE.MeshBasicMaterial({ map: imageTexture, transparent: true });
       const imageMesh = new THREE.Mesh(imageGeometry, imageMaterial);
-      imageMesh.position.set(textWidth / 10 + 50, 0, 0); // Adjusted position to the right
+      imageMesh.position.set(textWidth / 10 + 50, 0, 0);
       popupGroup.add(imageMesh);
       
       return popupGroup;
@@ -123,56 +122,48 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick }) => {
 
       const raycaster = new THREE.Raycaster();
       raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObject(sphere);
 
-      // Check if click intersects already existing info spots
-      if(infoMeshes.length > 0) {
-        infoMeshes.forEach((info, index) => {
-          const infoIntersects = raycaster.intersectObject(info);
-          if (infoIntersects.length > 0 && infoPopups[index]) {
+      // Vérifie si un infospot est cliqué
+      infoMeshes.forEach((info, index) => {
+        const infoIntersects = raycaster.intersectObject(info);
+        if (infoIntersects.length > 0 && infoPopups[index]) {
+          const existingPopup = displayedPopups.find(popup => popup.name === `popup_${index}`);
+          if (existingPopup) {
+            // Supprime le popup si déjà affiché
+            scene.remove(existingPopup);
+            displayedPopups.splice(displayedPopups.indexOf(existingPopup), 1);
+            console.log("Popup fermé");
+          } else {
+            // Crée un nouveau popup
             console.log("Info clicked");
             const popupGroup = createInfoPopup(infoPopups[index]);
+            popupGroup.name = `popup_${index}`;
             const pos = new THREE.Vector3(infoPopups[index].position_x, infoPopups[index].position_y, infoPopups[index].position_z).normalize().multiplyScalar(345);
             popupGroup.position.copy(pos);
-            console.log("Popup at", pos);
             scene.add(popupGroup);
             popupGroup.lookAt(camera.position);
-            console.log("Popup ajouté à la scène:", scene.children);
-
+            displayedPopups.push(popupGroup);
+            console.log("Popup ajouté à la scène");
           }
-        });
-      }
+        }
+      });
 
-      // Check if click intersects already existing links
-      if(linksMeshes.length > 0) {
-        linksMeshes.forEach((link, index) => {
-          const linkIntersects = raycaster.intersectObject(link);
-          if (linkIntersects.length > 0 && links[index]) {
-            console.log("Link clicked");
-            onLinkClick(links[index].id_pictures_destination);
-          }
-        });
-      }
-
-      if (intersects.length > 0) {
-        const infoGeometry = new THREE.PlaneGeometry(20, 20);
-        const infoMaterial = new THREE.MeshBasicMaterial({ map: linksTexture, transparent: true });
-        const infoMesh = new THREE.Mesh(infoGeometry, infoMaterial);
-        const hitPoint = intersects[0].point.clone();
-        const direction = hitPoint.clone().normalize().multiplyScalar(495);
-        infoMesh.position.copy(direction);
-        console.log("Click at", hitPoint);
-        
-        //linksMeshes.push(infoMesh);
-        //scene.add(infoMesh);
-      }
+      // Vérifie si un lien est cliqué
+      linksMeshes.forEach((link, index) => {
+        const linkIntersects = raycaster.intersectObject(link);
+        if (linkIntersects.length > 0 && links[index]) {
+          console.log("Link clicked");
+          onLinkClick(links[index].id_pictures_destination);
+        }
+      });
     };
+
     document.addEventListener("click", onClick);
 
     const animate = () => {
       requestAnimationFrame(animate);
       controls.update();
-      infoMeshes.forEach(mesh => mesh.lookAt(camera.position)); // Keep info images fixed on the sphere
+      infoMeshes.forEach(mesh => mesh.lookAt(camera.position));
       renderer.render(scene, camera);
     };
     animate();
