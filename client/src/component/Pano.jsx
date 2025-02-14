@@ -279,12 +279,14 @@ const PanoramaViewer = ({ location }) => {
           </ul>
         </div>
         <div>
-            <h2>Current Room: {currentRoomName} ({currentRoomNumber})</h2>
-            {images.map((image, index) => (
-              <button key={`${image.id}-${index}`} onClick={() => displayImage(image.imageBlob, image.id)}>
+        <h2>Current Room: {currentRoomName} ({currentRoomNumber})</h2>
+          {images.map((image, index) => (
+            <div key={`${image.id}-${index}`}>
+              <button onClick={() => displayImage(image.imageBlob, image.id)}>
                 Display Image {image.id}
               </button>
-            ))}
+            </div>
+          ))}
         </div>
         <div className="panorama-content">
           <Panorama360 
