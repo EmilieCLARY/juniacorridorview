@@ -32,6 +32,9 @@ app.use(session({
 }));
 app.use(fileUpload()); // Add this line
 
+// Enable CORS for all routes
+app.use(cors());
+
 app.get("/", (req, res) => {
     res.send("hi");
 })
