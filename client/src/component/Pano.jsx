@@ -205,6 +205,13 @@ const PanoramaViewer = ({ location }) => {
     }
   };
 
+  const handleLinkClick = (id_pictures_destination) => {
+    const image = images.find(img => img.id === id_pictures_destination);
+    if (image) {
+      displayImage(image.imageBlob, image.id);
+    }
+  };
+
   useEffect(() => {
     if (images.length > 0 && !isLoading && firstLoad) {
       if(loadingImage.current) return;
@@ -283,6 +290,8 @@ const PanoramaViewer = ({ location }) => {
           <Panorama360 
             infoPopups={infoPopups[currentImageId] || []} 
             selectedPicture={images.find(image => image.id === currentImageId)?.imageBlob ? URL.createObjectURL(images.find(image => image.id === currentImageId).imageBlob) : null} 
+            links={links[currentImageId] || []}
+            onLinkClick={handleLinkClick} // Pass the function to Panorama360
           />
         </div>
       </div>

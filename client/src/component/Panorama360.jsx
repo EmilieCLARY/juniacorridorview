@@ -2,10 +2,12 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import React, { useEffect, useRef } from "react";
 
-const Panorama360 = ({ infoPopups, selectedPicture }) => {
+const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick }) => {
   const mountRef = useRef(null);
   const infoTexture = new THREE.TextureLoader().load("/img/info.png");
   const infoMeshes = [];
+  const linksTexture = new THREE.TextureLoader().load("/img/links.png");                      
+  const linksMeshes = [];
 
   useEffect(() => {
     const scene = new THREE.Scene();
@@ -52,6 +54,20 @@ const Panorama360 = ({ infoPopups, selectedPicture }) => {
       });
     }
 
+    // Add links from props
+    if (links) {
+      console.log("Links:", links);
+      links.forEach(link => {
+        const linksGeometry = new THREE.PlaneGeometry(20, 20);
+        const linksMaterial = new THREE.MeshBasicMaterial({ map: linksTexture, transparent: true });
+        const linksMesh = new THREE.Mesh(linksGeometry, linksMaterial);
+        const pos = new THREE.Vector3(link.position_x, link.position_y, link.position_z).normalize().multiplyScalar(495);
+        linksMesh.position.copy(pos);
+        linksMeshes.push(linksMesh);
+        scene.add(linksMesh);
+      });
+    }
+
     const onClick = (event) => {
       const mouse = new THREE.Vector2();
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -61,16 +77,27 @@ const Panorama360 = ({ infoPopups, selectedPicture }) => {
       raycaster.setFromCamera(mouse, camera);
       const intersects = raycaster.intersectObject(sphere);
 
+      // Check if click intersects already existing links
+      if(linksMeshes.length > 0) {
+        linksMeshes.forEach((link, index) => {
+          const linkIntersects = raycaster.intersectObject(link);
+          if (linkIntersects.length > 0 && links[index]) {
+            console.log("Link clicked");
+            onLinkClick(links[index].id_pictures_destination); // Call the onLinkClick function
+          }
+        });
+      }
+
       if (intersects.length > 0) {
         const infoGeometry = new THREE.PlaneGeometry(20, 20);
-        const infoMaterial = new THREE.MeshBasicMaterial({ map: infoTexture, transparent: true });
+        const infoMaterial = new THREE.MeshBasicMaterial({ map: linksTexture, transparent: true });
         const infoMesh = new THREE.Mesh(infoGeometry, infoMaterial);
         const hitPoint = intersects[0].point.clone();
         const direction = hitPoint.clone().normalize().multiplyScalar(495);
         infoMesh.position.copy(direction);
         console.log("Click at", hitPoint);
         
-        infoMeshes.push(infoMesh);
+        linksMeshes.push(infoMesh);
         scene.add(infoMesh);
       }
     };
@@ -89,7 +116,7 @@ const Panorama360 = ({ infoPopups, selectedPicture }) => {
       window.removeEventListener("resize", onWindowResize);
       document.removeEventListener("click", onClick);
     };
-  }, [infoPopups, selectedPicture]);
+  }, [infoPopups, selectedPicture, links, onLinkClick]);
 
   return <div ref={mountRef} className="w-full h-full" />;
 };
