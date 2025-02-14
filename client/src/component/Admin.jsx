@@ -55,28 +55,38 @@ const Admin = () => {
 
   const fetchRoomsInfo = async () => {
     try {
+      console.time('Fetching rooms info');
       console.log('Fetching rooms info...');
       const roomsData = await api.getRooms();
-      const roomsInfo = await Promise.all(roomsData.map(async room => {
+
+      const roomsInfo = await Promise.all(roomsData.map(async (room) => {
         const pictures = await api.getPicturesByRoomId(room.id_rooms);
-        const picturesWithUrls = await Promise.all(pictures.map(async pic => {
-          const imageUrl = await api.getImage(pic.id_pictures);
-          return { ...pic, imageUrl };
-        }));
-        const infoPopups = await Promise.all(pictures.map(pic => api.getInfoPopup(pic.id_pictures)));
-        const links = await Promise.all(pictures.map(pic => api.getLinks(pic.id_pictures)));
+
+        // Parallelizing image, infoPopup, and links retrieval
+        const [picturesWithUrls, infoPopups, links] = await Promise.all([
+          Promise.all(pictures.map(async (pic) => ({
+            ...pic,
+            imageUrl: await api.getImage(pic.id_pictures),
+          }))),
+          Promise.all(pictures.map((pic) => api.getInfoPopup(pic.id_pictures))),
+          Promise.all(pictures.map((pic) => api.getLinks(pic.id_pictures))),
+        ]);
+
         return {
           ...room,
           pictures: picturesWithUrls,
           infoPopups: infoPopups.flat(),
           links: links.flat(),
           numberOfPictures: pictures.length,
-          numberOfInfoSpots: infoPopups.flat().length,
-          numberOfLinks: links.flat().length,
-          building: room.building_name || 'Unknown'
+          numberOfInfoSpots: infoPopups.reduce((acc, val) => acc + val.length, 0),
+          numberOfLinks: links.reduce((acc, val) => acc + val.length, 0),
+          building: room.building_name || 'Unknown',
         };
       }));
+
       setRooms(roomsInfo);
+
+      console.timeEnd('Fetching rooms info');
     } catch (error) {
       console.error('Error fetching rooms info:', error);
     }
@@ -175,17 +185,23 @@ const Admin = () => {
     }
   };
 
-  const handleImageUpload = async (event) => {
+  const handleImageUploadOnChange = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
     formData.append('id_pictures', selectedPictureId);
 
     const updateImagePromise = api.updateImage(formData);
-    const fetchRoomsInfoPromise = updateImagePromise.then(() => fetchRoomsInfo());
+    const fetchImagePromise = updateImagePromise.then(() => api.getImage(selectedPictureId));
 
-    showLoading([updateImagePromise, fetchRoomsInfoPromise], 'Mise à jour de l\'image...', 'Image mise à jour avec succès', 'La mise à jour de l\'image a échoué');
+    showLoading([updateImagePromise, fetchImagePromise], 'Mise à jour de l\'image...', 'Image mise à jour avec succès', 'La mise à jour de l\'image a échoué');
 
-    fetchRoomsInfoPromise.then(() => {
+    fetchImagePromise.then((imageUrl) => {
+      setRooms(prevRooms => prevRooms.map(room => ({
+        ...room,
+        pictures: room.pictures.map(picture =>
+            picture.id_pictures === selectedPictureId ? { ...picture, imageUrl } : picture
+        )
+      })));
       handleModalClose();
     });
   };
@@ -217,11 +233,17 @@ const Admin = () => {
     event.preventDefault();
     const formData = new FormData(event.target);
     const updateLinkPromise = api.updateLink(formData);
-    const fetchRoomsInfoPromise = updateLinkPromise.then(() => fetchRoomsInfo());
+    const fetchLinksPromise = updateLinkPromise.then(() => api.getLinks(selectedLink.id_pictures));
 
-    showLoading([updateLinkPromise, fetchRoomsInfoPromise], 'Mise à jour du lien...', 'Lien mis à jour avec succès', 'La mise à jour du lien a échoué');
+    showLoading([updateLinkPromise, fetchLinksPromise], 'Mise à jour du lien...', 'Lien mis à jour avec succès', 'La mise à jour du lien a échoué');
 
-    fetchRoomsInfoPromise.then(() => {
+    fetchLinksPromise.then((links) => {
+      setRooms(prevRooms => prevRooms.map(room => ({
+        ...room,
+        links: room.links.map(link =>
+            link.id_links === selectedLink.id_links ? links.find(l => l.id_links === selectedLink.id_links) : link
+        )
+      })));
       handleModalClose();
     });
   };
@@ -408,9 +430,14 @@ const handleEditTourSubmit = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
     const insertInfoPopupPromise = api.insertInfoPopUp(formData);
-    const fetchRoomsInfoPromise = insertInfoPopupPromise.then(() => fetchRoomsInfo());
-    showLoading([insertInfoPopupPromise, fetchRoomsInfoPromise], 'Ajout de l\'infobulle...', 'Infobulle ajoutée avec succès', 'L\'ajout de l\'infobulle a échoué');
-    fetchRoomsInfoPromise.then(() => {
+    const fetchInfospotPromise = insertInfoPopupPromise.then(() => api.getInfoPopup(selectedImageId));
+    showLoading([insertInfoPopupPromise, fetchInfospotPromise], 'Ajout de l\'infobulle...', 'Infobulle ajoutée avec succès', 'L\'ajout de l\'infobulle a échoué');
+    fetchInfospotPromise.then((infospots) => {
+      setRooms(prevRooms => prevRooms.map(room => ({
+        ...room,
+        infoPopups: room.id_rooms === selectedRoomId ? infospots : room.infoPopups,
+        numberOfInfoSpots: room.id_rooms === selectedRoomId ? infospots.length : room.numberOfInfoSpots
+      })));
       if (!fromNewRoom) { // Check the flag
         setNewInfospotModalOpen(false);
       }
@@ -440,9 +467,14 @@ const handleEditTourSubmit = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
     const insertLinkPromise = api.insertLink(formData);
-    const fetchRoomsInfoPromise = insertLinkPromise.then(() => fetchRoomsInfo());
-    showLoading([insertLinkPromise, fetchRoomsInfoPromise], 'Ajout du lien...', 'Lien ajouté avec succès', 'L\'ajout du lien a échoué');
-    fetchRoomsInfoPromise.then(() => {
+    const fetchLinksPromise = insertLinkPromise.then(() => api.getLinks(selectedImageId));
+    showLoading([insertLinkPromise, fetchLinksPromise], 'Ajout du lien...', 'Lien ajouté avec succès', 'L\'ajout du lien a échoué');
+    fetchLinksPromise.then((links) => {
+      setRooms(prevRooms => prevRooms.map(room => ({
+        ...room,
+        links: room.id_rooms === selectedRoomId ? links : room.links,
+        numberOfLinks: room.id_rooms === selectedRoomId ? links.length : room.numberOfLinks
+      })));
       if (!fromNewRoom) { // Check the flag
         setNewLinkModalOpen(false);
       }
@@ -538,6 +570,7 @@ const handleEditTourSubmit = async (event) => {
       if (roomPictures.length > 0) {
         const firstPicture = roomPictures[0];
         const panorama = new ImagePanorama(firstPicture.imageUrl);
+        setSelectedImageId(firstPicture.id_pictures);
 
         // Retrieve and add infospots
         api.getInfoPopup(firstPicture.id_pictures).then(infospots => {
@@ -584,6 +617,7 @@ const handleEditTourSubmit = async (event) => {
       if (roomPictures.length > 0) {
         const firstPicture = roomPictures[0];
         const panorama = new ImagePanorama(firstPicture.imageUrl);
+        setSelectedImageId(firstPicture.id_pictures);
 
         // Retrieve and add infospots
         api.getInfoPopup(firstPicture.id_pictures).then(infospots => {
@@ -764,7 +798,7 @@ const handleEditTourSubmit = async (event) => {
           <div className="modal-content">
             <span className="close" onClick={handleModalClose}>&times;</span>
             <h2>Change Image</h2>
-            <form onSubmit={handleImageUpload}>
+            <form onSubmit={handleImageUploadOnChange}>
               <input type="file" name="pic" required />
               <button type="submit">Upload</button>
             </form>
