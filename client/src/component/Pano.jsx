@@ -1,24 +1,19 @@
 import { Buffer } from 'buffer';
-import { ImagePanorama, Infospot, Viewer } from "panolens";
 import React, { useEffect, useRef, useState } from "react";
-import * as THREE from "three";
 import * as api from '../api/AxiosPano';
 import { getTourSteps } from '../api/AxiosTour';
 import '../style/Pano.css';
-import {toast} from "sonner";
-import { getImage } from '../api/AxiosPano';
+import { toast } from "sonner";
 import Panorama360 from './Panorama360';
 
 const PanoramaViewer = ({ location }) => {
   Buffer.from = Buffer.from || require('buffer').Buffer;
-  const viewerRef = useRef(null);
   const [images, setImages] = useState([]);
-  const [viewer, setViewer] = useState(null);
   const [currentImageId, setCurrentImageId] = useState(null);
   const [infoPopups, setInfoPopups] = useState({});
   const [links, setLinks] = useState({});
   const [isLoading, setIsLoading] = useState(true);
-  const [firstLoad, setFirstLoad] = useState(true); 
+  const [firstLoad, setFirstLoad] = useState(true);
   const [selectedInfospot, setSelectedInfospot] = useState(null);
   const [currentRoomName, setCurrentRoomName] = useState('');
   const [currentRoomNumber, setCurrentRoomNumber] = useState('');
@@ -38,9 +33,9 @@ const PanoramaViewer = ({ location }) => {
       const roomIds = stepsData.map(step => step.id_rooms);
       const roomsData = await Promise.all(roomIds.map(async (id) => {
         const room = await api.getRoomDetails(id);
-        return { ...room, id_rooms: id }; // Ajoute id_rooms manuellement si absent
+        return { ...room, id_rooms: id };
       }));
-            setRooms(roomsData);
+      setRooms(roomsData);
       console.log('Fetched rooms:', roomsData);
       const imagesData = await Promise.all(
         stepsData.map(async step => {
@@ -53,7 +48,6 @@ const PanoramaViewer = ({ location }) => {
         })
       );
 
-      // Add previews for each room
       const roomPreviewsData = await Promise.all(
         roomsData.map(async room => {
           const picture = await api.getFirstPictureByRoomId(room.id_rooms);
@@ -169,12 +163,10 @@ const PanoramaViewer = ({ location }) => {
   const displayImage = async (imageBlob, id) => {
     cleanUrlParams();
     setCurrentImageId(id);
-    const panorama = new ImagePanorama(URL.createObjectURL(imageBlob));
 
     const retrievedPopupsPromise = handleRetrieveInfoPopUp(id);
     const retrievedLinksPromise = handleRetrieveLinks(id);
 
-    // Fetch and set the room details
     const roomIdPromise = api.getRoomIdByPictureId(id);
     const roomDetailsPromise = roomIdPromise.then(roomId => fetchRoomDetails(roomId));
 
@@ -191,23 +183,6 @@ const PanoramaViewer = ({ location }) => {
         ...prevInfoPopups,
         [id]: retrievedPopupsPromise
       }));
-
-      // Supprimer tous les panoramas avant d'en ajouter un nouveau
-      if (viewer && viewer.panorama) {
-        viewer.remove(viewer.panorama);
-      }
-
-      // Add all infospots
-      if (retrievedPopupsPromise) {
-        retrievedPopupsPromise.forEach(popup => {
-          const position = new THREE.Vector3(popup.position_x, popup.position_y, popup.position_z);
-          const infospot = new Infospot(350);
-          infospot.position.copy(position);
-          infospot.addHoverText(popup.title);
-          infospot.addEventListener('click', () => handleInfospotClick(popup));
-          panorama.add(infospot);
-        });
-      }
     });
 
     retrievedLinksPromise.then((retrievedLinksPromise) => {
@@ -215,39 +190,11 @@ const PanoramaViewer = ({ location }) => {
         ...prevLinks,
         [id]: retrievedLinksPromise
       }));
-
-      if (retrievedLinksPromise) {
-        retrievedLinksPromise.forEach(link => {
-          const position = new THREE.Vector3(link.position_x, link.position_y, link.position_z);
-          const infospot = new Infospot(350, '/img/chain.png');
-          infospot.position.copy(position);
-          infospot.addHoverText(`Go to panorama ${link.id_pictures_destination}`);
-          infospot.addEventListener('click', async () => {
-            const newImageBlob = await api.getImage(link.id_pictures_destination);
-            displayImage(newImageBlob, link.id_pictures_destination);
-          });
-          panorama.add(infospot);
-        });
-      }
     });
 
     Promise.all([retrievedPopupsPromise, retrievedLinksPromise, roomIdPromise, roomDetailsPromise]).then(() => {
-      viewer.add(panorama);
-      viewer.setPanorama(panorama);
     });
   };
-
-  const handlePanoramaClick = (event) => {
-    if (!viewer || !viewer.panorama) return;
-
-    const intersects = viewer.raycaster.intersectObject(viewer.panorama, true);
-    
-    if (intersects.length > 0) {
-      const { x, y, z } = intersects[0].point;
-
-      console.log(`Clicked Position: X: ${-x}, Y: ${y}, Z: ${z}`);
-    };
-  }
 
   const handleRoomClick = async (id_rooms) => {
     const pictures = await api.getPicturesByRoomId(id_rooms);
@@ -259,17 +206,6 @@ const PanoramaViewer = ({ location }) => {
   };
 
   useEffect(() => {
-    if (viewer) {
-      viewer.container.addEventListener('click', handlePanoramaClick);
-    }
-    return () => {
-      if (viewer) {
-        viewer.container.removeEventListener('click', handlePanoramaClick);
-      }
-    };
-  }, [viewer]);
-
-  useEffect(() => {
     if (images.length > 0 && !isLoading && firstLoad) {
       if(loadingImage.current) return;
       loadingImage.current = true;
@@ -277,24 +213,6 @@ const PanoramaViewer = ({ location }) => {
       setFirstLoad(false);
     }
   }, [images, isLoading]);
-
-  useEffect(() => {
-    if (!viewerRef.current || viewer) return;
-
-    const viewerInstance = new Viewer({
-      container: viewerRef.current,
-      autoRotate: false,
-      autoRotateSpeed: 0.3,
-    });
-
-    setViewer(viewerInstance);
-
-    return () => {
-      viewerInstance.dispose();
-      viewerRef.current.innerHTML = "";
-    };
-  }, []);
-
 
   useEffect(() => {
     if (loadingTourSteps.current) return;
@@ -317,8 +235,6 @@ const PanoramaViewer = ({ location }) => {
   }, [location]);
 
   useEffect(() => {
-    if (!viewer) return;
-
     const params = new URLSearchParams(location.search);
     const tourId = params.get('tour_id');
     if (!tourId) {
@@ -331,8 +247,7 @@ const PanoramaViewer = ({ location }) => {
       });
     }
     setCurrentImageId(0);
-  }, [viewer]);
-
+  }, []);
 
   const filteredRooms = visitType.startsWith('Visite guidée') 
     ? rooms.filter(room => tourSteps.some(step => step.id_rooms === room.id_rooms))
@@ -356,28 +271,19 @@ const PanoramaViewer = ({ location }) => {
             ))}
           </ul>
         </div>
-        <div className="panorama-content">
-          <Panorama360 infoPopups={infoPopups[currentImageId] || []} links={links[currentImageId] || []} />
-          <div>
+        <div>
             <h2>Current Room: {currentRoomName} ({currentRoomNumber})</h2>
             {images.map((image, index) => (
               <button key={`${image.id}-${index}`} onClick={() => displayImage(image.imageBlob, image.id)}>
                 Display Image {image.id}
               </button>
             ))}
-          </div>
-          <div ref={viewerRef} className="viewer-container">
-            {selectedInfospot && (
-              <div className="infospot-popup">
-                <button onClick={() => setSelectedInfospot(null)}>✖</button>
-                <h3>{selectedInfospot.title}</h3>
-                <p>{selectedInfospot.text}</p>
-                {selectedInfospot.image && (
-                  <img src={`data:image/jpeg;base64,${Buffer.from(selectedInfospot.image).toString('base64')}`} alt="Infospot" />
-                )}
-              </div>
-            )}
-          </div>
+        </div>
+        <div className="panorama-content">
+          <Panorama360 
+            infoPopups={infoPopups[currentImageId] || []} 
+            selectedPicture={images.find(image => image.id === currentImageId)?.imageBlob ? URL.createObjectURL(images.find(image => image.id === currentImageId).imageBlob) : null} 
+          />
         </div>
       </div>
       <div className="forms-container">

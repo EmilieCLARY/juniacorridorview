@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import React, { useEffect, useRef } from "react";
 
-const Panorama360 = ({ infoPopups }) => {
+const Panorama360 = ({ infoPopups, selectedPicture }) => {
   const mountRef = useRef(null);
   const infoTexture = new THREE.TextureLoader().load("/img/info.png");
   const infoMeshes = [];
@@ -26,7 +26,7 @@ const Panorama360 = ({ infoPopups }) => {
     const geometry = new THREE.SphereGeometry(500, 60, 40);
     geometry.scale(-1, 1, 1);
     const textureLoader = new THREE.TextureLoader();
-    const texture = textureLoader.load("/img/H016_Demonstrateur_n1.JPG");
+    const texture = textureLoader.load(selectedPicture);
     const material = new THREE.MeshBasicMaterial({ map: texture });
     const sphere = new THREE.Mesh(geometry, material);
     scene.add(sphere);
@@ -89,7 +89,7 @@ const Panorama360 = ({ infoPopups }) => {
       window.removeEventListener("resize", onWindowResize);
       document.removeEventListener("click", onClick);
     };
-  }, [infoPopups]);
+  }, [infoPopups, selectedPicture]);
 
   return <div ref={mountRef} className="w-full h-full" />;
 };
