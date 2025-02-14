@@ -14,8 +14,15 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick }) => {
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    const width = mountRef.current.clientWidth;
+    const height = mountRef.current.clientHeight;
+
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    renderer.setSize(width, height);
+
     mountRef.current.appendChild(renderer.domElement);
+
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -35,10 +42,13 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick }) => {
     scene.add(sphere);
 
     const onWindowResize = () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
+      const width = mountRef.current.clientWidth;
+      const height = mountRef.current.clientHeight;
+      camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(width, height);
     };
+    
     window.addEventListener("resize", onWindowResize);
 
     // Ajout des infospots
@@ -116,29 +126,41 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick }) => {
     };
 
     const onClick = (event) => {
+      if (!mountRef.current) return;
+    
+      // Récupérer la taille et position du conteneur
+      const rect = mountRef.current.getBoundingClientRect();
+    
+      // Convertir la position de la souris en coordonnées normalisées pour Three.js
       const mouse = new THREE.Vector2();
-      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    
+      // Afficher les coordonnées normalisées dans la console
+      logClickCoordinates(mouse);
+    
+      // Création du raycaster
       const raycaster = new THREE.Raycaster();
       raycaster.setFromCamera(mouse, camera);
-
-      // Vérifie si un infospot est cliqué
+    
+      // Vérifier si un infospot est cliqué
       infoMeshes.forEach((info, index) => {
-        const infoIntersects = raycaster.intersectObject(info);
-        if (infoIntersects.length > 0 && infoPopups[index]) {
+        const intersects = raycaster.intersectObject(info);
+        if (intersects.length > 0 && infoPopups[index]) {
           const existingPopup = displayedPopups.find(popup => popup.name === `popup_${index}`);
           if (existingPopup) {
-            // Supprime le popup si déjà affiché
+            // Supprimer le popup si déjà affiché
             scene.remove(existingPopup);
             displayedPopups.splice(displayedPopups.indexOf(existingPopup), 1);
             console.log("Popup fermé");
           } else {
-            // Crée un nouveau popup
+            // Créer un nouveau popup
             console.log("Info clicked");
             const popupGroup = createInfoPopup(infoPopups[index]);
             popupGroup.name = `popup_${index}`;
-            const pos = new THREE.Vector3(infoPopups[index].position_x, infoPopups[index].position_y, infoPopups[index].position_z).normalize().multiplyScalar(345);
+            const pos = new THREE.Vector3(infoPopups[index].position_x, infoPopups[index].position_y, infoPopups[index].position_z)
+              .normalize()
+              .multiplyScalar(345);
             popupGroup.position.copy(pos);
             scene.add(popupGroup);
             popupGroup.lookAt(camera.position);
@@ -147,19 +169,40 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick }) => {
           }
         }
       });
-
-      // Vérifie si un lien est cliqué
+    
+      // Vérifier si un lien est cliqué
       linksMeshes.forEach((link, index) => {
-        const linkIntersects = raycaster.intersectObject(link);
-        if (linkIntersects.length > 0 && links[index]) {
+        const intersects = raycaster.intersectObject(link);
+        if (intersects.length > 0 && links[index]) {
           console.log("Link clicked");
           onLinkClick(links[index].id_pictures_destination);
         }
       });
+    
+      // Vérifier si un point de la sphère est cliqué
+      const intersects = raycaster.intersectObject(sphere);
+      if (intersects.length > 0) {
+        const infoGeometry = new THREE.PlaneGeometry(20, 20);
+        const infoMaterial = new THREE.MeshBasicMaterial({ map: infoTexture, transparent: true });
+        const infoMesh = new THREE.Mesh(infoGeometry, infoMaterial);
+        const hitPoint = intersects[0].point.clone();
+        const direction = hitPoint.clone().normalize().multiplyScalar(495);
+        infoMesh.position.copy(direction);
+        console.log("Click at", hitPoint);
+    
+        infoMeshes.push(infoMesh);
+        scene.add(infoMesh);
+      }
     };
-
+    
+    // Fonction pour afficher les coordonnées normalisées dans la console
+    const logClickCoordinates = (mouse) => {
+      console.log(`Clic détecté - Coordonnées normalisées : x=${mouse.x.toFixed(4)}, y=${mouse.y.toFixed(4)}`);
+    };
+    
+    // Ajouter l'événement de clic
     document.addEventListener("click", onClick);
-
+    
     const animate = () => {
       requestAnimationFrame(animate);
       controls.update();
