@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositionSelect }) => {
   const mountRef = useRef(null);
@@ -10,13 +10,19 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
   const linksMeshes = [];
   const displayedPopups = [];
 
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
-      mountRef.current.requestFullscreen().catch(err => {
+      mountRef.current.requestFullscreen().then(() => {
+        setIsFullscreen(true);
+      }).catch(err => {
         alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
       });
     } else {
-      document.exitFullscreen();
+      document.exitFullscreen().then(() => {
+        setIsFullscreen(false);
+      });
     }
   };
 
@@ -253,7 +259,7 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
   return (
     <div ref={mountRef} className="w-full h-full relative">
       <img
-        src="/img/fullscreen.png"
+        src={isFullscreen ? "/img/fullscreen-exit.svg" : "/img/fullscreen.png"}
         alt="Fullscreen"
         onClick={toggleFullscreen}
         style={{
