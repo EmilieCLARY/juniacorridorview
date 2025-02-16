@@ -9,6 +9,7 @@ import TourViewer from './component/Tour';
 import Admin from './component/Admin';
 import PanoramaViewer from './component/Pano';
 import Panorama360 from './component/Panorama360';
+import AdminTour from './component/AdminTour';
 
 import './App.css';
 import {Toaster} from "sonner";
@@ -24,6 +25,7 @@ const App = () => {
         <Route exact path ="/tour" component={TourViewer}/>
         <Route exact path ="/admin" component={Admin}/>
         <Route exact path ="/dev-pano" component={Panorama360}/> 
+        <Route exact path ="/admin-tour" component={AdminTour}/>
       </Switch>
     </>
   )

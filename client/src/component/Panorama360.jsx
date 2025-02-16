@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import React, { useEffect, useRef } from "react";
 
-const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick }) => {
+const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositionSelect }) => {
   const mountRef = useRef(null);
   const infoTexture = new THREE.TextureLoader().load("/img/info.png");
   const infoMeshes = [];
@@ -11,6 +11,8 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick }) => {
   const displayedPopups = [];
 
   useEffect(() => {
+    if (!mountRef.current) return;
+
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -22,7 +24,6 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick }) => {
     renderer.setSize(width, height);
 
     mountRef.current.appendChild(renderer.domElement);
-
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -42,6 +43,7 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick }) => {
     scene.add(sphere);
 
     const onWindowResize = () => {
+      if (!mountRef.current) return;
       const width = mountRef.current.clientWidth;
       const height = mountRef.current.clientHeight;
       camera.aspect = width / height;
@@ -128,6 +130,8 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick }) => {
     const onClick = (event) => {
       if (!mountRef.current) return;
     
+      if (!window.isSelectingPosition) return;
+
       // Récupérer la taille et position du conteneur
       const rect = mountRef.current.getBoundingClientRect();
     
@@ -190,8 +194,24 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick }) => {
         infoMesh.position.copy(direction);
         console.log("Click at", hitPoint);
     
-        infoMeshes.push(infoMesh);
-        scene.add(infoMesh);
+        if (intersects.length > 0) {
+          const hitPoint = intersects[0].point.clone();
+          console.log("Selected Position:", hitPoint);
+      
+          if (typeof onPositionSelect === "function") {
+            if (window.isSelectingPosition) {
+              if (window.isFirstClick) {
+                window.isFirstClick = false;
+              } else {
+                onPositionSelect({ x: hitPoint.x, y: hitPoint.y, z: hitPoint.z });
+                window.isSelectingPosition = false;
+                window.isFirstClick = true;
+              }
+            }
+          } else {
+            console.warn("onPositionSelect n'est pas une fonction");
+          }
+        }
       }
     };
     
@@ -212,13 +232,15 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick }) => {
     animate();
 
     return () => {
-      mountRef.current.removeChild(renderer.domElement);
+      if (mountRef.current) {
+        mountRef.current.removeChild(renderer.domElement);
+      }
       window.removeEventListener("resize", onWindowResize);
       document.removeEventListener("click", onClick);
     };
-  }, [infoPopups, selectedPicture, links, onLinkClick]);
+  }, [infoPopups, selectedPicture, links, onLinkClick, onPositionSelect]);
 
   return <div ref={mountRef} className="w-full h-full" />;
 };
 
-export default Panorama360;
+export default React.memo(Panorama360);
