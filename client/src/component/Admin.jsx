@@ -308,6 +308,17 @@ const Admin = () => {
         const firstPicture = picturesWithUrlsPromise[0];
         setSelectedPicture(firstPicture.imageUrl);
         setSelectedImageId(firstPicture.id_pictures);
+        // Fetch infospots
+        const infospotsPromise = api.getInfoPopup(firstPicture.id_pictures);
+        // Fetch links
+        const linksPromise = api.getLinks(firstPicture.id_pictures);
+        showLoading([infospotsPromise, linksPromise], 'Chargement...', 'Chargement des données réussi', 'Erreur lors du chargement des données');
+        infospotsPromise.then(infospotsPromise => {
+          setInfoPopups(infospotsPromise);
+        });
+        linksPromise.then(linksPromise => {
+          setLinks(linksPromise);
+        });
       }
       setNewLinkModalOpen(false); // Close the new link modal
       setNewInfospotModalOpen(true);
@@ -352,6 +363,19 @@ const Admin = () => {
         setSelectedPicture(firstPicture.imageUrl);
         setSelectedImageId(firstPicture.id_pictures);
       }
+
+      // Fetch infospots
+      const infospotsPromise = api.getInfoPopup(selectedImageId);
+      // Fetch links
+      const linksPromise = api.getLinks(selectedImageId);
+      showLoading([infospotsPromise, linksPromise], 'Chargement...', 'Chargement des données réussi', 'Erreur lors du chargement des données');
+      infospotsPromise.then(infospotsPromise => {
+        setInfoPopups(infospotsPromise);
+      });
+      linksPromise.then(linksPromise => {
+        setLinks(linksPromise);
+      });
+      setNewInfospotModalOpen(false); // Close the new infospot modal
       setNewLinkModalOpen(true);
     });
   };

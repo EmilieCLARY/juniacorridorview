@@ -132,13 +132,15 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
       textMesh.position.set(-textWidth / 10, 0, 0);
       popupGroup.add(textMesh);
       
-      // Image
-      const imageGeometry = new THREE.PlaneGeometry(100, 75);
-      const imageTexture = new THREE.TextureLoader().load(URL.createObjectURL(new Blob([new Uint8Array(popup.image.data)], { type: 'image/png' })));
-      const imageMaterial = new THREE.MeshBasicMaterial({ map: imageTexture, transparent: true });
-      const imageMesh = new THREE.Mesh(imageGeometry, imageMaterial);
-      imageMesh.position.set(textWidth / 10 + 50, 0, 0);
-      popupGroup.add(imageMesh);
+      // Image (optional)
+      if (popup.image) {
+        const imageGeometry = new THREE.PlaneGeometry(100, 75);
+        const imageTexture = new THREE.TextureLoader().load(URL.createObjectURL(new Blob([new Uint8Array(popup.image.data)], { type: 'image/png' })));
+        const imageMaterial = new THREE.MeshBasicMaterial({ map: imageTexture, transparent: true });
+        const imageMesh = new THREE.Mesh(imageGeometry, imageMaterial);
+        imageMesh.position.set(textWidth / 10 + 50, 0, 0);
+        popupGroup.add(imageMesh);
+      }
       
       return popupGroup;
     };
