@@ -19,16 +19,16 @@ const Navbar = () => {
   useEffect(() => {
     switch (location.pathname) {
       case '/':
-        setRouteName('Home');
+        setRouteName('Accueil');
         break;
       case '/pano':
-        setRouteName('Panorama Viewer');
+        setRouteName('Immersion');
         break;
       case '/tour':
-        setRouteName('Tour Viewer');
+        setRouteName('Visite Guidée');
         break;
       case '/admin':
-        setRouteName('Admin Panel');
+        setRouteName('Administrateur');
         break;
       default:
         setRouteName('Menu Principal');
