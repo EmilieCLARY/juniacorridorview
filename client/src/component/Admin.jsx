@@ -629,7 +629,7 @@ const handleSelectPositionClick = () => {
                   </div>
                 ))}
               </div>
-              <div className="viewer-column">
+              <div className="viewer-column panorama-container"> {/* Add panorama-container class */}
                 <Panorama360
                   infoPopups={infoPopups}
                   selectedPicture={selectedPicture}
@@ -670,7 +670,7 @@ const handleSelectPositionClick = () => {
                 </div>
               ))}
               </div>
-              <div className="viewer-column">
+              <div className="viewer-column panorama-container"> {/* Add panorama-container class */}
                 <Panorama360
                   infoPopups={infoPopups}
                   selectedPicture={selectedPicture}

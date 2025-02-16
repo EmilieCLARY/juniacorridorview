@@ -108,6 +108,11 @@ tbody tr:last-of-type {
   border-radius: 5px;
 }
 
+.panorama-container {
+  max-height: 80vh; /* Adjust the value as needed */
+  overflow: hidden;
+}
+
 .form-column {
   flex: 1;
 }
@@ -119,7 +124,7 @@ tbody tr:last-of-type {
   font-weight: bold;
 }
 
-.close:hover,
+close:hover,
 .close:focus {
   color: black;
   text-decoration: none;
