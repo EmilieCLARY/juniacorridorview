@@ -304,6 +304,11 @@ const Admin = () => {
 
     picturesWithUrlsPromise.then(picturesWithUrlsPromise => {
       setRoomPictures(picturesWithUrlsPromise);
+      if (picturesWithUrlsPromise.length > 0) {
+        const firstPicture = picturesWithUrlsPromise[0];
+        setSelectedPicture(firstPicture.imageUrl);
+        setSelectedImageId(firstPicture.id_pictures);
+      }
       setNewLinkModalOpen(false); // Close the new link modal
       setNewInfospotModalOpen(true);
     });
@@ -342,6 +347,11 @@ const Admin = () => {
 
     picturesWithUrlsPromise.then(picturesWithUrlsPromise => {
       setRoomPictures(picturesWithUrlsPromise);
+      if (picturesWithUrlsPromise.length > 0) {
+        const firstPicture = picturesWithUrlsPromise[0];
+        setSelectedPicture(firstPicture.imageUrl);
+        setSelectedImageId(firstPicture.id_pictures);
+      }
       setNewLinkModalOpen(true);
     });
   };
