@@ -15,17 +15,14 @@ const PanoramaViewer = ({ location }) => {
   const firstLoad = useRef(true);
   const isLoading = useRef(true);
 
-  const [selectedInfospot, setSelectedInfospot] = useState(null);
   const [currentRoomName, setCurrentRoomName] = useState('');
   const [currentRoomNumber, setCurrentRoomNumber] = useState('');
   const [rooms, setRooms] = useState([]);
   const [roomPreviews, setRoomPreviews] = useState({});
   const [visitType, setVisitType] = useState('Visite libre');
   const [tourSteps, setTourSteps] = useState([]);
-  const [roomPreviewsData, setRoomPreviewsData] = useState([]);
   const dataFetched = useRef(false);
   
-  const loadingTourSteps = useRef(false);
   const loadingImage = useRef(false);
 
   const fetchAllData = async () => {
@@ -123,14 +120,6 @@ const PanoramaViewer = ({ location }) => {
     url.search = '';
     window.history.replaceState({}, document.title, url);
   };
-  
-  const handleInfospotClick = (popup) => {
-    if (selectedInfospot && selectedInfospot.id === popup.id) {
-      setSelectedInfospot(null);
-    } else {
-      setSelectedInfospot(popup);
-    }
-  };
 
   const fetchRoomDetails = async (id_rooms) => {
     const room = await api.getRoomDetails(id_rooms);
@@ -201,7 +190,6 @@ const PanoramaViewer = ({ location }) => {
 
   useEffect(() => {
       if (!dataFetched.current) {
-          console.log("Fetching data only once...");
           fetchAllData();
           dataFetched.current = true;
       }
@@ -278,7 +266,6 @@ const PanoramaViewer = ({ location }) => {
           <input type="submit" value="Add Link" />
         </form>
       </div>
-      <div id="panorama-container-dev"></div>
     </div>
   );
 };
