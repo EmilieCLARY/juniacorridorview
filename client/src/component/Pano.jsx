@@ -22,6 +22,7 @@ const PanoramaViewer = ({ location }) => {
   const [visitType, setVisitType] = useState('Visite libre');
   const [tourSteps, setTourSteps] = useState([]);
   const dataFetched = useRef(false);
+  const [allRoomImages, setAllRoomImages] = useState({});
   
   const loadingImage = useRef(false);
 
@@ -73,6 +74,13 @@ const PanoramaViewer = ({ location }) => {
           preview.images.length > 0 ? URL.createObjectURL(preview.images[0].imageBlob) : null
         ]))
       );
+  
+      // Charger toutes les images des pièces
+      const allRoomImages = roomPreviewsData.reduce((acc, preview) => {
+        acc[preview.id_rooms] = preview.images;
+        return acc;
+      }, {});
+      setAllRoomImages(allRoomImages);
   
       // Charger les images principales
       const imagesData = roomPreviewsData.flatMap(preview => preview.images);
@@ -164,14 +172,16 @@ const PanoramaViewer = ({ location }) => {
   };
 
   const handleRoomClick = async (id_rooms) => {
-    const pictures = await api.getPicturesByRoomId(id_rooms);
-    if (pictures.length > 0) {
-      const firstPicture = pictures[0];
-      const imageBlob = await api.getImage(firstPicture.id_pictures);
-      displayImage(imageBlob, firstPicture.id_pictures);
+    const roomImages = allRoomImages[id_rooms];
+    if (roomImages) {
+      const pictures = roomImages;
+      if (pictures.length > 0) {
+        const firstImage = pictures[0];
+        displayImage(firstImage.imageBlob, firstImage.id);
+      }
     }
   };
-
+  
   const handleLinkClick = (id_pictures_destination) => {
     const image = images.find(img => img.id === id_pictures_destination);
     if (image) {
