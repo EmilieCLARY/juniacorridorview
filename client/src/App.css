@@ -15,6 +15,12 @@
   --font-paragraphs:"Libre Franklin", serif;
 
 }
+
+html body,#root {
+  height: 100%;
+  background-color: #f7f1fd;
+}
+
 .font-texts{
   font-family: "Libre Franklin", serif;
   font-optical-sizing: auto;
@@ -34,7 +40,7 @@ nav{
 }
 
 .body-container{
-  height: calc(100vh - 90px) !important;
+  height: calc(100vh) !important;
 }
 
 .box{
@@ -58,4 +64,6 @@ nav{
   padding-top: 150px;
   }
 
-  
+.h-17\/100{
+  height: 17%;
+} 

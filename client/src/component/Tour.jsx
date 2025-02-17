@@ -3,8 +3,7 @@ import { useHistory } from "react-router-dom";
 import * as api from '../api/AxiosTour';
 import '../style/Tour.css';
 import { Buffer } from 'buffer';
-import RollingGallery from '../reactbits/Components/RollingGallery/RollingGallery';
-
+import Carousel from '../reactbits/Components/Carousel/Carousel'
 const TourViewer = () => {
   Buffer.from = Buffer.from || require('buffer').Buffer;
   const [tours, setTours] = useState([]);
@@ -94,32 +93,24 @@ const TourViewer = () => {
 
   const getPanoramaImagesForTour = (tourId) => {
     if (!tourSteps[tourId]) return [];
-    return tourSteps[tourId].map(step => panoramaUrls[step.id_rooms]).filter(url => url);
+    let tmp = tourSteps[tourId].map(step => { return { src: panoramaUrls[step.id_rooms], alt: `Panorama of ${rooms[step.id_rooms]?.name}` }; });
+    if (tmp.some(image => !image.src)) return []; // Wait until all URLs are available
+    return tmp;
   };
 
   return (
-    <div> 
-      <div className="bg-junia-lavender grid grid-cols-3 grid-flow-col auto-cols-min gap-10 justify-between p-4">
+    <div className="h-100">
+      <div className="bg-junia-lavender grid grid-cols-3 grid-flow-col auto-cols-min gap-10 justify-between p-4 h-full">
         {tours.map(tour => (
           <div key={tour.id_tours} className="purpleborder text-justify bg-white border-5 border-junia-orange p-2 rounded-3xl">
             <div className="font-title font-bold text-junia-orange text-3xl text-center">{tour.title}</div>
             <div className="font-texts">{tour.description}</div>
-            <div onClick={() => handleTourClick(tour.id_tours)} className="font-texts" >Start Tour</div>
-            <RollingGallery  autoplay={true} pauseOnHover={true} images={getPanoramaImagesForTour(tour.id_tours)}/>
-            {tourSteps[tour.id_tours] && (
-              <ul>
-                {tourSteps[tour.id_tours].map(step => (
-                  <li key={step.id_tour_steps}>
-                    Step {step.step_number}: Room {rooms[step.id_rooms]?.name} ({rooms[step.id_rooms]?.number})
-                    {panoramaUrls[step.id_rooms] && (
-                      <div className="panorama-overview">
-                        <img src={panoramaUrls[step.id_rooms]} alt={`Panorama of ${rooms[step.id_rooms]?.name}`} />
-                      </div>
-                    )}
-                  </li>
-                ))}
-              </ul>
+            {getPanoramaImagesForTour(tour.id_tours).length > 0 && (
+              <div className="">
+                  <Carousel items={getPanoramaImagesForTour(tour.id_tours)} baseWidth="100%" autoplay={true} autoplayDelay={3000} pauseOnHover={true} loop={true} round={false} />
+              </div>
             )}
+            <div onClick={() => handleTourClick(tour.id_tours)} className="text-xl font-title border-2 rounded-3xl w-sm" >Start Tour</div>
           </div>
         ))}
       </div>

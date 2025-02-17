@@ -22,7 +22,7 @@ const Navbar = () => {
         setRouteName('Menu Principal');
         break;
       case '/pano':
-        setRouteName('Panorama Viewer');
+        setRouteName('Visite Virtuelle');
         break;
       case '/tour':
         setRouteName('Choix des Parcours');
