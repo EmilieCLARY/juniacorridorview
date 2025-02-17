@@ -1,5 +1,5 @@
 import { Buffer } from 'buffer';
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import * as api from '../api/AxiosPano';
 import { getTourSteps } from '../api/AxiosTour';
 import '../style/Pano.css';
@@ -12,8 +12,9 @@ const PanoramaViewer = ({ location }) => {
   const [currentImageId, setCurrentImageId] = useState(null);
   const [infoPopups, setInfoPopups] = useState({});
   const [links, setLinks] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
-  const [firstLoad, setFirstLoad] = useState(true);
+  const firstLoad = useRef(true);
+  const isLoading = useRef(true);
+
   const [selectedInfospot, setSelectedInfospot] = useState(null);
   const [currentRoomName, setCurrentRoomName] = useState('');
   const [currentRoomNumber, setCurrentRoomNumber] = useState('');
@@ -22,57 +23,71 @@ const PanoramaViewer = ({ location }) => {
   const [visitType, setVisitType] = useState('Visite libre');
   const [tourSteps, setTourSteps] = useState([]);
   const [roomPreviewsData, setRoomPreviewsData] = useState([]);
-
+  const dataFetched = useRef(false);
+  
   const loadingTourSteps = useRef(false);
   const loadingImage = useRef(false);
 
-  const fetchTourSteps = async (tourId) => {
+  const fetchAllData = async () => {
     try {
-      const stepsData = await getTourSteps(tourId);
-      setTourSteps(stepsData);
-      const roomIds = stepsData.map(step => step.id_rooms);
-      const roomsData = await Promise.all(roomIds.map(async (id) => {
-        const room = await api.getRoomDetails(id);
-        return { ...room, id_rooms: id };
-      }));
+      isLoading.current = true;
+  
+      const params = new URLSearchParams(location.search);
+      const tourId = params.get('tour_id');
+  
+      let stepsData = [];
+      let roomsData = [];
+  
+      if (tourId) {
+        stepsData = await getTourSteps(tourId);
+        setTourSteps(stepsData);
+  
+        const roomIds = stepsData.map(step => step.id_rooms);
+        roomsData = await Promise.all(
+          roomIds.map(async (id) => {
+            const room = await api.getRoomDetails(id);
+            return { ...room, id_rooms: id };
+          })
+        );
+        setVisitType(`Visite guidée, Parcours ${tourId}`);
+      } else {
+        roomsData = await api.getRooms();
+      }
+  
       setRooms(roomsData);
-      console.log('Fetched rooms:', roomsData);
-      const imagesData = await Promise.all(
-        stepsData.map(async step => {
-          const picture = await api.getFirstPictureByRoomId(step.id_rooms);
-          if (picture) {
-            const imageBlob = await api.getImage(picture.id_pictures);
-            return { id: picture.id_pictures, imageBlob };
-          }
-          return null;
-        })
-      );
-
+  
+      // Charger les images des pièces
       const roomPreviewsData = await Promise.all(
         roomsData.map(async room => {
-          const picture = await api.getFirstPictureByRoomId(room.id_rooms);
-          if (picture) {
-            const imageBlob = await api.getImage(picture.id_pictures);
-            return { id_rooms: room.id_rooms, imageBlob };
-          }
-          return { id_rooms: room.id_rooms, imageBlob: null };
+          const pictures = await api.getPicturesByRoomId(room.id_rooms);
+          const images = await Promise.all(
+            pictures.map(async picture => {
+              const imageBlob = await api.getImage(picture.id_pictures);
+              return { id: picture.id_pictures, imageBlob };
+            })
+          );
+          return { id_rooms: room.id_rooms, images };
         })
       );
-
-      setImages(imagesData.filter(image => image !== null));
+  
+      setRoomPreviews(
+        Object.fromEntries(roomPreviewsData.map(preview => [
+          preview.id_rooms, 
+          preview.images.length > 0 ? URL.createObjectURL(preview.images[0].imageBlob) : null
+        ]))
+      );
+  
+      // Charger les images principales
+      const imagesData = roomPreviewsData.flatMap(preview => preview.images);
+      setImages(imagesData);
       setCurrentImageId(imagesData[0]?.id || null);
-      setRoomPreviews(Object.fromEntries(roomPreviewsData.map(preview => [preview.id_rooms, preview.imageBlob ? URL.createObjectURL(preview.imageBlob) : null])));
-
-      setIsLoading(false);
+  
+      isLoading.current = false;
     } catch (error) {
-      console.error('Error fetching tour steps:', error);
+      console.error("Erreur lors du chargement des données :", error);
     }
   };
-
-  const fetchTables = async () => {
-    const tables = await api.getTables();
-  };
-
+  
   const handleUpload = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
@@ -103,43 +118,6 @@ const PanoramaViewer = ({ location }) => {
     return links;
   };
 
-  const fetchImage = async (id) => {
-    try {
-      const imageBlob = await api.getImage(id);
-      setImages(prevImages => [...prevImages, { id, imageBlob }]);
-    }
-    catch (error) {
-      console.error('Error fetching image:', error);
-    }
-  };
-
-  const fetchPictures = async () => {
-    setImages([]);
-    const pictures = await api.getPictures();
-    
-    await Promise.all(
-      pictures.map(picture => fetchImage(picture.id_pictures))
-    );
-    
-    setIsLoading(false);
-  };
-  
-  const fetchRooms = async () => {
-    const rooms = await api.getRooms();
-    setRooms(rooms);
-    const roomPreviewsData = await Promise.all(
-      rooms.map(async room => {
-        const picture = await api.getFirstPictureByRoomId(room.id_rooms);
-        if (picture) {
-          const imageBlob = await api.getImage(picture.id_pictures);
-          return { id_rooms: room.id_rooms, imageBlob };
-        }
-        return { id_rooms: room.id_rooms, imageBlob: null };
-      })
-    );
-    setRoomPreviews(Object.fromEntries(roomPreviewsData.map(preview => [preview.id_rooms, preview.imageBlob ? URL.createObjectURL(preview.imageBlob) : null])));
-  };
-
   const cleanUrlParams = () => {
     const url = new URL(window.location);
     url.search = '';
@@ -162,7 +140,7 @@ const PanoramaViewer = ({ location }) => {
 
   const displayImage = async (imageBlob, id) => {
     cleanUrlParams();
-    setCurrentImageId(id);
+    if (currentImageId !== id) setCurrentImageId(id);
 
     const retrievedPopupsPromise = handleRetrieveInfoPopUp(id);
     const retrievedLinksPromise = handleRetrieveLinks(id);
@@ -170,7 +148,7 @@ const PanoramaViewer = ({ location }) => {
     const roomIdPromise = api.getRoomIdByPictureId(id);
     const roomDetailsPromise = roomIdPromise.then(roomId => fetchRoomDetails(roomId));
 
-    if(!firstLoad) {
+    if(!isLoading.current || firstLoad) {
       toast.promise(Promise.all([retrievedPopupsPromise, retrievedLinksPromise, roomIdPromise, roomDetailsPromise]), {
           loading: 'Chargement...',
           success: 'Chargement des données réussi',
@@ -213,52 +191,30 @@ const PanoramaViewer = ({ location }) => {
   };
 
   useEffect(() => {
-    if (images.length > 0 && !isLoading && firstLoad) {
+    if (images.length > 0 && !isLoading.current && firstLoad.current) {
       if(loadingImage.current) return;
       loadingImage.current = true;
       displayImage(images[0].imageBlob, images[0].id);
-      setFirstLoad(false);
+      firstLoad.current = false;
     }
-  }, [images, isLoading]);
+  }, [images]);
 
   useEffect(() => {
-    if (loadingTourSteps.current) return;
-    loadingTourSteps.current = true;
-
-    const params = new URLSearchParams(location.search);
-    const tourId = params.get('tour_id');
-    if (tourId) {
-      setVisitType(`Visite guidée, Parcours ${tourId}`);
-      const tourStepsPromise = fetchTourSteps(tourId);
-      toast.promise(tourStepsPromise, {
-        loading: 'Chargement...',
-        success: 'Chargement des données réussi',
-        error: 'Erreur lors du chargement des données',
-      });
-      tourStepsPromise.then(() => {
-        loadingTourSteps.current = false;
-      });
-    }
+      if (!dataFetched.current) {
+          console.log("Fetching data only once...");
+          fetchAllData();
+          dataFetched.current = true;
+      }
   }, [location]);
+  
+  
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const tourId = params.get('tour_id');
-    if (!tourId) {
-      const picturePromise = fetchPictures();
-      const roomsPromise = fetchRooms();
-      toast.promise(Promise.all([picturePromise, roomsPromise]), {
-        loading: 'Chargement...',
-        success: 'Chargement des données réussi',
-        error: 'Erreur lors du chargement des données',
-      });
-    }
-    setCurrentImageId(0);
-  }, []);
-
-  const filteredRooms = visitType.startsWith('Visite guidée') 
-    ? rooms.filter(room => tourSteps.some(step => step.id_rooms === room.id_rooms))
-    : rooms;
+  const filteredRooms = useMemo(() => {
+    return visitType.startsWith('Visite guidée') 
+      ? rooms.filter(room => tourSteps.some(step => step.id_rooms === room.id_rooms))
+      : rooms;
+  }, [visitType, rooms, tourSteps]);
+  
   return (
     <div>
       <h1>{visitType}</h1>
@@ -293,12 +249,11 @@ const PanoramaViewer = ({ location }) => {
             infoPopups={infoPopups[currentImageId] || []} 
             selectedPicture={images.find(image => image.id === currentImageId)?.imageBlob ? URL.createObjectURL(images.find(image => image.id === currentImageId).imageBlob) : null} 
             links={links[currentImageId] || []}
-            onLinkClick={handleLinkClick} // Pass the function to Panorama360
+            onLinkClick={handleLinkClick}
           />
         </div>
       </div>
       <div className="forms-container">
-        <button onClick={fetchTables}>Fetch Tables</button>
         <form onSubmit={handleUpload}>
           <input type="file" name="pic" />
           <input type="text" name="id_rooms" placeholder="id_rooms"/>
