@@ -16,7 +16,7 @@ const app = express();
 
 // Configure CORS
 app.use(cors({
-  origin: 'http://localhost:5173', // Update to Vite's default port
+  origin: 'http://localhost:5174', // Update to Vite's default port
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Autoriser les méthodes HTTP nécessaires
   credentials: true // Si vous utilisez des cookies ou des sessions
 }));
