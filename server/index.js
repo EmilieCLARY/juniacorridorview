@@ -32,6 +32,9 @@ app.use(session({
 }));
 app.use(fileUpload()); // Add this line
 
+// Enable CORS for all routes
+app.use(cors());
+
 app.get("/", (req, res) => {
     res.send("hi");
 })
@@ -101,7 +104,6 @@ app.post("/retrieveInfoPopUpByIdPicture/", (req, res) => {
             console.error('Error fetching info popup', err);
             res.sendStatus(500);
         } else {
-            console.log('Fetched', infoPopUp.length, 'info popup for picture', id_pictures);
             res.json(infoPopUp);
         }
     });
@@ -114,7 +116,6 @@ app.post("/retrieveLinkByIdPicture/", (req, res) => {
             console.error('Error fetching links', err);
             res.sendStatus(500);
         } else {
-            console.log('Fetched', links.length, 'links for picture', id_pictures);
             res.json(links);
         }
     });

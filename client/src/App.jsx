@@ -8,19 +8,29 @@ import Profile from './component/Profile';
 import TourViewer from './component/Tour';
 import Admin from './component/Admin';
 import PanoramaViewer from './component/Pano';
+import Panorama360 from './component/Panorama360';
+import AdminTour from './component/AdminTour';
+import AdminRoom from './component/AdminRoom';
+import AdminRoomDetails from './component/AdminRoomDetails';
 
 import './App.css';
+import {Toaster} from "sonner";
 
 const App = () => {
   return (
     <>
-    <Navbar/>
-    <Switch>
-      <Route exact path ="/" component={Home}/>
-      <Route exact path ="/pano" component={PanoramaViewer}/>
-      <Route exact path ="/tour" component={TourViewer}/>
-      <Route exact path ="/admin" component={Admin}/>
-    </Switch>
+      <Toaster />
+      <Navbar/>
+      <Switch>
+        <Route exact path ="/" component={Home}/>
+        <Route exact path ="/pano" component={PanoramaViewer}/>
+        <Route exact path ="/tour" component={TourViewer}/>
+        <Route exact path ="/admin" component={Admin}/>
+        <Route exact path ="/dev-pano" component={Panorama360}/> 
+        <Route exact path ="/admin-tour" component={AdminTour}/>
+        <Route exact path ="/admin-room" component={AdminRoom}/>
+        <Route exact path ="/admin-room/:id" component={AdminRoomDetails}/>
+      </Switch>
     </>
   )
 }

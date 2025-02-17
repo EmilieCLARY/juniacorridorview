@@ -1,12 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import * as api from '../api/AxiosAdmin';
-import * as tourApi from '../api/AxiosTour';
 import '../style/Admin.css';
-import { NavLink } from 'react-router-dom';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Buffer } from 'buffer';
-import { Viewer, ImagePanorama, Infospot } from 'panolens';
-import * as THREE from 'three';
+import { toast } from "sonner";
+import Panorama360 from './Panorama360';
+import AdminTour from './AdminTour'; // Add this line
+import { useHistory } from 'react-router-dom'; // Add this line
 
 const Admin = () => {
   Buffer.from = Buffer.from || require('buffer').Buffer;
@@ -18,97 +17,85 @@ const Admin = () => {
   const [selectedInfospot, setSelectedInfospot] = useState(null);
   const [selectedLink, setSelectedLink] = useState(null);
   const [newRoomModalOpen, setNewRoomModalOpen] = useState(false);
-  const [newTourModalOpen, setNewTourModalOpen] = useState(false);
   const [view, setView] = useState('room');
-  const [tours, setTours] = useState([]);
-  const [tourSteps, setTourSteps] = useState({});
-  const [editTourModalOpen, setEditTourModalOpen] = useState(false);
-  const [selectedTour, setSelectedTour] = useState(null);
-  const [newStepCount, setNewStepCount] = useState(0);
-  const [newTourSteps, setNewTourSteps] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
   const [newInfospotModalOpen, setNewInfospotModalOpen] = useState(false);
   const [newLinkModalOpen, setNewLinkModalOpen] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState(null);
   const [roomPictures, setRoomPictures] = useState([]);
-  const [selectedPreviewImage, setSelectedPreviewImage] = useState(null);
-  const [selectedImageId, setSelectedImageId] = useState(null); // Add this line
+  const [selectedPreviewImage, setSelectedPreviewImage] = useState('');
+  const [selectedImageId, setSelectedImageId] = useState('');
+  const [selectedPicture, setSelectedPicture] = useState('');
+  const [infoPopups, setInfoPopups] = useState([]);
+  const [links, setLinks] = useState([]);
   const viewerRef = useRef(null);
-  const [viewer, setViewer] = useState(null);
   const [posX, setPosX] = useState('');
   const [posY, setPosY] = useState('');
   const [posZ, setPosZ] = useState('');
   const [isSelectingPosition, setIsSelectingPosition] = useState(false);
-  const [fromNewRoom, setFromNewRoom] = useState(false); // Add this line
-  const [buildings, setBuildings] = useState([]); // Add this line
+  const [fromNewRoom, setFromNewRoom] = useState(false);
+  const [buildings, setBuildings] = useState([]);
+  const [selectedPosition, setSelectedPosition] = useState({ x: '', y: '', z: '' });
+  const [isFirstClick, setIsFirstClick] = useState(true);
+  const history = useHistory(); // Add this line
 
-  const fetchRoomsInfo = async () => {
+  const loading = useRef(false);
+
+  const showLoading = (promises, textLoading, textSuccess, textError) => {
+    return toast.promise(Promise.all(promises), {
+        loading: textLoading,
+        success: textSuccess,
+        error: textError,
+    });
+  }
+
+  const fetchAllInfos = async () => {
     try {
-      console.log('Fetching rooms info...');
-      const roomsData = await api.getRooms();
-      const roomsInfo = await Promise.all(roomsData.map(async room => {
+      console.time('Fetching all infos');
+
+      const [roomsData, buildingsData] = await Promise.all([
+        api.getRooms(),
+        api.getBuildings()
+      ]);
+
+      const roomsInfo = await Promise.all(roomsData.map(async (room) => {
         const pictures = await api.getPicturesByRoomId(room.id_rooms);
-        const picturesWithUrls = await Promise.all(pictures.map(async pic => {
-          const imageUrl = await api.getImage(pic.id_pictures);
-          return { ...pic, imageUrl };
-        }));
-        const infoPopups = await Promise.all(pictures.map(pic => api.getInfoPopup(pic.id_pictures)));
-        const links = await Promise.all(pictures.map(pic => api.getLinks(pic.id_pictures)));
+
+        const [picturesWithUrls, infoPopups, links] = await Promise.all([
+          Promise.all(pictures.map(async (pic) => ({
+            ...pic,
+            imageUrl: await api.getImage(pic.id_pictures),
+          }))),
+          Promise.all(pictures.map((pic) => api.getInfoPopup(pic.id_pictures))),
+          Promise.all(pictures.map((pic) => api.getLinks(pic.id_pictures))),
+        ]);
+
         return {
           ...room,
           pictures: picturesWithUrls,
           infoPopups: infoPopups.flat(),
           links: links.flat(),
           numberOfPictures: pictures.length,
-          numberOfInfoSpots: infoPopups.flat().length,
-          numberOfLinks: links.flat().length,
-          building: room.building_name || 'Unknown'
+          numberOfInfoSpots: infoPopups.reduce((acc, val) => acc + val.length, 0),
+          numberOfLinks: links.reduce((acc, val) => acc + val.length, 0),
+          building: room.building_name || 'Unknown',
         };
       }));
+
       setRooms(roomsInfo);
-    } catch (error) {
-      console.error('Error fetching rooms info:', error);
-    }
-  };
+      setBuildings(buildingsData);
 
-  const fetchRooms = async () => {
-    try {
-        const roomsData = await api.getRooms();
-        setRooms(roomsData);
+      console.timeEnd('Fetching all infos');
     } catch (error) {
-        console.error('Error fetching rooms:', error);
-    }
-};
-
-  const fetchToursInfo = async () => {
-    try {
-      const toursData = await tourApi.getTours();
-      setTours(toursData);
-      const stepsData = await Promise.all(toursData.map(tour => tourApi.getTourSteps(tour.id_tours)));
-      const steps = stepsData.reduce((acc, steps, index) => {
-        acc[toursData[index].id_tours] = steps;
-        return acc;
-      }, {});
-      setTourSteps(steps);
-    } catch (error) {
-      console.error('Error fetching tours info:', error);
-    }
-  };
-
-  const fetchBuildings = async () => {
-    try {
-      const response = await api.getBuildings();
-      setBuildings(response);
-    } catch (error) {
-      console.error('Error fetching buildings:', error);
+      console.error('Error fetching all infos:', error);
     }
   };
 
   useEffect(() => {
-    //fetchRooms();
-    fetchRoomsInfo();
-    fetchToursInfo();
-    fetchBuildings(); // Add this line
+    if (loading.current) return;
+    loading.current = true;
+
+    showLoading([fetchAllInfos()], 'Chargement...', 'Chargement des données réussi', 'Erreur lors du chargement des données');
   }, []);
 
   const toggleExpand = (roomId, category) => {
@@ -147,14 +134,27 @@ const Admin = () => {
     setSelectedLink(null);
   };
 
-  const handleImageUpload = async (event) => {
+  const handleImageUploadOnChange = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
     formData.append('id_pictures', selectedPictureId);
-    await api.updateImage(formData);
-    handleModalClose();
-    fetchRoomsInfo(); // Refresh the rooms info to reflect the updated image
+
+    const updateImagePromise = api.updateImage(formData);
+    const fetchImagePromise = updateImagePromise.then(() => api.getImage(selectedPictureId));
+
+    showLoading([updateImagePromise, fetchImagePromise], 'Mise à jour de l\'image...', 'Image mise à jour avec succès', 'La mise à jour de l\'image a échoué');
+
+    fetchImagePromise.then((imageUrl) => {
+      setRooms(prevRooms => prevRooms.map(room => ({
+        ...room,
+        pictures: room.pictures.map(picture =>
+            picture.id_pictures === selectedPictureId ? { ...picture, imageUrl } : picture
+        )
+      })));
+      handleModalClose();
+    });
   };
+
 
   const handleInfospotUpdate = async (event) => {
     event.preventDefault();
@@ -162,129 +162,77 @@ const Admin = () => {
     if (!formData.get('pic')) {
       formData.append('pic', selectedInfospot.image);
     }
-    await api.updateInfospot(formData);
-    handleModalClose();
-    const updatedInfospot = await api.getInfoPopup(selectedInfospot.id_pictures);
-    setRooms(prevRooms => prevRooms.map(room => ({
-      ...room,
-      infoPopups: room.infoPopups.map(infospot => 
-        infospot.id_info_popup === selectedInfospot.id_info_popup ? updatedInfospot.find(i => i.id_info_popup === selectedInfospot.id_info_popup) : infospot
-      )
-    })));
+    const updateInfospotPromise = api.updateInfospot(formData);
+    const updatedInfospotPromise = updateInfospotPromise.then(() => api.getInfoPopup(selectedInfospot.id_pictures));
+
+    showLoading([updateInfospotPromise, updatedInfospotPromise], 'Mise à jour de l\'infobulle...', 'Infobulle mise à jour avec succès', 'La mise à jour de l\'infobulle a échoué');
+
+    updatedInfospotPromise.then((updatedInfospots) => {
+      setRooms(prevRooms => prevRooms.map(room => ({
+        ...room,
+        infoPopups: room.infoPopups.map(infospot =>
+            infospot.id_info_popup === selectedInfospot.id_info_popup ? updatedInfospots.find(i => i.id_info_popup === selectedInfospot.id_info_popup) : infospot
+        )
+      })));
+      handleModalClose();
+    });
   };
 
   const handleLinkUpdate = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
-    await api.updateLink(formData);
-    handleModalClose();
-    fetchRoomsInfo(); // Refresh the rooms info to reflect the updated link
+    const updateLinkPromise = api.updateLink(formData);
+    const fetchLinksPromise = updateLinkPromise.then(() => api.getLinks(selectedLink.id_pictures));
+
+    showLoading([updateLinkPromise, fetchLinksPromise], 'Mise à jour du lien...', 'Lien mis à jour avec succès', 'La mise à jour du lien a échoué');
+
+    fetchLinksPromise.then((links) => {
+      setRooms(prevRooms => prevRooms.map(room => ({
+        ...room,
+        links: room.links.map(link =>
+            link.id_links === selectedLink.id_links ? links.find(l => l.id_links === selectedLink.id_links) : link
+        )
+      })));
+      handleModalClose();
+    });
   };
 
   const handleNewRoom = async (event, nextStep = false) => {
     event.preventDefault();
     const form = event.target.closest('form');
     const formData = new FormData(form);
-    const roomId = await api.addRoom(formData); // Ensure roomId is returned from the API
-    if (!roomId) {
+
+    let roomId;
+    const addRoomPromise = api.addRoom(formData).then(id => {
+      if (!id) {
         console.error('Failed to add room');
-        return;
-    }
-    const pictures = formData.getAll('pictures');
-    for (const picture of pictures) {
+        return Promise.reject('Failed to add room');
+      }
+      roomId = id;
+
+      const pictures = formData.getAll('pictures');
+      const uploadPromises = pictures.map(picture => {
         const pictureFormData = new FormData();
         pictureFormData.append('id_rooms', roomId);
         pictureFormData.append('pic', picture);
-        await api.uploadFile(pictureFormData);
-    }
-    if (nextStep) {
+        return api.uploadFile(pictureFormData);
+      });
+
+      return Promise.all(uploadPromises).then(() => fetchRoomsInfo());
+    });
+
+    showLoading([addRoomPromise], 'Ajout de la salle...', 'Salle ajoutée avec succès', 'L\'ajout de la salle a échoué');
+
+    addRoomPromise.then(() => {
+      if (nextStep) {
         setFromNewRoom(true); // Set the flag to true
         setNewRoomModalOpen(false); // Close the new room modal
         handleNewLink(roomId);
-    } else {
+      } else {
         setNewRoomModalOpen(false);
-    }
-    fetchRoomsInfo(); // Refresh the rooms info to reflect the new room
-};
-
-  const handleNewTour = async (event) => {
-    event.preventDefault();
-    const formData = new FormData(event.target);
-    const data = Object.fromEntries(formData.entries());
-    data.steps = newTourSteps; // Ensure steps are correctly formatted as an array
-    await tourApi.createTour(data);
-    setNewTourModalOpen(false);
-    fetchToursInfo(); // Refresh the tours info to reflect the new tour
+      }
+    });
   };
-
-  const handleEditTour = async (tour) => {
-    setSelectedTour(tour);
-    if (!tourSteps[tour.id_tours]) {
-        const stepsData = await tourApi.getTourSteps(tour.id_tours);
-        setTourSteps(prevSteps => ({
-            ...prevSteps,
-            [tour.id_tours]: stepsData
-        }));
-    }
-    setEditTourModalOpen(true);
-};
-
-const handleEditTourSubmit = async (event) => {
-    event.preventDefault();
-    const formData = new FormData(event.target);
-    const steps = Array.from(formData.entries()).reduce((acc, [key, value]) => {
-        const match = key.match(/steps\[(\d+)\]\[(\w+)\]/);
-        if (match) {
-            const [_, index, field] = match;
-            if (!acc[index]) acc[index] = {};
-            acc[index][field] = value;
-        }
-        return acc;
-    }, []);
-    const title = formData.get('title');
-    const description = formData.get('description');
-    await tourApi.updateTourSteps({ id_tours: selectedTour.id_tours, steps, title, description });
-    setEditTourModalOpen(false);
-    setNewStepCount(0);
-    fetchToursInfo(); // Refresh the tours info to reflect the updated steps
-};
-
-  const handleDeleteTour = async (tourId) => {
-    await tourApi.deleteTour(tourId);
-    fetchToursInfo(); // Refresh the tours info to reflect the deleted tour
-  };
-
-  const handleAddStep = () => {
-    setNewStepCount(newStepCount + 1);
-  };
-
-  const handleAddNewTourStep = () => {
-    setNewTourSteps([...newTourSteps, { id_rooms: '' }]);
-  };
-
-  const handleNewTourStepChange = (index, field, value) => {
-    const updatedSteps = [...newTourSteps];
-    updatedSteps[index][field] = value;
-    setNewTourSteps(updatedSteps);
-  };
-
-  const openNewTourModal = () => {
-    setNewTourSteps([]); // Reset steps
-    setNewTourModalOpen(true);
-  };
-
-  const onDragEnd = (result) => {
-    if (!result.destination) return;
-
-    const reorderedSteps = Array.from(tourSteps[selectedTour.id_tours]);
-    const [removed] = reorderedSteps.splice(result.source.index, 1);
-    reorderedSteps.splice(result.destination.index, 0, removed);
-
-    setTourSteps(prevSteps => ({
-        ...prevSteps,
-        [selectedTour.id_tours]: reorderedSteps
-    }));
-};
 
   const sortedRooms = React.useMemo(() => {
     let sortableRooms = [...rooms];
@@ -319,139 +267,166 @@ const handleEditTourSubmit = async (event) => {
 
   const handleNewInfospot = async (roomId) => {
     setSelectedRoomId(roomId);
-    const pictures = await api.getPicturesByRoomId(roomId);
-    const picturesWithUrls = await Promise.all(pictures.map(async pic => {
-      const imageUrl = await api.getImage(pic.id_pictures);
-      return { ...pic, imageUrl };
-    }));
-    setRoomPictures(picturesWithUrls);
-    setNewLinkModalOpen(false); // Close the new link modal
-    setNewInfospotModalOpen(true);
+    const picturesPromise = api.getPicturesByRoomId(roomId);
+    const picturesWithUrlsPromise = picturesPromise.then(picturesPromise => {
+      const picturesWithUrls = Promise.all(picturesPromise.map(async pic => {
+        const imageUrl = await api.getImage(pic.id_pictures);
+        return {...pic, imageUrl};
+      }));
+      return picturesWithUrls;
+    });
+
+    showLoading([picturesPromise, picturesWithUrlsPromise], 'Chargement des images...', 'Images chargées avec succès', 'Le chargement des images a échoué');
+
+    picturesWithUrlsPromise.then(picturesWithUrlsPromise => {
+      setRoomPictures(picturesWithUrlsPromise);
+      if (picturesWithUrlsPromise.length > 0) {
+        const firstPicture = picturesWithUrlsPromise[0];
+        setSelectedPicture(firstPicture.imageUrl);
+        setSelectedImageId(firstPicture.id_pictures);
+        // Fetch infospots
+        const infospotsPromise = api.getInfoPopup(firstPicture.id_pictures);
+        // Fetch links
+        const linksPromise = api.getLinks(firstPicture.id_pictures);
+        showLoading([infospotsPromise, linksPromise], 'Chargement...', 'Chargement des données réussi', 'Erreur lors du chargement des données');
+        infospotsPromise.then(infospotsPromise => {
+          setInfoPopups(infospotsPromise);
+        });
+        linksPromise.then(linksPromise => {
+          setLinks(linksPromise);
+        });
+      }
+      setNewLinkModalOpen(false); // Close the new link modal
+      setNewInfospotModalOpen(true);
+    });
   };
 
   const handleNewInfospotSubmit = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
-    await api.insertInfoPopUp(formData);
-    if (!fromNewRoom) { // Check the flag
+    const insertInfoPopupPromise = api.insertInfoPopUp(formData);
+    const fetchInfospotPromise = insertInfoPopupPromise.then(() => api.getInfoPopup(selectedImageId));
+    showLoading([insertInfoPopupPromise, fetchInfospotPromise], 'Ajout de l\'infobulle...', 'Infobulle ajoutée avec succès', 'L\'ajout de l\'infobulle a échoué');
+    fetchInfospotPromise.then((infospots) => {
+      setRooms(prevRooms => prevRooms.map(room => ({
+        ...room,
+        infoPopups: room.id_rooms === selectedRoomId ? infospots : room.infoPopups,
+        numberOfInfoSpots: room.id_rooms === selectedRoomId ? infospots.length : room.numberOfInfoSpots
+      })));
+      if (!fromNewRoom) { // Check the flag
         setNewInfospotModalOpen(false);
-    }
-    fetchRoomsInfo(); // Refresh the rooms info to reflect the new infospot
+      }
+    });
 };
 
   const handleNewLink = async (roomId) => {
     setSelectedRoomId(roomId);
-    const pictures = await api.getPicturesByRoomId(roomId);
-    const picturesWithUrls = await Promise.all(pictures.map(async pic => {
-      const imageUrl = await api.getImage(pic.id_pictures);
-      return { ...pic, imageUrl };
-    }));
-    setRoomPictures(picturesWithUrls);
-    setNewLinkModalOpen(true);
+    const picturesPromise = api.getPicturesByRoomId(roomId);
+    const picturesWithUrlsPromise = picturesPromise.then(picturesPromise => {
+      const picturesWithUrls = Promise.all(picturesPromise.map(async pic => {
+        const imageUrl = await api.getImage(pic.id_pictures);
+        return {...pic, imageUrl};
+      }));
+      return picturesWithUrls;
+    });
+
+    showLoading([picturesPromise, picturesWithUrlsPromise], 'Chargement des images...', 'Images chargées avec succès', 'Le chargement des images a échoué');
+
+    picturesWithUrlsPromise.then(picturesWithUrlsPromise => {
+      setRoomPictures(picturesWithUrlsPromise);
+      if (picturesWithUrlsPromise.length > 0) {
+        const firstPicture = picturesWithUrlsPromise[0];
+        setSelectedPicture(firstPicture.imageUrl);
+        setSelectedImageId(firstPicture.id_pictures);
+      }
+
+      // Fetch infospots
+      const infospotsPromise = api.getInfoPopup(selectedImageId);
+      // Fetch links
+      const linksPromise = api.getLinks(selectedImageId);
+      showLoading([infospotsPromise, linksPromise], 'Chargement...', 'Chargement des données réussi', 'Erreur lors du chargement des données');
+      infospotsPromise.then(infospotsPromise => {
+        setInfoPopups(infospotsPromise);
+      });
+      linksPromise.then(linksPromise => {
+        setLinks(linksPromise);
+      });
+      setNewInfospotModalOpen(false); // Close the new infospot modal
+      setNewLinkModalOpen(true);
+    });
   };
 
   const handleNewLinkSubmit = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
-    await api.insertLink(formData);
-    if (!fromNewRoom) { // Check the flag
+    const insertLinkPromise = api.insertLink(formData);
+    const fetchLinksPromise = insertLinkPromise.then(() => api.getLinks(selectedImageId));
+    showLoading([insertLinkPromise, fetchLinksPromise], 'Ajout du lien...', 'Lien ajouté avec succès', 'L\'ajout du lien a échoué');
+    fetchLinksPromise.then((links) => {
+      setRooms(prevRooms => prevRooms.map(room => ({
+        ...room,
+        links: room.id_rooms === selectedRoomId ? links : room.links,
+        numberOfLinks: room.id_rooms === selectedRoomId ? links.length : room.numberOfLinks
+      })));
+      if (!fromNewRoom) { // Check the flag
         setNewLinkModalOpen(false);
-    }
-    fetchRoomsInfo(); // Refresh the rooms info to reflect the new link
+      }
+    });
 };
 
   const handlePreviewClick = async (imageUrl, pictureId) => {
     setSelectedPreviewImage(imageUrl);
-    setSelectedImageId(pictureId); // Add this line
-    if (viewer) {
-      const panorama = new ImagePanorama(imageUrl);
+    setSelectedImageId(pictureId || ''); // Modify this line
+    setSelectedPicture(imageUrl); // Add this line
 
-      // Retrieve and add infospots
-      const infospots = await api.getInfoPopup(pictureId);
-      infospots.forEach(infospot => {
-        const position = new THREE.Vector3(infospot.position_x, infospot.position_y, infospot.position_z);
-        const spot = new Infospot(350);
-        spot.position.copy(position);
-        spot.addHoverText(infospot.title);
-        panorama.add(spot);
-      });
+    // Retrieve infospots
+    const infospotsPromise = api.getInfoPopup(pictureId);
+    // Retrieve links
+    const linksPromise = api.getLinks(pictureId);
 
-      // Retrieve and add links
-      const links = await api.getLinks(pictureId);
-      links.forEach(link => {
-        const position = new THREE.Vector3(link.position_x, link.position_y, link.position_z);
-        const spot = new Infospot(350, '/img/chain.png');
-        spot.position.copy(position);
-        spot.addHoverText(`Go to panorama ${link.id_pictures_destination}`);
-        spot.addEventListener('click', async () => {
-          const newImageUrl = await api.getImage(link.id_pictures_destination);
-          handlePreviewClick(newImageUrl, link.id_pictures_destination);
-        });
-        panorama.add(spot);
-      });
-      viewer.add(panorama);
-      viewer.setPanorama(panorama);
-    }
+    showLoading([infospotsPromise, linksPromise], 'Chargement...', 'Chargement des données réussi', 'Erreur lors du chargement des données');
+
+    infospotsPromise.then(infospotsPromise => {
+      setInfoPopups(infospotsPromise); // Add this line
+    });
+
+    linksPromise.then(linksPromise => {
+      setLinks(linksPromise); // Add this line
+    });
   };
 
-  const handlePanoramaClick = (event) => {
-    if (!viewer || !viewer.panorama) return;
+const handlePositionSelect = (position) => {
+  console.log("Position received in Admin.jsx:", position); // Debugging line
+  if (isFirstClick) {
+    setIsFirstClick(false);
+  } else {
+    setPosX(position.x);
+    setPosY(position.y);
+    setPosZ(position.z);
+    setIsSelectingPosition(false);
+    setIsFirstClick(true);
+  }
+};
 
-    const intersects = viewer.raycaster.intersectObject(viewer.panorama, true);
-    
-    if (intersects.length > 0) {
-      const { x, y, z } = intersects[0].point;
-
-      console.log(`Clicked Position: X: ${-x}, Y: ${y}, Z: ${z}`);
-
-      if (isSelectingPosition) {
-        setPosX(-x);
-        setPosY(y);
-        setPosZ(z);
-        setIsSelectingPosition(false);
-      }
-    }
-  };
-
-  useEffect(() => {
-    if (viewer) {
-      viewer.container.addEventListener('click', handlePanoramaClick);
-    }
-    return () => {
-      if (viewer) {
-        viewer.container.removeEventListener('click', handlePanoramaClick);
-      }
-    };
-  }, [viewer, isSelectingPosition]);
+const handleSelectPositionClick = () => {
+  setIsSelectingPosition(true); 
+  window.isSelectingPosition = true; // Enable selection mode globally
+  window.isFirstClick = true; // Reset the first click flag
+};
+  
 
   useEffect(() => {
-    if (newInfospotModalOpen && !viewer) {
-      const viewerInstance = new Viewer({
-        container: viewerRef.current,
-        autoRotate: false,
-        autoRotateSpeed: 0.3,
-      });
-      setViewer(viewerInstance);
-    }
-  }, [newInfospotModalOpen]);
+  }, [newInfospotModalOpen, roomPictures]);
 
   useEffect(() => {
-    if (newLinkModalOpen && !viewer) {
-      const viewerInstance = new Viewer({
-        container: viewerRef.current,
-        autoRotate: false,
-        autoRotateSpeed: 0.3,
-      });
-      setViewer(viewerInstance);
-    }
-  }, [newLinkModalOpen]);
+  }, [newLinkModalOpen, roomPictures]);
 
   return (
     <div>
       <div className="header">
         <h1>Admin Panel</h1>
         <button onClick={() => setView('room')}>Room Information</button>
-        <button onClick={() => setView('tour')}>Tour Information</button>
+        <button onClick={() => history.push('/admin-tour')}>Admin Tour</button> {/* Add this line */}
       </div>
       {view === 'room' ? (
         <div>
@@ -567,25 +542,7 @@ const handleEditTourSubmit = async (event) => {
           </table>
         </div>
       ) : (
-        <div>
-          <button onClick={openNewTourModal}>Add New Tour</button>
-          <h2>Tours</h2>
-          {tours.map(tour => (
-            <div key={tour.id_tours}>
-              <h3>{tour.title}</h3>
-              <p>{tour.description}</p>
-              <button onClick={() => handleEditTour(tour)}>Edit Tour</button>
-              <button onClick={() => handleDeleteTour(tour.id_tours)}>Delete Tour</button>
-              <ul>
-                {tourSteps[tour.id_tours]?.map(step => (
-                  <li key={step.id_tour_steps}>
-                    Step {step.step_number}: {step.room_name} ({step.room_number})
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
+        <AdminTour /> // Add this line
       )}
 
       {modalOpen && selectedPictureId && (
@@ -593,7 +550,7 @@ const handleEditTourSubmit = async (event) => {
           <div className="modal-content">
             <span className="close" onClick={handleModalClose}>&times;</span>
             <h2>Change Image</h2>
-            <form onSubmit={handleImageUpload}>
+            <form onSubmit={handleImageUploadOnChange}>
               <input type="file" name="pic" required />
               <button type="submit">Upload</button>
             </form>
@@ -669,137 +626,6 @@ const handleEditTourSubmit = async (event) => {
         </div>
       )}
 
-      {newTourModalOpen && (
-        <div className="modal">
-          <div className="modal-content">
-            <span className="close" onClick={() => setNewTourModalOpen(false)}>&times;</span>
-            <h2>Add New Tour</h2>
-            <form onSubmit={handleNewTour}>
-              <input type="text" name="title" placeholder="Tour Title" required />
-              <textarea name="description" placeholder="Tour Description" required></textarea>
-              <DragDropContext onDragEnd={onDragEnd}>
-                <Droppable droppableId="steps">
-                  {(provided) => (
-                    <div {...provided.droppableProps} ref={provided.innerRef}>
-                      {newTourSteps.map((step, index) => (
-                        <Draggable key={index} draggableId={`step-${index}`} index={index}>
-                          {(provided) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              className="draggable-step"
-                            >
-                              <h4>Step {index + 1}</h4>
-                              <select
-                                name={`steps[${index}][id_rooms]`}
-                                value={step.id_rooms}
-                                onChange={(e) => handleNewTourStepChange(index, 'id_rooms', e.target.value)}
-                                required
-                              >
-                                <option value="">Select Room</option>
-                                {rooms.map(room => (
-                                    <option key={room.id_rooms} value={room.id_rooms}>
-                                        {room.name} ({room.number})
-                                    </option>
-                                ))}
-                              </select>
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </DragDropContext>
-              <button type="button" onClick={handleAddNewTourStep}>Add Step</button>
-              <button type="submit">Add Tour</button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {editTourModalOpen && selectedTour && (
-        <div className="modal">
-          <div className="modal-content">
-            <span className="close" onClick={() => setEditTourModalOpen(false)}>&times;</span>
-            <h2>Edit Tour</h2>
-            <form onSubmit={handleEditTourSubmit}>
-                <input type="hidden" name="id_tours" value={selectedTour.id_tours} />
-                <input type="text" name="title" defaultValue={selectedTour.title} placeholder="Tour Title" required />
-                <textarea name="description" defaultValue={selectedTour.description} placeholder="Tour Description" required></textarea>
-                <DragDropContext onDragEnd={onDragEnd}>
-                    <Droppable droppableId="steps">
-                        {(provided) => (
-                            <div {...provided.droppableProps} ref={provided.innerRef}>
-                                {tourSteps[selectedTour.id_tours]?.map((step, index) => (
-                                    <Draggable key={step.id_tour_steps} draggableId={`step-${step.id_tour_steps}`} index={index}>
-                                        {(provided) => (
-                                            <div
-                                                ref={provided.innerRef}
-                                                {...provided.draggableProps}
-                                                {...provided.dragHandleProps}
-                                                className="draggable-step"
-                                            >
-                                                <span className="drag-icon">☰</span>
-                                                <h4>Step {index + 1}</h4>
-                                                <input type="hidden" name={`steps[${index}][id_tour_steps]`} value={step.id_tour_steps} />
-                                                <select
-                                                    name={`steps[${index}][id_rooms]`}
-                                                    defaultValue={step.id_rooms}
-                                                    required
-                                                >
-                                                    <option value="">Select Room</option>
-                                                    {rooms.map(room => (
-                                                        <option key={room.id_rooms} value={room.id_rooms}>
-                                                            {room.name} ({room.number})
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                        )}
-                                    </Draggable>
-                                ))}
-                                {[...Array(newStepCount)].map((_, index) => (
-                                    <Draggable key={`new_${index}`} draggableId={`new-step-${index}`} index={index}>
-                                        {(provided) => (
-                                            <div
-                                                ref={provided.innerRef}
-                                                {...provided.draggableProps}
-                                                {...provided.dragHandleProps}
-                                                className="draggable-step"
-                                            >
-                                                <span className="drag-icon">☰</span>
-                                                <h4>New Step {tourSteps[selectedTour.id_tours]?.length + index + 1}</h4>
-                                                <input type="hidden" name={`steps[${tourSteps[selectedTour.id_tours]?.length + index}][id_tour_steps]`} value={`new_${index}`} />
-                                                <select
-                                                    name={`steps[${tourSteps[selectedTour.id_tours]?.length + index}][id_rooms]`}
-                                                    required
-                                                >
-                                                    <option value="">Select Room</option>
-                                                    {rooms.map(room => (
-                                                        <option key={room.id_rooms} value={room.id_rooms}>
-                                                            {room.name} ({room.number})
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                        )}
-                                    </Draggable>
-                                ))}
-                                {provided.placeholder}
-                            </div>
-                        )}
-                    </Droppable>
-                </DragDropContext>
-                <button type="button" onClick={handleAddStep}>Add Step</button>
-                <button type="submit">Update Tour</button>
-            </form>
-          </div>
-        </div>
-      )}
-
       {newInfospotModalOpen && (
         <div className="modal">
           <div className="modal-content">
@@ -813,16 +639,22 @@ const handleEditTourSubmit = async (event) => {
                   </div>
                 ))}
               </div>
-              <div className="viewer-column">
-                <div ref={viewerRef} className="panorama-viewer"></div>
+              <div className="viewer-column panorama-container"> {/* Add panorama-container class */}
+                <Panorama360
+                  infoPopups={infoPopups}
+                  selectedPicture={selectedPicture}
+                  links={links}
+                  onLinkClick={(id) => handlePreviewClick(api.getImage(id), id)}
+                  onPositionSelect={handlePositionSelect}
+                />
               </div>
               <div className="form-column">
-                <button type="button" onClick={() => setIsSelectingPosition(true)}>Select Position</button>
+                <button type="button" onClick={handleSelectPositionClick}>Select Position</button>
                 <form onSubmit={handleNewInfospotSubmit}>
-                  <input type="hidden" name="id_pictures" value={selectedImageId} />
-                  <input type="text" name="posX" placeholder="Position X" value={Math.round(posX)} onChange={(e) => setPosX(e.target.value)} required readOnly/>
-                  <input type="text" name="posY" placeholder="Position Y" value={Math.round(posY)} onChange={(e) => setPosY(e.target.value)} required readOnly/>
-                  <input type="text" name="posZ" placeholder="Position Z" value={Math.round(posZ)} onChange={(e) => setPosZ(e.target.value)} required readOnly/>
+                  <input type="hidden" name="id_pictures" value={selectedImageId || ''} />
+                  <input type="text" name="posX" placeholder="Position X" value={parseFloat(posX).toFixed(4) || ''} onChange={(e) => setPosX(e.target.value)} required readOnly/>
+                  <input type="text" name="posY" placeholder="Position Y" value={parseFloat(posY).toFixed(4) || ''} onChange={(e) => setPosY(e.target.value)} required readOnly/>
+                  <input type="text" name="posZ" placeholder="Position Z" value={parseFloat(posZ).toFixed(4) || ''} onChange={(e) => setPosZ(e.target.value)} required readOnly/>
                   <input type="text" name="text" placeholder="Text" required />
                   <input type="text" name="title" placeholder="Title" required />
                   <input type="file" name="pic" />
@@ -841,23 +673,29 @@ const handleEditTourSubmit = async (event) => {
             <h2>Add New Link</h2>
             <div className="modal-body">
               <div className="image-preview-column">
-                {roomPictures.map(picture => (
-                  <div key={picture.id_pictures} className="image-preview" onClick={() => handlePreviewClick(picture.imageUrl, picture.id_pictures)}>
-                    <img src={picture.imageUrl} alt={`Preview of ${picture.id_pictures}`} />
-                    <p>ID : {picture.id_pictures}</p>
-                  </div>
-                ))}
+              {roomPictures.map(picture => (
+                <div key={picture.id_pictures} className="image-preview" onClick={() => handlePreviewClick(picture.imageUrl, picture.id_pictures)}>
+                  <img src={picture.imageUrl} alt={`Preview of ${picture.id_pictures}`} />
+                  <p>ID : {picture.id_pictures}</p>
+                </div>
+              ))}
               </div>
-              <div className="viewer-column">
-                <div ref={viewerRef} className="panorama-viewer"></div>
+              <div className="viewer-column panorama-container"> {/* Add panorama-container class */}
+                <Panorama360
+                  infoPopups={infoPopups}
+                  selectedPicture={selectedPicture}
+                  links={links}
+                  onLinkClick={(id) => handlePreviewClick(api.getImage(id), id)}
+                  onPositionSelect={isSelectingPosition ? handlePositionSelect : null}
+                />
               </div>
               <div className="form-column">
-                <button type="button" onClick={() => setIsSelectingPosition(true)}>Select Position</button>
+                <button type="button" onClick={handleSelectPositionClick}>Select Position</button>
                 <form onSubmit={handleNewLinkSubmit}>
-                  <input type="hidden" name="id_pictures" value={selectedImageId} />
-                  <input type="text" name="posX" placeholder="Position X" value={Math.round(posX)} onChange={(e) => setPosX(e.target.value)} required readOnly/>
-                  <input type="text" name="posY" placeholder="Position Y" value={Math.round(posY)} onChange={(e) => setPosY(e.target.value)} required readOnly/>
-                  <input type="text" name="posZ" placeholder="Position Z" value={Math.round(posZ)} onChange={(e) => setPosZ(e.target.value)} required readOnly/>
+                  <input type="hidden" name="id_pictures" value={selectedImageId || ''} />
+                  <input type="text" name="posX" placeholder="Position X" value={parseFloat(posX).toFixed(4) || ''} onChange={(e) => setPosX(e.target.value)} required readOnly/>
+                  <input type="text" name="posY" placeholder="Position Y" value={parseFloat(posY).toFixed(4) || ''} onChange={(e) => setPosY(e.target.value)} required readOnly/>
+                  <input type="text" name="posZ" placeholder="Position Z" value={parseFloat(posZ).toFixed(4) || ''} onChange={(e) => setPosZ(e.target.value)} required readOnly/>
                   <input type="text" name="id_pictures_destination" placeholder="Picture Destination ID" required/>
                   <button type="submit">Add Link</button>
                 </form>

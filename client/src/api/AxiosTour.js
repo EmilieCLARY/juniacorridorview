@@ -3,7 +3,7 @@ import axios from "axios";
 const api = axios.create({
   baseURL: process.env.BASE_URL, // Use the environment variable
   timeout: 180000, // Increase the timeout to 180 seconds
-  withCredentials: true // Si vous utilisez des cookies ou des sessions
+
 });
 
 const getTables = async () => {
@@ -43,20 +43,16 @@ const updateTourSteps = async (data) => {
             step_number: index + 1
         }));
         await api.post('/update-tour-steps', { id_tours: data.id_tours, steps: stepsWithNumbers, title: data.title, description: data.description });
-        alert('Tour steps updated successfully');
     } catch (error) {
         console.error('Error updating tour steps:', error);
-        alert('Tour steps update failed');
     }
 };
 
 const addTourStep = async (data) => {
     try {
         await api.post('/add-tour-step', data);
-        alert('Tour step added successfully');
     } catch (error) {
         console.error('Error adding tour step:', error);
-        alert('Tour step addition failed');
     }
 };
 
@@ -67,20 +63,16 @@ const createTour = async (data) => {
             step_number: index + 1
         }));
         await api.post('/create-tour', { ...data, steps: stepsWithNumbers });
-        alert('Tour created successfully');
     } catch (error) {
         console.error('Error creating tour:', error);
-        alert('Tour creation failed');
     }
 };
 
 const deleteTour = async (id_tours) => {
     try {
         await api.delete(`/delete-tour/${id_tours}`);
-        alert('Tour deleted successfully');
     } catch (error) {
         console.error('Error deleting tour:', error);
-        alert('Tour deletion failed');
     }
 };
 

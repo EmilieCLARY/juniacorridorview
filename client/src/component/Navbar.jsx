@@ -19,17 +19,27 @@ const Navbar = () => {
   useEffect(() => {
     switch (location.pathname) {
       case '/':
-        setRouteName('Menu Principal');
+        setRouteName('Accueil');
         break;
       case '/pano':
-        setRouteName('Visite Virtuelle');
+        setRouteName('Immersion');
         break;
       case '/tour':
-        setRouteName('Choix des Parcours');
+        setRouteName('Visite Guidée');
         break;
       case '/admin':
-        setRouteName('Admin Panel');
+        setRouteName('Administrateur');
         break;
+      case '/admin-tour':
+        setRouteName('Parcours');
+        break;
+      case '/admin-room':
+        setRouteName('Salles');
+        break;
+      case location.pathname.match(/\/admin-room\/[0-9]{1,9}/)?.input:
+        setRouteName('Détails de la Salle');
+      break;
+
       default:
         setRouteName('Menu Principal');
     }
