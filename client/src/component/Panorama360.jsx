@@ -97,52 +97,230 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
 
     const createInfoPopup = (popup) => {
       const popupGroup = new THREE.Group();
+    
+      // Create a single canvas for all information
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      context.font = 'Bold 70px Arial';
+      context.font = 'Normal 50px Arial';
+    
+      let canvasWidth = 0;
+      let canvasHeight = 0;
+    
+      const lineHeight = 60; // Adjust line height as needed
+
+      const image = new Image();
+      image.onload = () => {
+        var imageWidth = image.width;
+        var imageHeight = image.height;
+        const aspectRatio = imageWidth / imageHeight;
+
+
+        if (imageWidth < imageHeight) {   // Si l'image est en format portrait
+          const maxImageWidth = 600;
+          const maxImageHeight = 450;
+
+          // Calculate new dimensions while maintaining aspect ratio
+          if (imageWidth > maxImageWidth) {
+            imageWidth = maxImageWidth;
+            imageHeight = maxImageWidth / aspectRatio;
+          } else if (imageHeight > maxImageHeight) {
+            imageHeight = maxImageHeight;
+            imageWidth = maxImageHeight * aspectRatio;
+          }
+
+          // Calculate the dimensions of the canvas
+          canvasWidth = 40 + 2 * imageWidth + 40; // Add extra width for the image and padding
+
+          // Calculate the height needed for the text
+          const textLines = wrapText(context, popup.text, imageWidth);        
+          const textHeight = textLines.length * lineHeight + 50;
+
+          // Adjust canvas height based on text and image height
+          canvasHeight = Math.max(imageHeight, textHeight) + 200; // Add extra height for the title and padding
+          
+          // Set the canvas dimensions
+          canvas.width = canvasWidth;
+          canvas.height = canvasHeight;
+
+          // Background color with rounded border
+          const radius = 20; // Adjust the radius for rounded corners
+          context.fillStyle = '#e85c30';
+          context.strokeStyle = '#3c2c53';
+          context.lineWidth = 10;
+          context.beginPath();
+          context.moveTo(radius, 0);
+          context.lineTo(canvasWidth - radius, 0);
+          context.arcTo(canvasWidth, 0, canvasWidth, radius, radius);
+          context.lineTo(canvasWidth, canvasHeight - radius);
+          context.arcTo(canvasWidth, canvasHeight, canvasWidth - radius, canvasHeight, radius);
+          context.lineTo(radius, canvasHeight);
+          context.arcTo(0, canvasHeight, 0, canvasHeight - radius, radius);
+          context.lineTo(0, radius);
+          context.arcTo(0, 0, radius, 0, radius);
+          context.closePath();
+          context.fill();
+          context.stroke();
       
-      // Titre
-      const titleCanvas = document.createElement('canvas');
-      const titleContext = titleCanvas.getContext('2d');
-      titleContext.font = 'Bold 70px Arial';
-      const titleWidth = titleContext.measureText(popup.title).width;
-      titleCanvas.width = titleWidth + 20;
-      titleCanvas.height = 50;
-      titleContext.font = 'Bold 70px Arial';
-      titleContext.fillStyle = 'red';
-      titleContext.fillText(popup.title.toUpperCase(), 10, 50);
-      const titleTexture = new THREE.CanvasTexture(titleCanvas);
-      const titleMaterial = new THREE.MeshBasicMaterial({ map: titleTexture, transparent: true });
-      const titleGeometry = new THREE.PlaneGeometry(titleWidth / 5, 12);
-      const titleMesh = new THREE.Mesh(titleGeometry, titleMaterial);
-      titleMesh.position.set(0, 50, 0);
-      popupGroup.add(titleMesh);
+          // Title
+          context.font = 'Bold 70px Arial';
+          context.fillStyle = 'white';
+          context.textAlign = 'center';
+          context.fillText(popup.title.toUpperCase(), canvasWidth / 2, 90);
+
+          // 'X' button
+          context.font = 'Bold 70px Arial';
+          context.fillStyle = '#3c2c53';
+          context.textAlign = 'center';
+          context.fillText('X', canvasWidth - 80, 80);
       
-      // Texte
-      const textCanvas = document.createElement('canvas');
-      const textContext = textCanvas.getContext('2d');
-      textContext.font = 'Normal 50px Arial';
-      const textWidth = textContext.measureText(popup.text).width;
-      textCanvas.width = textWidth + 20;
-      textCanvas.height = 256;
-      textContext.font = 'Normal 50px Arial';
-      textContext.fillStyle = 'red';
-      textContext.fillText(popup.text, 10, 50);
-      const textTexture = new THREE.CanvasTexture(textCanvas);
-      const textMaterial = new THREE.MeshBasicMaterial({ map: textTexture, transparent: true });
-      const textGeometry = new THREE.PlaneGeometry(textWidth / 5, 50);
-      const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-      textMesh.position.set(-textWidth / 10, 0, 0);
-      popupGroup.add(textMesh);
+          // Text
+          context.font = 'Normal 50px Arial';
+          context.fillStyle = 'white';
+          context.textAlign = 'left';
+
+          const textX = 40;
+          const textY = 150;
       
-      // Image (optional)
-      if (popup.image) {
-        const imageGeometry = new THREE.PlaneGeometry(100, 75);
-        const imageTexture = new THREE.TextureLoader().load(URL.createObjectURL(new Blob([new Uint8Array(popup.image.data)], { type: 'image/png' })));
-        const imageMaterial = new THREE.MeshBasicMaterial({ map: imageTexture, transparent: true });
-        const imageMesh = new THREE.Mesh(imageGeometry, imageMaterial);
-        imageMesh.position.set(textWidth / 10 + 50, 0, 0);
-        popupGroup.add(imageMesh);
-      }
+          let lines = wrapText(context, popup.text, imageWidth);
+          lines.forEach((line, i) => {
+            context.fillText(line, textX, textY + (i + 1) * lineHeight);
+          });
       
+          const imgX = canvasWidth - imageWidth - 40;
+          const imgY = 150;
+
+          // Image (optional)
+          if (popup.image) {
+            // Draw image
+            context.drawImage(image, imgX, imgY, imageWidth, imageHeight);
+
+            // Draw black border around the image
+            context.strokeStyle = '#3c2c53';
+            context.lineWidth = 5;
+            context.strokeRect(imgX, imgY, imageWidth, imageHeight);
+          }      
+        }
+        
+        /*---------------------------------------------------------*/ 
+        
+        else {     // Si l'image est en format paysage
+          const maxImageWidth = 1100;
+          const maxImageHeight = 500;
+
+          // Calculate new dimensions while maintaining aspect ratio
+          if (imageWidth > maxImageWidth) {
+            imageWidth = maxImageWidth;
+            imageHeight = maxImageWidth / aspectRatio;
+          } else if (imageHeight > maxImageHeight) {
+            imageHeight = maxImageHeight;
+            imageWidth = maxImageHeight * aspectRatio;
+          }
+
+          // Calculate the dimensions of the canvas
+          canvasWidth = 40 + imageWidth + 40; // Add extra width for the image and padding
+
+          // Calculate the height needed for the text
+          const textLines = wrapText(context, popup.text, imageWidth);        
+          const textHeight = textLines.length * lineHeight + 200;
+
+          // Adjust canvas height based on text and image height
+          canvasHeight = imageHeight + textHeight + 75; // Add extra height for the title and padding
+          
+          // Set the canvas dimensions
+          canvas.width = canvasWidth;
+          canvas.height = canvasHeight;
+
+          // Background color with rounded border
+          const radius = 20; // Adjust the radius for rounded corners
+          context.fillStyle = '#e85c30';
+          context.strokeStyle = '#3c2c53';
+          context.lineWidth = 10;
+          context.beginPath();
+          context.moveTo(radius, 0);
+          context.lineTo(canvasWidth - radius, 0);
+          context.arcTo(canvasWidth, 0, canvasWidth, radius, radius);
+          context.lineTo(canvasWidth, canvasHeight - radius);
+          context.arcTo(canvasWidth, canvasHeight, canvasWidth - radius, canvasHeight, radius);
+          context.lineTo(radius, canvasHeight);
+          context.arcTo(0, canvasHeight, 0, canvasHeight - radius, radius);
+          context.lineTo(0, radius);
+          context.arcTo(0, 0, radius, 0, radius);
+          context.closePath();
+          context.fill();
+          context.stroke();
+      
+          // Title
+          context.font = 'Bold 70px Arial';
+          context.fillStyle = 'white';
+          context.textAlign = 'center';
+          context.fillText(popup.title.toUpperCase(), canvasWidth / 2, 90);
+      
+          // 'X' button
+          context.font = 'Bold 70px Arial';
+          context.fillStyle = '#3c2c53';
+          context.textAlign = 'center';
+          context.fillText('X', canvasWidth - 80, 80);
+
+          // Text
+          context.font = 'Normal 50px Arial';
+          context.fillStyle = 'white';
+          context.textAlign = 'left';
+
+          const textX = 40;
+          const textY = 150;
+      
+          let lines = wrapText(context, popup.text, imageWidth);
+          lines.forEach((line, i) => {
+            context.fillText(line, textX, textY + (i + 1) * lineHeight);
+          });
+      
+          const imgX = (canvasWidth - imageWidth) / 2
+          const imgY = textHeight + 50;
+          
+          // Image (optional)
+          if (popup.image) {
+            // Draw image
+            context.drawImage(image, imgX, imgY, imageWidth, imageHeight);
+          
+            // Draw black border around the image
+            context.strokeStyle = '#3c2c53';
+            context.lineWidth = 5;
+            context.strokeRect(imgX, imgY, imageWidth, imageHeight);
+          }
+        }      
+    
+        // Create texture and mesh after the image is loaded and drawn
+        const texture = new THREE.CanvasTexture(canvas);
+        const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
+        const geometry = new THREE.PlaneGeometry(canvasWidth / 5, canvasHeight / 5);
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position.set(0, 50, 0);
+        popupGroup.add(mesh);
+      };
+    
+      image.src = URL.createObjectURL(new Blob([new Uint8Array(popup.image.data)], { type: 'image/png' }));
+    
       return popupGroup;
+    };
+    
+    const wrapText = (context, text, maxWidth) => {
+      const words = text.split(' ');
+      const lines = [];
+      let currentLine = words[0];
+
+      for (let i = 1; i < words.length; i++) {
+        const word = words[i];
+        const width = context.measureText(currentLine + ' ' + word).width;
+        if (width < maxWidth) {
+          currentLine += ' ' + word;
+        } else {
+          lines.push(currentLine);
+          currentLine = word;
+        }
+      }
+      lines.push(currentLine);
+      return (lines);
     };
 
     const onClick = (event) => {
@@ -169,12 +347,12 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
         if (intersects.length > 0 && infoPopups[index]) {
           console.log("Info spot clicked"); // Debug log
           const existingPopup = displayedPopups.find(popup => popup.name === `popup_${index}`);
-          if (existingPopup) {
+          /*if (existingPopup) {
             // Supprimer le popup si déjà affiché
             scene.remove(existingPopup);
             displayedPopups.splice(displayedPopups.indexOf(existingPopup), 1);
             console.log("Popup fermé");
-          } else {
+          } else {*/
             // Créer un nouveau popup
             console.log("Info clicked");
             const popupGroup = createInfoPopup(infoPopups[index]);
@@ -187,7 +365,7 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
             popupGroup.lookAt(camera.position);
             displayedPopups.push(popupGroup);
             console.log("Popup ajouté à la scène");
-          }
+          //}
         }
       });
     
