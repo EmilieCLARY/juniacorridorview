@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,100..900;1,100..900&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -11,12 +12,20 @@
   --color-junia-lavender: #f7f1fd;
   --color-junia-salmon: #fff3f0;
   --font-title:"Montserrat",sans-serif;
+  --font-paragraphs:"Libre Franklin", serif;
+
 }
 
-/* Tailwind CSS Directives */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+html body,#root {
+  height: 100%;
+  background-color: #f7f1fd;
+}
+
+.font-texts{
+  font-family: "Libre Franklin", serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
 
 *{
   padding: 0;
@@ -31,7 +40,7 @@ nav{
 }
 
 .body-container{
-  height: calc(100vh - 90px) !important;
+  height: calc(100vh) !important;
 }
 
 .box{
@@ -44,11 +53,7 @@ nav{
   padding-top: 250px;
 
 }
-h1{
-  padding: 15px;
-  font-size: 75px;
-  text-shadow:  2px 3px white;
-}
+
 .btn-warning{
   margin-top: 15px;
   padding: 10px 25px;
@@ -59,4 +64,6 @@ h1{
   padding-top: 150px;
   }
 
-  
+.h-17\/100{
+  height: 17%;
+} 

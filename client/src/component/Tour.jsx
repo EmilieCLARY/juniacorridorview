@@ -3,6 +3,7 @@ import { useHistory } from "react-router-dom";
 import * as api from '../api/AxiosTour';
 import '../style/Tour.css';
 import { Buffer } from 'buffer';
+import Carousel from '../reactbits/Components/Carousel/Carousel'
 import {toast} from "sonner";
 
 const TourViewer = () => {
@@ -61,10 +62,10 @@ const TourViewer = () => {
 
   const fetchRooms = async () => {
     try {
-        const roomsData = await api.getRooms();
-        setRooms(roomsData);
+      const roomsData = await api.getRooms();
+      setRooms(roomsData);
     } catch (error) {
-        console.error('Error fetching rooms:', error);
+      console.error('Error fetching rooms:', error);
     }
   };
 
@@ -84,6 +85,13 @@ const TourViewer = () => {
   };
 
   useEffect(() => {
+    const fetchAllData = async () => {
+      await fetchTours();
+      await fetchRooms();
+    };
+
+    fetchAllData();
+
     if (loading.current) return;
     loading.current = true;
 
@@ -92,31 +100,38 @@ const TourViewer = () => {
     });
   }, []);
 
+  useEffect(() => {
+    const fetchAllTourSteps = async () => {
+      for (const tour of tours) {
+        await fetchTourSteps(tour.id_tours);
+      }
+    };
+
+    if (tours.length > 0) {
+      fetchAllTourSteps();
+    }
+  }, [tours]);
+
+  const getPanoramaImagesForTour = (tourId) => {
+    if (!tourSteps[tourId]) return [];
+    let tmp = tourSteps[tourId].map(step => { return { src: panoramaUrls[step.id_rooms], alt: `Panorama of ${rooms[step.id_rooms]?.name}` }; });
+    if (tmp.some(image => !image.src)) return []; // Wait until all URLs are available
+    return tmp;
+  };
+
   return (
-    <div>
-      <h1>Tours</h1>
-      <div className="tours-container">
+    <div className="h-100">
+      <div className="bg-junia-lavender grid grid-cols-3 grid-flow-col auto-cols-min gap-10 justify-between p-4 h-full">
         {tours.map(tour => (
-          <div key={tour.id_tours} className="tour-item">
-            <h2>Tour {tour.id_tours}</h2>
-            <h3>{tour.title}</h3>
-            <p>{tour.description}</p>
-            <button onClick={() => handleTourClick(tour.id_tours)}>Start Tour</button>
-            <button onClick={() => fetchTourSteps(tour.id_tours)}>Show Steps</button>
-            {tourSteps[tour.id_tours] && (
-              <ul>
-                {tourSteps[tour.id_tours].map(step => (
-                  <li key={step.id_tour_steps}>
-                    Step {step.step_number}: Room {rooms[step.id_rooms]?.name} ({rooms[step.id_rooms]?.number})
-                    {panoramaUrls[step.id_rooms] && (
-                      <div className="panorama-overview">
-                        <img src={panoramaUrls[step.id_rooms]} alt={`Panorama of ${rooms[step.id_rooms]?.name}`} />
-                      </div>
-                    )}
-                  </li>
-                ))}
-              </ul>
+          <div key={tour.id_tours} className="purpleborder text-justify bg-white border-5 border-junia-orange p-2 rounded-3xl">
+            <div className="font-title font-bold text-junia-orange text-3xl text-center">{tour.title}</div>
+            <div className="font-texts">{tour.description}</div>
+            {getPanoramaImagesForTour(tour.id_tours).length > 0 && (
+              <div className="">
+                  <Carousel items={getPanoramaImagesForTour(tour.id_tours)} baseWidth="100%" autoplay={true} autoplayDelay={3000} pauseOnHover={true} loop={true} round={false} />
+              </div>
             )}
+            <div onClick={() => handleTourClick(tour.id_tours)} className="text-xl font-title border-2 rounded-3xl w-sm" >Start Tour</div>
           </div>
         ))}
       </div>

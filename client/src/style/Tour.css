@@ -1,3 +1,9 @@
+.purpleborder{
+  border-width: 2px;
+  border-color: #3c2c53;;
+}
+
+/*
 .tours-container {
   display: flex;
   flex-wrap: wrap;
@@ -10,7 +16,6 @@
   margin: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
-  background-color: #f9f9f9;
 }
 
 .tour-item h2 {
@@ -26,7 +31,7 @@
 }
 
 .panorama-overview img {
-  width: 150px; /* Change the width to a smaller size */
+  width: 150px; 
   height: auto;
   border: 1px solid #ccc;
   border-radius: 5px;
