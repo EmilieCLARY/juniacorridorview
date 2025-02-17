@@ -29,7 +29,7 @@ const App = () => {
         <Route exact path ="/dev-pano" component={Panorama360}/> 
         <Route exact path ="/admin-tour" component={AdminTour}/>
         <Route exact path ="/admin-room" component={AdminRoom}/>
-        <Route exact path ="/admin-room/:id" component={AdminRoomDetails}/> {/* Add the new route */}
+        <Route exact path ="/admin-room/:id" component={AdminRoomDetails}/>
       </Switch>
     </>
   )

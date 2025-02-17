@@ -121,6 +121,7 @@ const AdminRoom = () => {
           onChange={handleFilterChange}
         />
       </div>
+      <button onClick={() => history.push('/admin-tour')}>Go to Admin Parcours</button>
       {filteredRooms.map(room => (
         <div key={room.id_rooms} className="room-card" onClick={() => handleRoomClick(room.id_rooms)}>
           <div className="room-details">

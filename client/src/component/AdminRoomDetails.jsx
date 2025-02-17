@@ -161,7 +161,7 @@ const AdminRoomDetails = () => {
 
   return (
     <div className="admin-room-details-container">
-      <h1>Détails de la pièce : {roomName}</h1>
+      <h1>{roomName}</h1>
       <div className="image-panorama-container">
         <div className="image-list">
           {pictures.map(picture => (
