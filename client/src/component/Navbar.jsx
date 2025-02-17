@@ -30,6 +30,16 @@ const Navbar = () => {
       case '/admin':
         setRouteName('Administrateur');
         break;
+      case '/admin-tour':
+        setRouteName('Parcours');
+        break;
+      case '/admin-room':
+        setRouteName('Salles');
+        break;
+      case location.pathname.match(/\/admin-room\/[0-9]{1,9}/)?.input:
+        setRouteName('Détails de la Salle');
+      break;
+
       default:
         setRouteName('Menu Principal');
     }

@@ -125,6 +125,16 @@ const getBuildings = async () => {
   }
 };
 
+const getFirstPictureByRoomId = async (id_rooms) => {
+  try {
+    const response = await api.get(`/first-picture-by-room/${id_rooms}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching first picture by room ID', error);
+    return null;
+  }
+};
+
 export {
   getRooms,
   getPicturesByRoomId,
@@ -138,5 +148,6 @@ export {
   insertInfoPopUp,
   insertLink,
   uploadFile,
-  getBuildings
+  getBuildings,
+  getFirstPictureByRoomId
 };

@@ -37,6 +37,8 @@ const AdminTour = () => {
   const [newTourSteps, setNewTourSteps] = useState([]);
   const [newTourModalOpen, setNewTourModalOpen] = useState(false);
   const [rooms, setRooms] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [panoramaUrls, setPanoramaUrls] = useState({});
   const loading = useRef(false);
   const history = useHistory();
 
@@ -48,35 +50,60 @@ const AdminTour = () => {
     });
   }
 
+  const fetchPanoramaUrls = async (steps) => {
+    const panoramaUrlsData = await Promise.all(
+      steps.map(async step => {
+        const picture = await tourApi.getFirstPictureByRoomId(step.id_rooms);
+        if (picture) {
+          const imageUrl = await tourApi.getImage(picture.id_pictures);
+          return { id_rooms: step.id_rooms, imageUrl };
+        }
+        return { id_rooms: step.id_rooms, imageUrl: null };
+      })
+    );
+    return Object.fromEntries(panoramaUrlsData.map(panorama => [panorama.id_rooms, panorama.imageUrl]));
+  };
+
   const fetchToursInfo = async () => {
-    try {
-      const toursData = await tourApi.getTours();
-      setTours(toursData);
-      const stepsData = await Promise.all(toursData.map(tour => tourApi.getTourSteps(tour.id_tours)));
-      const steps = stepsData.reduce((acc, steps, index) => {
-        acc[toursData[index].id_tours] = steps;
-        return acc;
-      }, {});
-      setTourSteps(steps);
-    } catch (error) {
-      console.error('Error fetching tours info:', error);
-    }
+    const toursData = await tourApi.getTours();
+    const stepsData = await Promise.all(toursData.map(tour => tourApi.getTourSteps(tour.id_tours)));
+    const steps = stepsData.reduce((acc, steps, index) => {
+      acc[toursData[index].id_tours] = steps;
+      return acc;
+    }, {});
+    return { toursData, steps };
   };
 
   const fetchRooms = async () => {
+    const roomsData = await api.getRooms();
+    return roomsData;
+  };
+
+  const fetchAllData = async () => {
+    console.log('Fetching all data...');
     try {
-      const roomsData = await api.getRooms();
+      const { toursData, steps } = await fetchToursInfo();
+      setTours(toursData);
+      setTourSteps(steps);
+
+      const panoramaUrlsData = await Promise.all(
+        toursData.map(async tour => {
+          const tourSteps = steps[tour.id_tours];
+          return fetchPanoramaUrls(tourSteps);
+        })
+      );
+      const panoramaUrls = panoramaUrlsData.reduce((acc, urls) => ({ ...acc, ...urls }), {});
+      setPanoramaUrls(panoramaUrls);
+
+      const roomsData = await fetchRooms();
       setRooms(roomsData);
     } catch (error) {
-      console.error('Error fetching rooms:', error);
+      console.error('Error fetching data:', error);
     }
   };
 
   const fetchData = async () => {
-    const fetchToursInfoPromise = fetchToursInfo();
-    const fetchRoomsPromise = fetchRooms();
-
-    showLoading([fetchToursInfoPromise, fetchRoomsPromise], 'Chargement...', 'Chargement des données réussi', 'Erreur lors du chargement des données');
+    showLoading([fetchAllData()], 'Chargement...', 'Chargement des données réussi', 'Erreur lors du chargement des données');
   };
 
   useEffect(() => {
@@ -127,6 +154,7 @@ const AdminTour = () => {
   };
 
   const handleDeleteTour = async (tourId) => {
+    if (!window.confirm('Are you sure you want to delete this tour?')) return;
     const deleteTourPromise = tourApi.deleteTour(tourId);
     const fetchToursInfoPromise = deleteTourPromise.then(() => fetchToursInfo());
     showLoading([deleteTourPromise, fetchToursInfoPromise], 'Suppression du parcours...', 'Parcours supprimé avec succès', 'La suppression du parcours a échoué');
@@ -165,9 +193,17 @@ const AdminTour = () => {
     event.preventDefault();
     const formData = new FormData(event.target);
     const data = Object.fromEntries(formData.entries());
-    data.steps = newTourSteps; // Ensure steps are correctly formatted as an array
+    data.steps = newTourSteps;
     const createTourPromise = tourApi.createTour(data);
-    const fetchToursInfoPromise = createTourPromise.then(() => fetchToursInfo());
+    const fetchToursInfoPromise = createTourPromise.then(async () => {
+      await fetchToursInfo();
+      const newTour = await tourApi.getTours();
+      const newTourSteps = await tourApi.getTourSteps(newTour[newTour.length - 1].id_tours);
+      setTourSteps(prevSteps => ({
+        ...prevSteps,
+        [newTour[newTour.length - 1].id_tours]: newTourSteps
+      }));
+    });
     showLoading([createTourPromise, fetchToursInfoPromise], 'Ajout du parcours...', 'Parcours ajouté avec succès', 'L\'ajout du parcours a échoué');
     fetchToursInfoPromise.then(() => {
       setNewTourModalOpen(false);
@@ -202,29 +238,45 @@ const AdminTour = () => {
     }
   };
 
+  const filteredTours = tours.filter(tour =>
+    tour.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div>
       <div className="header">
         <h1>Tour Information</h1>
-        <button onClick={() => history.push('/admin')}>Go to Admin Page</button>
+        <input
+          type="text"
+          placeholder="Search tours"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="search-bar"
+        />
+        <button onClick={openNewTourModal}>Add New Tour</button>
       </div>
-      <button onClick={openNewTourModal}>Add New Tour</button>
-      <h2>Tours</h2>
-      {tours.map(tour => (
-        <div key={tour.id_tours}>
-          <h3>{tour.title}</h3>
-          <p>{tour.description}</p>
-          <button onClick={() => handleEditTour(tour)}>Edit Tour</button>
-          <button onClick={() => handleDeleteTour(tour.id_tours)}>Delete Tour</button>
-          <ul>
-            {tourSteps[tour.id_tours]?.map(step => (
-              <li key={step.id_tour_steps}>
-                Step {step.step_number}: {step.room_name} ({step.room_number})
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
+      <div className="tours-container">
+        {filteredTours.map(tour => (
+          <div key={tour.id_tours} className="tour-card">
+            <h3>{tour.title}</h3>
+            <p>{tour.description}</p>
+            <ul>
+              {tourSteps[tour.id_tours]?.map(step => (
+                <li key={step.id_tour_steps}>
+                  Step {step.step_number}: {step.room_name} ({step.room_number})
+                  {panoramaUrls[step.id_rooms] && (
+                    <div className="panorama-overview">
+                      <img src={panoramaUrls[step.id_rooms]} alt={`Panorama of ${step.room_name}`} />
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+            <button onClick={() => handleDeleteTour(tour.id_tours)}>Delete Tour</button>
+            <button onClick={() => handleEditTour(tour)}>Edit Tour</button>
+          </div>
+        ))}
+      </div>
 
       {newTourModalOpen && (
         <div className="modal">

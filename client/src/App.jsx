@@ -10,6 +10,8 @@ import Admin from './component/Admin';
 import PanoramaViewer from './component/Pano';
 import Panorama360 from './component/Panorama360';
 import AdminTour from './component/AdminTour';
+import AdminRoom from './component/AdminRoom';
+import AdminRoomDetails from './component/AdminRoomDetails';
 
 import './App.css';
 import {Toaster} from "sonner";
@@ -26,6 +28,8 @@ const App = () => {
         <Route exact path ="/admin" component={Admin}/>
         <Route exact path ="/dev-pano" component={Panorama360}/> 
         <Route exact path ="/admin-tour" component={AdminTour}/>
+        <Route exact path ="/admin-room" component={AdminRoom}/>
+        <Route exact path ="/admin-room/:id" component={AdminRoomDetails}/>
       </Switch>
     </>
   )
