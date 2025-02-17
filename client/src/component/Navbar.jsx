@@ -30,6 +30,11 @@ const Navbar = () => {
       case '/admin':
         setRouteName('Administrateur');
         break;
+      case '/admin-room':
+        setRouteName('Administrateur');
+        break;
+      case '/admin-room/:id':
+        setRouteName('Administrateur');
       default:
         setRouteName('Menu Principal');
     }
