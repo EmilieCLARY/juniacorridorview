@@ -49,16 +49,18 @@ const Admin = () => {
     });
   }
 
-  const fetchRoomsInfo = async () => {
+  const fetchAllInfos = async () => {
     try {
-      console.time('Fetching rooms info');
-      console.log('Fetching rooms info...');
-      const roomsData = await api.getRooms();
+      console.time('Fetching all infos');
+
+      const [roomsData, buildingsData] = await Promise.all([
+        api.getRooms(),
+        api.getBuildings()
+      ]);
 
       const roomsInfo = await Promise.all(roomsData.map(async (room) => {
         const pictures = await api.getPicturesByRoomId(room.id_rooms);
 
-        // Parallelizing image, infoPopup, and links retrieval
         const [picturesWithUrls, infoPopups, links] = await Promise.all([
           Promise.all(pictures.map(async (pic) => ({
             ...pic,
@@ -81,45 +83,19 @@ const Admin = () => {
       }));
 
       setRooms(roomsInfo);
+      setBuildings(buildingsData);
 
-      console.timeEnd('Fetching rooms info');
+      console.timeEnd('Fetching all infos');
     } catch (error) {
-      console.error('Error fetching rooms info:', error);
+      console.error('Error fetching all infos:', error);
     }
-  };
-
-  const fetchRooms = async () => {
-    try {
-        const roomsData = await api.getRooms();
-        setRooms(roomsData);
-    } catch (error) {
-        console.error('Error fetching rooms:', error);
-    }
-  };
-
-  const fetchBuildings = async () => {
-    try {
-      const response = await api.getBuildings();
-      setBuildings(response);
-    } catch (error) {
-      console.error('Error fetching buildings:', error);
-    }
-  };
-
-  const fetchData = async () => {
-    const fetchRoomsInfoPromise = fetchRoomsInfo();
-    const fetchBuildingsPromise = fetchBuildings();
-
-    showLoading([fetchRoomsInfoPromise, fetchBuildingsPromise], 'Chargement...', 'Chargement des données réussi', 'Erreur lors du chargement des données');
   };
 
   useEffect(() => {
     if (loading.current) return;
     loading.current = true;
 
-    fetchData().then(r => {
-      loading.current = false;
-    });
+    showLoading([fetchAllInfos()], 'Chargement...', 'Chargement des données réussi', 'Erreur lors du chargement des données');
   }, []);
 
   const toggleExpand = (roomId, category) => {
