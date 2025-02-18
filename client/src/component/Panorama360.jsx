@@ -169,20 +169,13 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
           context.fillStyle = 'white';
           context.textAlign = 'center';
           context.fillText(popup.title.toUpperCase(), canvasWidth / 2, 90);
-
-          // Create an 'X' button as three js object detectable
-          const xGeometry = new THREE.PlaneGeometry(40, 40);
-          const xMaterial = new THREE.MeshBasicMaterial({
-            color: '#3c2c53',
-            transparent: true,
-            opacity: 0.5
-          });
-          const xMesh = new THREE.Mesh(xGeometry, xMaterial);
-          xMesh.position.set(canvasWidth - 40, 80, 0);
-          xMesh.name = 'closeButton';
-          console.log("XMesh", xMesh)
-          popupGroup.add(xMesh);
-
+      
+          // 'X' button
+          context.font = 'Bold 70px Arial';
+          context.fillStyle = '#3c2c53';
+          context.textAlign = 'center';
+          context.fillText('X', canvasWidth - 40, 80);
+          
           // Text
           context.font = 'Normal 50px Arial';
           context.fillStyle = 'white';
