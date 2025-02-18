@@ -36,6 +36,7 @@ const AdminRoomDetails = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingModal, setIsLoadingModal] = useState(true);
+  const [disableBackgroundClick, setDisableBackgroundClick] = useState(false);
 
   const showLoading = (promises, textLoading, textSuccess, textError) => {
     return toast.promise(Promise.all(promises), {
@@ -143,6 +144,7 @@ const AdminRoomDetails = () => {
     const updatedInfoPopups = await getInfoPopup(selectedImageId);
     setInfoPopups(updatedInfoPopups);
     setNewInfospotModalOpen(false);
+    setDisableBackgroundClick(false);
   };
 
   const handleNewLinkSubmit = async (event) => {
@@ -152,6 +154,7 @@ const AdminRoomDetails = () => {
     const updatedLinks = await getLinks(selectedImageId);
     setLinks(updatedLinks);
     setNewLinkModalOpen(false);
+    setDisableBackgroundClick(false);
   };
 
   const handlePositionSelect = (position) => {
@@ -160,6 +163,27 @@ const AdminRoomDetails = () => {
     setPosZ(position.z);
     setIsSelectingPosition(false);
   };
+
+  const handleModalInfopopup = () => {
+    console.log('Opening new infospot modal');
+    setNewInfospotModalOpen(true)
+    setDisableBackgroundClick(true);
+  }
+
+  const closeModalInfospot = () => {
+    setNewInfospotModalOpen(false);
+    setDisableBackgroundClick(false);
+  }
+
+  const handleModalLink = () => {
+    setNewLinkModalOpen(true)
+    setDisableBackgroundClick(true);
+  }
+
+  const closeModalLink = () => {
+    setNewLinkModalOpen(false);
+    setDisableBackgroundClick(false);
+  }
 
   const handleSelectPositionClick = () => {
     setIsSelectingPosition(true);
@@ -170,6 +194,7 @@ const AdminRoomDetails = () => {
   const handleModalPictureClick = async (imageUrl, pictureId) => {
     setIsLoadingModal(true);
     setModalSelectedPicture(imageUrl);
+    setSelectedImageId(pictureId);
     const infospotsPromise = getInfoPopup(pictureId);
     const linksPromise = getLinks(pictureId);
     showLoading([infospotsPromise, linksPromise], 'Chargement des détails de la pièce...', 'Chargement des détails réussi', 'Erreur lors du chargement des détails');
@@ -208,13 +233,14 @@ const AdminRoomDetails = () => {
               onLinkClick={handleLinkClick}
               onPositionSelect={handlePositionSelect}
               isLoading={isLoading}
+              disableClick={disableBackgroundClick}
             />
           )}
         </div>
       </div>
       <div className="section-header">
         <h2>Bulles</h2>
-        <button onClick={() => setNewInfospotModalOpen(true)}>Ajouter une infobulle</button>
+        <button onClick={handleModalInfopopup}>Ajouter une infobulle</button>
       </div>
       <div className="search-container">
         <input
@@ -251,7 +277,7 @@ const AdminRoomDetails = () => {
       </div>
       <div className="section-header">
         <h2>Liens</h2>
-        <button onClick={() => setNewLinkModalOpen(true)}>Ajouter un lien</button>
+        <button onClick={handleModalLink}>Ajouter un lien</button>
       </div>
       <div className="search-container">
         <input
@@ -288,7 +314,7 @@ const AdminRoomDetails = () => {
       {newInfospotModalOpen && (
         <div className="modal">
           <div className="modal-content">
-            <span className="close" onClick={() => setNewInfospotModalOpen(false)}>&times;</span>
+            <span className="close" onClick={closeModalInfospot}>&times;</span>
             <h2>Ajouter une nouvelle infobulle</h2>
             <div className="modal-body">
               <div className="image-preview-column">
@@ -329,7 +355,7 @@ const AdminRoomDetails = () => {
       {newLinkModalOpen && (
         <div className="modal">
           <div className="modal-content">
-            <span className="close" onClick={() => setNewLinkModalOpen(false)}>&times;</span>
+            <span className="close" onClick={closeModalLink}>&times;</span>
             <h2>Add New Link</h2>
             <div className="modal-body">
               <div className="image-preview-column">

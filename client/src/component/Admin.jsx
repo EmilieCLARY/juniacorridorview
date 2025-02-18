@@ -397,10 +397,10 @@ const Admin = () => {
 const handlePositionSelect = (position) => {
   console.log("Position received in Admin.jsx:", position); // Debugging line
 
-    setPosX(position.x);
-    setPosY(position.y);
-    setPosZ(position.z);
-    setIsSelectingPosition(false);
+  setPosX(position.x);
+  setPosY(position.y);
+  setPosZ(position.z);
+  setIsSelectingPosition(false);
 
 };
 
