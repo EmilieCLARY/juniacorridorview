@@ -25,6 +25,7 @@ const PanoramaViewer = ({ location }) => {
   const [allRoomImages, setAllRoomImages] = useState({});
   
   const loadingImage = useRef(false);
+  const [loadingImageBeforeRoomSwitch, setLoadingImageBeforeRoomSwitch] = useState(false);
 
   const fetchAllData = async () => {
     try {
@@ -86,7 +87,7 @@ const PanoramaViewer = ({ location }) => {
       const imagesData = roomPreviewsData.flatMap(preview => preview.images);
       setImages(imagesData);
       setCurrentImageId(imagesData[0]?.id || null);
-  
+
       isLoading.current = false;
     } catch (error) {
       console.error("Erreur lors du chargement des données :", error);
@@ -168,10 +169,12 @@ const PanoramaViewer = ({ location }) => {
     });
 
     Promise.all([retrievedPopupsPromise, retrievedLinksPromise, roomIdPromise, roomDetailsPromise]).then(() => {
+      setLoadingImageBeforeRoomSwitch(false);
     });
   };
 
   const handleRoomClick = async (id_rooms) => {
+    setLoadingImageBeforeRoomSwitch(true);
     const roomImages = allRoomImages[id_rooms];
     if (roomImages) {
       const pictures = roomImages;
@@ -183,6 +186,7 @@ const PanoramaViewer = ({ location }) => {
   };
   
   const handleLinkClick = (id_pictures_destination) => {
+    setLoadingImageBeforeRoomSwitch(true);
     const image = images.find(img => img.id === id_pictures_destination);
     if (image) {
       displayImage(image.imageBlob, image.id);
@@ -248,6 +252,7 @@ const PanoramaViewer = ({ location }) => {
             selectedPicture={images.find(image => image.id === currentImageId)?.imageBlob ? URL.createObjectURL(images.find(image => image.id === currentImageId).imageBlob) : null} 
             links={links[currentImageId] || []}
             onLinkClick={handleLinkClick}
+            isLoading={(isLoading.current || firstLoad.current || loadingImageBeforeRoomSwitch) }
           />
         </div>
       </div>
