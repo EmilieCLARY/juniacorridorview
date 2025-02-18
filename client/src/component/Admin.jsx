@@ -36,7 +36,6 @@ const Admin = () => {
   const [fromNewRoom, setFromNewRoom] = useState(false);
   const [buildings, setBuildings] = useState([]);
   const [selectedPosition, setSelectedPosition] = useState({ x: '', y: '', z: '' });
-  const [isFirstClick, setIsFirstClick] = useState(true);
   const history = useHistory(); // Add this line
 
   const loading = useRef(false);
@@ -397,15 +396,12 @@ const Admin = () => {
 
 const handlePositionSelect = (position) => {
   console.log("Position received in Admin.jsx:", position); // Debugging line
-  if (isFirstClick) {
-    setIsFirstClick(false);
-  } else {
+
     setPosX(position.x);
     setPosY(position.y);
     setPosZ(position.z);
     setIsSelectingPosition(false);
-    setIsFirstClick(true);
-  }
+
 };
 
 const handleSelectPositionClick = () => {
