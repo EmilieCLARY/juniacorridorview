@@ -38,6 +38,7 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     renderer.setSize(width, height);
+    renderer.outputEncoding = THREE.sRGBEncoding;
 
     mountRef.current.appendChild(renderer.domElement);
 
@@ -65,6 +66,7 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height);
+      renderer.outputEncoding = THREE.sRGBEncoding;
     };
     
     window.addEventListener("resize", onWindowResize);
@@ -423,7 +425,9 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
       requestAnimationFrame(animate);
       controls.update();
       infoMeshes.forEach(mesh => mesh.lookAt(camera.position));
+      renderer.outputEncoding = THREE.sRGBEncoding;
       renderer.render(scene, camera);
+
     };
     animate();
 
