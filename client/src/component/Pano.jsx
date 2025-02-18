@@ -222,7 +222,7 @@ const PanoramaViewer = ({ location }) => {
       <h1>{visitType}</h1>
       <div className="panorama-container">
         <div className="rooms-list">
-          <h3>Available Rooms</h3>
+          <h3>Salles visitables</h3>
           <ul>
             {filteredRooms.map(room => (
               <li key={room.id_rooms} onClick={() => handleRoomClick(room.id_rooms)}>
@@ -237,16 +237,16 @@ const PanoramaViewer = ({ location }) => {
           </ul>
         </div>
         <div>
-        <h2>Current Room: {currentRoomName} ({currentRoomNumber})</h2>
-          {images.map((image, index) => (
+          {/*{images.map((image, index) => (
             <div key={`${image.id}-${index}`}>
               <button onClick={() => displayImage(image.imageBlob, image.id)}>
                 Display Image {image.id}
               </button>
             </div>
-          ))}
+          ))}*/}
         </div>
         <div className="panorama-content">
+        <h2>Salle actuelle : {currentRoomName} ({currentRoomNumber})</h2>
           <Panorama360 
             infoPopups={infoPopups[currentImageId] || []} 
             selectedPicture={images.find(image => image.id === currentImageId)?.imageBlob ? URL.createObjectURL(images.find(image => image.id === currentImageId).imageBlob) : null} 
