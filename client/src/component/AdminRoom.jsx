@@ -78,7 +78,7 @@ const AdminRoom = () => {
     <div className="admin-room-container">
       <input
         type="text"
-        placeholder="Search by room name"
+        placeholder="Rechercher une salle..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         className="search-bar"
@@ -90,7 +90,7 @@ const AdminRoom = () => {
           options={getUniqueOptions('building_name')}
           className="basic-multi-select"
           classNamePrefix="select"
-          placeholder="Filter by building"
+          placeholder="Filtrer par bâtiment"
           onChange={handleFilterChange}
         />
         <Select
@@ -99,7 +99,7 @@ const AdminRoom = () => {
           options={getUniqueOptions('name')}
           className="basic-multi-select"
           classNamePrefix="select"
-          placeholder="Filter by name"
+          placeholder="Filtrer par nom"
           onChange={handleFilterChange}
         />
         <Select
@@ -108,7 +108,7 @@ const AdminRoom = () => {
           options={getUniqueOptions('number')}
           className="basic-multi-select"
           classNamePrefix="select"
-          placeholder="Filter by number"
+          placeholder="Filtrer par numéro"
           onChange={handleFilterChange}
         />
         <Select
@@ -117,18 +117,18 @@ const AdminRoom = () => {
           options={rooms.map(room => ({ value: room.id_rooms.toString(), label: room.id_rooms.toString() }))}
           className="basic-multi-select"
           classNamePrefix="select"
-          placeholder="Filter by ID"
+          placeholder="Filtrer par ID"
           onChange={handleFilterChange}
         />
       </div>
-      <button onClick={() => history.push('/admin-tour')}>Go to Admin Parcours</button>
+      <button onClick={() => history.push('/admin-tour')}>Page d'administration des parcours</button>
       {filteredRooms.map(room => (
         <div key={room.id_rooms} className="room-card" onClick={() => handleRoomClick(room.id_rooms)}>
           <div className="room-details">
             <h3>{room.name}</h3>
-            <p>Room Number: {room.number}</p>
-            <p>Building: {room.building_name}</p>
-            <p>Room ID: {room.id_rooms}</p>
+            <p>Numéro de salle : {room.number}</p>
+            <p>Bâtiment : {room.building_name}</p>
+            <p>ID Salle: {room.id_rooms}</p>
           </div>
           {room.imageUrl && (
             <div className="room-image">

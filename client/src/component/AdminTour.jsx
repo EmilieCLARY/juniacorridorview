@@ -154,7 +154,7 @@ const AdminTour = () => {
   };
 
   const handleDeleteTour = async (tourId) => {
-    if (!window.confirm('Are you sure you want to delete this tour?')) return;
+    if (!window.confirm('Etes-vous sûr de vouloir supprimer le parcours ?')) return;
     const deleteTourPromise = tourApi.deleteTour(tourId);
     const fetchToursInfoPromise = deleteTourPromise.then(() => fetchToursInfo());
     showLoading([deleteTourPromise, fetchToursInfoPromise], 'Suppression du parcours...', 'Parcours supprimé avec succès', 'La suppression du parcours a échoué');
@@ -245,15 +245,15 @@ const AdminTour = () => {
   return (
     <div>
       <div className="header">
-        <h1>Tour Information</h1>
+        <h1>Information des parcours</h1>
         <input
           type="text"
-          placeholder="Search tours"
+          placeholder="Rechercher un parcours..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="search-bar"
         />
-        <button onClick={openNewTourModal}>Add New Tour</button>
+        <button onClick={openNewTourModal}>Ajouter un nouveau parcours</button>
       </div>
       <div className="tours-container">
         {filteredTours.map(tour => (
@@ -263,7 +263,7 @@ const AdminTour = () => {
             <ul>
               {tourSteps[tour.id_tours]?.map(step => (
                 <li key={step.id_tour_steps}>
-                  Step {step.step_number}: {step.room_name} ({step.room_number})
+                  Etape {step.step_number}: {step.room_name} ({step.room_number})
                   {panoramaUrls[step.id_rooms] && (
                     <div className="panorama-overview">
                       <img src={panoramaUrls[step.id_rooms]} alt={`Panorama of ${step.room_name}`} />
@@ -272,8 +272,8 @@ const AdminTour = () => {
                 </li>
               ))}
             </ul>
-            <button onClick={() => handleDeleteTour(tour.id_tours)}>Delete Tour</button>
-            <button onClick={() => handleEditTour(tour)}>Edit Tour</button>
+            <button onClick={() => handleDeleteTour(tour.id_tours)}>Supprimer un parcours</button>
+            <button onClick={() => handleEditTour(tour)}>Modifier un parcours</button>
           </div>
         ))}
       </div>
@@ -282,16 +282,16 @@ const AdminTour = () => {
         <div className="modal">
           <div className="modal-content">
             <span className="close" onClick={() => setNewTourModalOpen(false)}>&times;</span>
-            <h2>Add New Tour</h2>
+            <h2>Ajouter un nouveau parcours</h2>
             <form onSubmit={handleNewTour}>
-              <input type="text" name="title" placeholder="Tour Title" required />
-              <textarea name="description" placeholder="Tour Description" required></textarea>
+              <input type="text" name="title" placeholder="Titre du Parcours" required />
+              <textarea name="description" placeholder="Description du Parcours" required></textarea>
               <DndContext onDragEnd={onDragEnd} modifiers={[restrictToVerticalAxis, restrictToWindowEdges]}>
                 <SortableContext items={newTourSteps.map(step => step.id)} strategy={verticalListSortingStrategy}>
                   {newTourSteps.map((step, index) => (
                     <SortableItem key={step.id} id={step.id}>
                       <div className="draggable-step">
-                        <h4>Step {index + 1}</h4>
+                        <h4>Etape {index + 1}</h4>
                         <select
                           name={`steps[${index}][id_rooms]`}
                           value={step.id_rooms}
@@ -299,7 +299,7 @@ const AdminTour = () => {
                           onPointerDown={(e) => e.stopPropagation()}
                           required
                         >
-                          <option value="">Select Room</option>
+                          <option value="">Sélectionner une salle</option>
                           {rooms.map(room => (
                             <option key={room.id_rooms} value={room.id_rooms}>
                               {room.name} ({room.number})
@@ -311,8 +311,8 @@ const AdminTour = () => {
                   ))}
                 </SortableContext>
               </DndContext>
-              <button type="button" onClick={handleAddNewTourStep}>Add Step</button>
-              <button type="submit">Add Tour</button>
+              <button type="button" onClick={handleAddNewTourStep}>Ajouter une étape</button>
+              <button type="submit">Ajouter un parcours</button>
             </form>
           </div>
         </div>
@@ -322,18 +322,18 @@ const AdminTour = () => {
         <div className="modal">
           <div className="modal-content">
             <span className="close" onClick={() => setEditTourModalOpen(false)}>&times;</span>
-            <h2>Edit Tour</h2>
+            <h2>Modifier un parcours</h2>
             <form onSubmit={handleEditTourSubmit}>
                 <input type="hidden" name="id_tours" value={selectedTour.id_tours} />
-                <input type="text" name="title" defaultValue={selectedTour.title} placeholder="Tour Title" required />
-                <textarea name="description" defaultValue={selectedTour.description} placeholder="Tour Description" required></textarea>
+                <input type="text" name="title" defaultValue={selectedTour.title} placeholder="Titre du Parcours" required />
+                <textarea name="description" defaultValue={selectedTour.description} placeholder="Description du Parcours" required></textarea>
                 <DndContext onDragEnd={onDragEnd} modifiers={[restrictToVerticalAxis, restrictToWindowEdges]}>
                   <SortableContext items={tourSteps[selectedTour.id_tours]?.map(step => step.id_tour_steps)} strategy={verticalListSortingStrategy}>
                     {tourSteps[selectedTour.id_tours]?.map((step, index) => (
                       <SortableItem  key={`step-${step.id_tour_steps}`} id={step.id_tour_steps}>
                         <div className="draggable-step">
                           <span className="drag-icon">☰</span>
-                          <h4>Step {index + 1}</h4>
+                          <h4>Etape {index + 1}</h4>
                           <input type="hidden" name={`steps[${index}][id_tour_steps]`} value={step.id_tour_steps} />
                           <select
                             name={`steps[${index}][id_rooms]`}
@@ -341,7 +341,7 @@ const AdminTour = () => {
                             required
                             onPointerDown={(e) => e.stopPropagation()}
                           >
-                            <option value="">Select Room</option>
+                            <option value="">Sélectionner une salle</option>
                             {rooms.map(room => (
                               <option key={room.id_rooms} value={room.id_rooms}>
                                 {room.name} ({room.number})
@@ -355,14 +355,14 @@ const AdminTour = () => {
                       <SortableItem key={`new_${index}`} id={`new-step-${index}`}>
                         <div className="draggable-step">
                           <span className="drag-icon">☰</span>
-                          <h4>New Step {tourSteps[selectedTour.id_tours]?.length + index + 1}</h4>
+                          <h4>Nouvelle étape {tourSteps[selectedTour.id_tours]?.length + index + 1}</h4>
                           <input type="hidden" name={`steps[${tourSteps[selectedTour.id_tours]?.length + index}][id_tour_steps]`} value={`new_${index}`} />
                           <select
                             name={`steps[${tourSteps[selectedTour.id_tours]?.length + index}][id_rooms]`}
                             required
                             onPointerDown={(e) => e.stopPropagation()}
                           >
-                            <option value="">Select Room</option>
+                            <option value="">Sélectionner une salle</option>
                             {rooms.map(room => (
                               <option key={room.id_rooms} value={room.id_rooms}>
                                 {room.name} ({room.number})
@@ -374,8 +374,8 @@ const AdminTour = () => {
                     ))}
                   </SortableContext>
                 </DndContext>
-                <button type="button" onClick={handleAddStep}>Add Step</button>
-                <button type="submit">Update Tour</button>
+                <button type="button" onClick={handleAddStep}>Ajouter une étape</button>
+                <button type="submit">Modifier le parcours</button>
             </form>
           </div>
         </div>

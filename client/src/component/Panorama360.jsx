@@ -673,6 +673,7 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
       controls.update();
       infoMeshes.forEach(mesh => mesh.lookAt(camera.position));
       linksMeshes.forEach(mesh => mesh.lookAt(camera.position));
+      displayedPopups.forEach(popup => popup.lookAt(camera.position));
       renderer.outputEncoding = THREE.sRGBEncoding;
       renderer.render(scene, camera);
     };
