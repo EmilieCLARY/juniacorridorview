@@ -27,11 +27,15 @@ const AdminRoomDetails = () => {
   const [selectedImageId, setSelectedImageId] = useState('');
   const [roomName, setRoomName] = useState('');
   const dataFetchedRef = useRef(false);
+  const firstLoad = useRef(true);
 
   // Separate state for modal panorama
   const [modalSelectedPicture, setModalSelectedPicture] = useState('');
   const [modalInfoPopups, setModalInfoPopups] = useState([]);
   const [modalLinks, setModalLinks] = useState([]);
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingModal, setIsLoadingModal] = useState(true);
 
   const showLoading = (promises, textLoading, textSuccess, textError) => {
     return toast.promise(Promise.all(promises), {
@@ -76,15 +80,27 @@ const AdminRoomDetails = () => {
 
   useEffect(() => {
     if (!dataFetchedRef.current) {
-      showLoading([fetchAllData()], 'Chargement des détails de la pièce...', 'Chargement des détails réussi', 'Erreur lors du chargement des détails');
-      dataFetchedRef.current = true; 
+      const fetchAllDataPromise = fetchAllData();
+      showLoading([fetchAllDataPromise], 'Chargement des détails de la pièce...', 'Chargement des détails réussi', 'Erreur lors du chargement des détails');
+      fetchAllDataPromise.then(() => {
+        setIsLoading(false);
+        firstLoad.current = false;
+      });
+      dataFetchedRef.current = true;
     }
   }, [id]);
 
   const handlePictureClick = async (imageUrl, pictureId) => {
+    setIsLoading(true);
+    const getInfoPopupPromise = getInfoPopup(pictureId);
+    const getLinksPromise = getLinks(pictureId);
+    if(!firstLoad.current) {
+      showLoading([getInfoPopupPromise, getLinksPromise], 'Chargement des détails de la pièce...', 'Chargement des détails réussi', 'Erreur lors du chargement des détails');
+    }
+    Promise.all([getInfoPopupPromise,getLinksPromise]).then(() => {
     setSelectedPicture(imageUrl);
-    getInfoPopup(pictureId);
-    getLinks(pictureId);
+    setIsLoading(false);
+    });
   };
 
   const getInfoPopup = async (id_pictures) => {
@@ -152,11 +168,20 @@ const AdminRoomDetails = () => {
   };
 
   const handleModalPictureClick = async (imageUrl, pictureId) => {
+    setIsLoadingModal(true);
     setModalSelectedPicture(imageUrl);
-    const infospots = await getInfoPopup(pictureId);
-    const links = await getLinks(pictureId);
-    setModalInfoPopups(infospots);
-    setModalLinks(links);
+    const infospotsPromise = getInfoPopup(pictureId);
+    const linksPromise = getLinks(pictureId);
+    showLoading([infospotsPromise, linksPromise], 'Chargement des détails de la pièce...', 'Chargement des détails réussi', 'Erreur lors du chargement des détails');
+    infospotsPromise.then((infospots) => {
+        setModalInfoPopups(infospots);
+    });
+    linksPromise.then((links) => {
+        setModalLinks(links);
+    });
+    Promise.all([infospotsPromise, linksPromise]).then(() => {
+      setIsLoadingModal(false);
+    });
   };
 
   return (
@@ -182,6 +207,7 @@ const AdminRoomDetails = () => {
               links={links}
               onLinkClick={handleLinkClick}
               onPositionSelect={handlePositionSelect}
+              isLoading={isLoading}
             />
           )}
         </div>
@@ -279,6 +305,7 @@ const AdminRoomDetails = () => {
                   links={modalLinks}
                   onLinkClick={handleLinkClick}
                   onPositionSelect={handlePositionSelect}
+                  isLoading={isLoadingModal}
                 />
               </div>
               <div className="form-column">
@@ -320,6 +347,7 @@ const AdminRoomDetails = () => {
                   links={modalLinks}
                   onLinkClick={handleLinkClick}
                   onPositionSelect={handlePositionSelect}
+                  isLoading={isLoadingModal}
                 />
               </div>
               <div className="form-column">
