@@ -535,8 +535,9 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
         popupGroup.add(mesh);
       };
     
-      image.src = URL.createObjectURL(new Blob([new Uint8Array(popup.image.data)], { type: 'image/png' }));
-    
+      if(popup.image){
+        image.src = URL.createObjectURL(new Blob([new Uint8Array(popup.image.data)], { type: 'image/png' }));
+      }
       return popupGroup;
     };
     
@@ -616,7 +617,6 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
     
       // Vérifier si un point de la sphère est cliqué
       const intersects = raycaster.intersectObject(sphere);
-      console.log("Sphere intersects:", intersects); // Debug log
       if (intersects.length > 0) {
         const infoGeometry = new THREE.PlaneGeometry(20, 20);
         const infoMaterial = new THREE.MeshBasicMaterial({ map: infoTexture, transparent: true });
@@ -648,14 +648,10 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
 
       // Check if the 'X' button is clicked
       displayedPopups.forEach((popupGroup, index) => {
-        console.log(popupGroup)
         const closeButton = popupGroup.children[0];
-        console.log(closeButton)
         if (closeButton) {
-          console.log("Close button exists")
           const intersects = raycaster.intersectObject(closeButton);
           if (intersects.length > 0) {
-            console.log("Close button clicked");
             scene.remove(popupGroup);
             displayedPopups.splice(index, 1);
             console.log("Popup closed");
@@ -676,9 +672,9 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
       requestAnimationFrame(animate);
       controls.update();
       infoMeshes.forEach(mesh => mesh.lookAt(camera.position));
+      linksMeshes.forEach(mesh => mesh.lookAt(camera.position));
       renderer.outputEncoding = THREE.sRGBEncoding;
       renderer.render(scene, camera);
-
     };
     animate();
 
@@ -690,92 +686,6 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
       document.removeEventListener("click", onClick);
     };
   }, [infoPopups, selectedPicture, links, isLoading]);
-
-  const onClick = (event) => {
-    if (!mountRef.current) return;
-
-    // Récupérer la taille et position du conteneur
-    const rect = mountRef.current.getBoundingClientRect();
-
-    // Convertir la position de la souris en coordonnées normalisées pour Three.js
-    const mouse = new THREE.Vector2();
-    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-
-    // Création du raycaster
-    const raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(mouse, camera);
-
-    // Vérifier si un infospot est cliqué
-    infoMeshes.forEach((info, index) => {
-      const intersects = raycaster.intersectObject(info);
-      if (intersects.length > 0 && infoPopups[index]) {
-        console.log("Info spot clicked"); // Debug log
-        const existingPopup = displayedPopups.find(popup => popup.name === `popup_${index}`);
-        /*if (existingPopup) {
-          // Supprimer le popup si déjà affiché
-          scene.remove(existingPopup);
-          displayedPopups.splice(displayedPopups.indexOf(existingPopup), 1);
-          console.log("Popup fermé");
-        } else {*/
-        // Créer un nouveau popup
-        console.log("Info clicked");
-        const popupGroup = createInfoPopup(infoPopups[index]);
-        popupGroup.name = `popup_${index}`;
-        const pos = new THREE.Vector3(infoPopups[index].position_x, infoPopups[index].position_y, infoPopups[index].position_z)
-            .normalize()
-            .multiplyScalar(345);
-        popupGroup.position.copy(pos);
-        scene.add(popupGroup);
-        popupGroup.lookAt(camera.position);
-        displayedPopups.push(popupGroup);
-        console.log("Popup ajouté à la scène");
-        //}
-      }
-    });
-
-    // Vérifier si un lien est cliqué
-    linksMeshes.forEach((link, index) => {
-      const intersects = raycaster.intersectObject(link);
-      if (intersects.length > 0 && links[index]) {
-        console.log("Link clicked"); // Debug log
-        onLinkClick(links[index].id_pictures_destination);
-      }
-    });
-
-    // Vérifier si un point de la sphère est cliqué
-    const intersects = raycaster.intersectObject(sphere);
-    console.log("Sphere intersects:", intersects); // Debug log
-    if (intersects.length > 0) {
-      const infoGeometry = new THREE.PlaneGeometry(20, 20);
-      const infoMaterial = new THREE.MeshBasicMaterial({ map: infoTexture, transparent: true });
-      const infoMesh = new THREE.Mesh(infoGeometry, infoMaterial);
-      const hitPoint = intersects[0].point.clone();
-      const direction = hitPoint.clone().normalize().multiplyScalar(495);
-      infoMesh.position.copy(direction);
-      console.log("Click at", hitPoint);
-
-      if (intersects.length > 0) {
-        const hitPoint = intersects[0].point.clone();
-        console.log("Selected Position:", hitPoint);
-
-        if (typeof onPositionSelect === "function") {
-          if (window.isSelectingPosition) {
-            if (window.isFirstClick) {
-              window.isFirstClick = false;
-            } else {
-              onPositionSelect({ x: hitPoint.x, y: hitPoint.y, z: hitPoint.z });
-              window.isSelectingPosition = false;
-              window.isFirstClick = true;
-            }
-          }
-        } else {
-          console.warn("onPositionSelect n'est pas une fonction");
-        }
-      }
-    }
-  };
 
   return (
     <div ref={mountRef} className="w-full h-full relative">
