@@ -215,13 +215,15 @@ const AdminRoomDetails = () => {
       <div className="image-panorama-container">
         <div className="image-list">
           {pictures.map(picture => (
-            <img
-              key={picture.id_pictures}
-              src={picture.imageUrl}
-              alt={`Aperçu de ${picture.id_pictures}`}
-              onClick={() => handlePictureClick(picture.imageUrl, picture.id_pictures)}
-              className="thumbnail"
-            />
+            <div key={picture.id_pictures}>
+              <p>ID : {picture.id_pictures}</p>
+              <img
+                src={picture.imageUrl}
+                alt={`Aperçu de ${picture.id_pictures}`}
+                onClick={() => handlePictureClick(picture.imageUrl, picture.id_pictures)}
+                className="thumbnail"
+              />
+            </div>
           ))}
         </div>
         <div className={`panorama-viewer ${newInfospotModalOpen || newLinkModalOpen ? 'disabled' : ''}`}>
@@ -239,7 +241,7 @@ const AdminRoomDetails = () => {
         </div>
       </div>
       <div className="section-header">
-        <h2>Bulles</h2>
+        <h2 className="">Infobulles</h2>
         <button onClick={handleModalInfopopup}>Ajouter une infobulle</button>
       </div>
       <div className="search-container">
@@ -266,6 +268,7 @@ const AdminRoomDetails = () => {
             <div className="infospot-details">
               <h3>Titre : {popup.title}</h3>
               <p>Description : {popup.text}</p>
+              <p>ID du panorama : {popup.id_pictures}</p>
             </div>
             {popup.image && (
               <div className="infospot-image">

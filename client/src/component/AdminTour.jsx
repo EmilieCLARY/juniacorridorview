@@ -12,8 +12,8 @@ import {
     restrictToVerticalAxis,
     restrictToWindowEdges,
   } from '@dnd-kit/modifiers';
+import Carousel from '../reactbits/Components/Carousel/Carousel';
 
-  
 const SortableItem = ({ id, children }) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
   const style = {
@@ -39,6 +39,7 @@ const AdminTour = () => {
   const [rooms, setRooms] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [panoramaUrls, setPanoramaUrls] = useState({});
+  const [currentRoomName, setCurrentRoomName] = useState({});
   const loading = useRef(false);
   const history = useHistory();
 
@@ -146,18 +147,42 @@ const AdminTour = () => {
     const description = formData.get('description');
     const updateTourStepsPromise = tourApi.updateTourSteps({ id_tours: selectedTour.id_tours, steps, title, description });
     setNewStepCount(0);
-    const fetchToursInfoPromise = updateTourStepsPromise.then(() => fetchToursInfo());
-    showLoading([updateTourStepsPromise, fetchToursInfoPromise], 'Modification du parcours...', 'Parcours modifié avec succès', 'La modification du parcours a échoué');
-    fetchToursInfoPromise.then(() => {
+    const fetchUpdatedTourPromise = updateTourStepsPromise.then(() => fetchUpdatedTour(selectedTour.id_tours));
+    showLoading([updateTourStepsPromise, fetchUpdatedTourPromise], 'Modification du parcours...', 'Parcours modifié avec succès', 'La modification du parcours a échoué');
+    fetchUpdatedTourPromise.then(() => {
       setEditTourModalOpen(false);
+      fetchUpdatedTour(selectedTour.id_tours);
     });
   };
 
   const handleDeleteTour = async (tourId) => {
     if (!window.confirm('Etes-vous sûr de vouloir supprimer le parcours ?')) return;
     const deleteTourPromise = tourApi.deleteTour(tourId);
-    const fetchToursInfoPromise = deleteTourPromise.then(() => fetchToursInfo());
-    showLoading([deleteTourPromise, fetchToursInfoPromise], 'Suppression du parcours...', 'Parcours supprimé avec succès', 'La suppression du parcours a échoué');
+    const fetchUpdatedToursPromise = deleteTourPromise.then(() => fetchToursInfo());
+    showLoading([deleteTourPromise, fetchUpdatedToursPromise], 'Suppression du parcours...', 'Parcours supprimé avec succès', 'La suppression du parcours a échoué');
+    fetchUpdatedToursPromise.then(({ toursData, steps }) => {
+      setTours(toursData);
+      setTourSteps(steps);
+    });
+  };
+
+  const fetchUpdatedTour = async (tourId) => {
+    try {
+      const updatedTour = await tourApi.getTourById(tourId);
+      const updatedSteps = await tourApi.getTourSteps(tourId);
+      setTours((prevTours) => prevTours.map(tour => tour.id_tours === tourId ? updatedTour : tour));
+      setTourSteps((prevSteps) => ({
+        ...prevSteps,
+        [tourId]: updatedSteps,
+      }));
+      const updatedPanoramaUrls = await fetchPanoramaUrls(updatedSteps);
+      setPanoramaUrls((prevUrls) => ({
+        ...prevUrls,
+        ...updatedPanoramaUrls,
+      }));
+    } catch (error) {
+      console.error('Error fetching updated tour:', error);
+    }
   };
 
   const handleAddStep = () => {
@@ -195,17 +220,11 @@ const AdminTour = () => {
     const data = Object.fromEntries(formData.entries());
     data.steps = newTourSteps;
     const createTourPromise = tourApi.createTour(data);
-    const fetchToursInfoPromise = createTourPromise.then(async () => {
-      await fetchToursInfo();
-      const newTour = await tourApi.getTours();
-      const newTourSteps = await tourApi.getTourSteps(newTour[newTour.length - 1].id_tours);
-      setTourSteps(prevSteps => ({
-        ...prevSteps,
-        [newTour[newTour.length - 1].id_tours]: newTourSteps
-      }));
-    });
-    showLoading([createTourPromise, fetchToursInfoPromise], 'Ajout du parcours...', 'Parcours ajouté avec succès', 'L\'ajout du parcours a échoué');
-    fetchToursInfoPromise.then(() => {
+    const fetchUpdatedToursPromise = createTourPromise.then(() => fetchToursInfo());
+    showLoading([createTourPromise, fetchUpdatedToursPromise], 'Ajout du parcours...', 'Parcours ajouté avec succès', 'L\'ajout du parcours a échoué');
+    fetchUpdatedToursPromise.then(({ toursData, steps }) => {
+      setTours(toursData);
+      setTourSteps(steps);
       setNewTourModalOpen(false);
       handleModalClose();
     });
@@ -238,42 +257,64 @@ const AdminTour = () => {
     }
   };
 
+  const getPanoramaImagesForTour = (tourId) => {
+    if (!tourSteps[tourId]) return [];
+    let tmp = tourSteps[tourId].map(step => { return { src: panoramaUrls[step.id_rooms], alt: `Panorama of ${step.room_name}`, roomName: step.room_name }; });
+    if (tmp.some(image => !image.src)) return [];
+    return tmp;
+  };
+
+  const handleCarouselChange = (tourId, index) => {
+    const images = getPanoramaImagesForTour(tourId);
+    if (images.length > 0) {
+      setCurrentRoomName(prevState => ({
+        ...prevState,
+        [tourId]: images[index].roomName
+      }));
+    }
+  };
+
   const filteredTours = tours.filter(tour =>
     tour.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div>
-      <div className="header">
-        <h1>Information des parcours</h1>
+    <div className="container mx-auto p-4">
+      <div className="header mb-4">
+        <h1 className="text-2xl font-bold mb-2">Information des parcours</h1>
         <input
           type="text"
           placeholder="Rechercher un parcours..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="search-bar"
+          className="search-bar p-2 border border-gray-300 rounded mb-4"
         />
-        <button onClick={openNewTourModal}>Ajouter un nouveau parcours</button>
+        <button onClick={openNewTourModal} className="bg-blue-500 text-white px-4 py-2 rounded">Ajouter un nouveau parcours</button>
       </div>
-      <div className="tours-container">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {filteredTours.map(tour => (
-          <div key={tour.id_tours} className="tour-card">
-            <h3>{tour.title}</h3>
-            <p>{tour.description}</p>
-            <ul>
-              {tourSteps[tour.id_tours]?.map(step => (
-                <li key={step.id_tour_steps}>
-                  Etape {step.step_number}: {step.room_name} ({step.room_number})
-                  {panoramaUrls[step.id_rooms] && (
-                    <div className="panorama-overview">
-                      <img src={panoramaUrls[step.id_rooms]} alt={`Panorama of ${step.room_name}`} />
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
-            <button onClick={() => handleDeleteTour(tour.id_tours)}>Supprimer un parcours</button>
-            <button onClick={() => handleEditTour(tour)}>Modifier un parcours</button>
+          <div key={tour.id_tours} className="tour-card p-4 border border-gray-300 rounded shadow">
+            <h3 className="text-xl font-semibold mb-2">{tour.title}</h3>
+            <h4> Description </h4>
+            <p className="mb-2">{tour.description}</p>
+            {getPanoramaImagesForTour(tour.id_tours).length > 0 && (
+              <div className="">
+                <h4>Étapes</h4>
+                <p>Nom de la salle : {currentRoomName[tour.id_tours]}</p>
+                <Carousel
+                  items={getPanoramaImagesForTour(tour.id_tours)}
+                  baseWidth="100%"
+                  autoplay={true}
+                  autoplayDelay={3000}
+                  pauseOnHover={true}
+                  loop={true}
+                  round={false}
+                  onChange={(index) => handleCarouselChange(tour.id_tours, index)}
+                />
+              </div>
+            )}
+            <button onClick={() => handleDeleteTour(tour.id_tours)} className="bg-red-500 text-white px-4 py-2 rounded mr-2">Supprimer</button>
+            <button onClick={() => handleEditTour(tour)} className="bg-red-500 text-white px-4 py-2 rounded">Modifier</button>
           </div>
         ))}
       </div>
@@ -291,7 +332,7 @@ const AdminTour = () => {
                   {newTourSteps.map((step, index) => (
                     <SortableItem key={step.id} id={step.id}>
                       <div className="draggable-step">
-                        <h4>Etape {index + 1}</h4>
+                        <h4>Étape {index + 1}</h4>
                         <select
                           name={`steps[${index}][id_rooms]`}
                           value={step.id_rooms}
@@ -333,7 +374,7 @@ const AdminTour = () => {
                       <SortableItem  key={`step-${step.id_tour_steps}`} id={step.id_tour_steps}>
                         <div className="draggable-step">
                           <span className="drag-icon">☰</span>
-                          <h4>Etape {index + 1}</h4>
+                          <h4>Étape {index + 1}</h4>
                           <input type="hidden" name={`steps[${index}][id_tour_steps]`} value={step.id_tour_steps} />
                           <select
                             name={`steps[${index}][id_rooms]`}

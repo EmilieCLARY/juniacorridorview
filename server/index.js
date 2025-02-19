@@ -334,7 +334,7 @@ app.post('/update-infospot', (req, res) => {
     const pic = req.files ? req.files.pic : null;
     updateInfospot(id_info_popup, id_pictures, posX, posY, posZ, text, title, pic ? pic.data : null, (err) => {
         if (err) {
-            console.error('Error updating infospot:', err);
+            console.error('Error updating infospt:', err);
             res.sendStatus(500);
         } else {
             res.sendStatus(200);

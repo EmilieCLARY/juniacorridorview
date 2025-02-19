@@ -155,6 +155,7 @@ const getBuildings = (callback) => {
 };
 
 function insertImage(id_rooms, data, callback) {
+    console.log('Inserting picture for room', id_rooms);
     const sql = `INSERT INTO Pictures (id_rooms, picture) VALUES (?, ?)`;
     db.query(sql, [id_rooms, data], (err) => {
         callback(err);
@@ -162,6 +163,7 @@ function insertImage(id_rooms, data, callback) {
 }
 
 function updateImage(id_pictures, data, callback) {
+    console.log('Updating picture', id_pictures);
     const sql = `UPDATE Pictures SET picture = ? WHERE id_pictures = ?`;
     db.query(sql, [data, id_pictures], (err) => {
         callback(err);
@@ -169,6 +171,7 @@ function updateImage(id_pictures, data, callback) {
 }
 
 function updateInfospot(id_info_popup, id_pictures, posX, posY, posZ, text, title, image, callback) {
+    console.log('Updating info popup', id_info_popup);
     const sql = `UPDATE Info_Popup SET id_pictures = ?, position_x = ?, position_y = ?, position_z = ?, text = ?, title = ?, image = ? WHERE id_info_popup = ?`;
     db.query(sql, [id_pictures, posX, posY, posZ, text, title, image, id_info_popup], (err) => {
         callback(err);
@@ -185,6 +188,7 @@ function insertInfoPopUp(id_pictures, posX, posY, posZ, text, title, image, call
 }
 
 function insertLink(id_pictures, posX, posY, posZ, id_pictures_destination, callback) {
+    console.log('Inserting link from', id_pictures, 'to', id_pictures_destination);
     const sql = `INSERT INTO Links (id_pictures, position_x, position_y, position_z, id_pictures_destination) VALUES (?, ?, ?, ?, ?)`;
     db.query(sql, [id_pictures, posX, posY, posZ, id_pictures_destination], (err) => {
         callback(err);
@@ -192,6 +196,7 @@ function insertLink(id_pictures, posX, posY, posZ, id_pictures_destination, call
 }
 
 function updateLink(id_links, id_pictures, posX, posY, posZ, id_pictures_destination, callback) {
+    console.log('Updating link', id_links);
     const sql = `UPDATE Links SET id_pictures = ?, position_x = ?, position_y = ?, position_z = ?, id_pictures_destination = ? WHERE id_links = ?`;
     db.query(sql, [id_pictures, posX, posY, posZ, id_pictures_destination, id_links], (err) => {
         callback(err);
@@ -199,6 +204,7 @@ function updateLink(id_links, id_pictures, posX, posY, posZ, id_pictures_destina
 }
 
 function addRoom(name, number, id_buildings, callback) {
+    console.log('Adding room', name, number, 'to building', id_buildings);
     const sql = `INSERT INTO Rooms (name, number, id_buildings) VALUES (?, ?, ?)`;
     db.query(sql, [name, number, id_buildings], (err, result) => {
         if (err) {
@@ -315,6 +321,7 @@ const getPicturesByRoomId = (id_rooms, callback) => {
 };
 
 const getFirstPictureByRoomId = (id_rooms, callback) => {
+    console.log('Fetching first picture for room', id_rooms);
     const sql = `SELECT id_pictures FROM Pictures WHERE id_rooms = ? LIMIT 1`;
     db.query(sql, [id_rooms], (err, rows) => {
         if (err) {
@@ -327,6 +334,7 @@ const getFirstPictureByRoomId = (id_rooms, callback) => {
 };
 
 const updateTourSteps = (id_tours, steps, title, description, callback) => {
+    console.log('Updating tour', id_tours, 'with steps', steps);
     const updateTourSql = `UPDATE Tours SET title = ?, description = ? WHERE id_tours = ?`;
     db.query(updateTourSql, [title, description, id_tours], (err) => {
         if (err) {
@@ -354,6 +362,7 @@ const updateTourSteps = (id_tours, steps, title, description, callback) => {
 };
 
 const addTourStep = (id_tours, step, callback) => {
+    console.log('Adding tour step', step, 'to tour', id_tours);
     const newId = generateUniqueId();
     const sql = `INSERT INTO Tour_Steps (id_tour_steps, id_tours, id_rooms, step_number) VALUES (?, ?, ?, ?)`;
     db.query(sql, [newId, id_tours, step.id_rooms, step.step_number], (err) => {
@@ -377,6 +386,7 @@ const createTour = (title, description, callback) => {
 };
 
 const createTourWithSteps = (title, description, steps, callback) => {
+    console.log('Creating tour with steps');
     const sql = `INSERT INTO Tours (title, description) VALUES (?, ?)`;
     db.query(sql, [title, description], (err, result) => {
         if (err) {
@@ -402,6 +412,7 @@ const createTourWithSteps = (title, description, steps, callback) => {
 };
 
 const deleteTour = (id_tours, callback) => {
+    console.log('Deleting tour', id_tours);
     const deleteStepsSql = `DELETE FROM Tour_Steps WHERE id_tours = ?`;
     db.query(deleteStepsSql, [id_tours], (err) => {
         if (err) {
