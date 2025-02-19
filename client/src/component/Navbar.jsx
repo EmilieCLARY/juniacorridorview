@@ -30,13 +30,13 @@ const Navbar = () => {
       case '/admin':
         setRouteName('Administrateur');
         break;
-      case '/admin-tour':
+      case '/admin/tour':
         setRouteName('Parcours');
         break;
-      case '/admin-room':
+      case '/admin/room':
         setRouteName('Salles');
         break;
-      case location.pathname.match(/\/admin-room\/[0-9]{1,9}/)?.input:
+      case location.pathname.match(/\/admin\room\/[0-9]{1,9}/)?.input + '/edit':
         setRouteName('Détails de la Salle');
       break;
 
@@ -58,7 +58,7 @@ const Navbar = () => {
         </div>
         <div className="flex items-center text-xl text-junia-orange font-title gap-2">
           <NavLink to="/" className="text-inherit no-underline hover:text-inherit">Menu</NavLink>
-          <NavLink to="/admin" className="text-inherit no-underline hover:text-inherit">Admin</NavLink>
+          <NavLink to="/admin/room" className="text-inherit no-underline hover:text-inherit">Admin</NavLink>
         </div>
       </nav>
     </>

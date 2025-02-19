@@ -256,7 +256,7 @@ const PanoramaViewer = ({ location }) => {
           />
         </div>
       </div>
-      <div className="forms-container">
+      {/*<div className="forms-container">
         <form onSubmit={handleUpload}>
           <input type="file" name="pic" />
           <input type="text" name="id_rooms" placeholder="id_rooms"/>
@@ -280,7 +280,7 @@ const PanoramaViewer = ({ location }) => {
           <input type="text" name="id_pictures_destination" placeholder="id_pictures_destination" />
           <input type="submit" value="Add Link" />
         </form>
-      </div>
+      </div>*/}
     </div>
   );
 };

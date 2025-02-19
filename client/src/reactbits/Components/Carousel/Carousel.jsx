@@ -63,6 +63,7 @@ export default function Carousel({
   pauseOnHover = false,
   loop = false,
   round = false,
+  onChange = () => {}, // Add onChange prop
 }) {
   const containerPadding = 0; // Remove padding to make the image bigger
   const itemWidth = `calc(${baseWidth} - ${containerPadding * 2}px)`;
@@ -90,16 +91,15 @@ export default function Carousel({
   }, [pauseOnHover]);
 
   useEffect(() => {
+    onChange(currentIndex % items.length); // Call onChange with the new index
+  }, [currentIndex, items.length, onChange]);
+
+  useEffect(() => {
     if (autoplay && (!pauseOnHover || !isHovered)) {
       const timer = setInterval(() => {
         setCurrentIndex((prev) => {
-          if (prev === items.length - 1 && loop) {
-            return prev + 1;
-          }
-          if (prev === carouselItems.length - 1) {
-            return loop ? 0 : prev;
-          }
-          return prev + 1;
+          const newIndex = prev === items.length - 1 && loop ? prev + 1 : prev === carouselItems.length - 1 ? (loop ? 0 : prev) : prev + 1;
+          return newIndex;
         });
       }, autoplayDelay);
       return () => clearInterval(timer);
@@ -128,19 +128,13 @@ export default function Carousel({
   const handleDragEnd = (_, info) => {
     const offset = info.offset.x;
     const velocity = info.velocity.x;
+    let newIndex = currentIndex;
     if (offset < -DRAG_BUFFER || velocity < -VELOCITY_THRESHOLD) {
-      if (loop && currentIndex === items.length - 1) {
-        setCurrentIndex(currentIndex + 1); // Go to clone.
-      } else {
-        setCurrentIndex((prev) => Math.min(prev + 1, carouselItems.length - 1));
-      }
+      newIndex = loop && currentIndex === items.length - 1 ? currentIndex + 1 : Math.min(currentIndex + 1, carouselItems.length - 1);
     } else if (offset > DRAG_BUFFER || velocity > VELOCITY_THRESHOLD) {
-      if (loop && currentIndex === 0) {
-        setCurrentIndex(items.length - 1);
-      } else {
-        setCurrentIndex((prev) => Math.max(prev - 1, 0));
-      }
+      newIndex = loop && currentIndex === 0 ? items.length - 1 : Math.max(currentIndex - 1, 0);
     }
+    setCurrentIndex(newIndex);
   };
 
   const dragProps = loop
@@ -218,7 +212,10 @@ export default function Carousel({
               animate={{
                 scale: currentIndex % items.length === index ? 1.2 : 1,
               }}
-              onClick={() => setCurrentIndex(index)}
+              onClick={() => {
+                setCurrentIndex(index);
+                onChange(index); // Call onChange with the new index
+              }}
               transition={{ duration: 0.15 }}
             />
           ))}

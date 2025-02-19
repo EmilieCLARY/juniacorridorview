@@ -422,7 +422,7 @@ const handleSelectPositionClick = () => {
       <div className="header">
         <h1>Admin Panel</h1>
         <button onClick={() => setView('room')}>Room Information</button>
-        <button onClick={() => history.push('/admin-tour')}>Admin Tour</button> {/* Add this line */}
+        <button onClick={() => history.push('/admin/tour')}>Admin Tour</button> {/* Add this line */}
       </div>
       {view === 'room' ? (
         <div>

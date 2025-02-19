@@ -25,9 +25,9 @@ const App = () => {
         <Route exact path ="/pano" component={PanoramaViewer}/>
         <Route exact path ="/tour" component={TourViewer}/>
         <Route exact path ="/admin" component={Admin}/>
-        <Route exact path ="/admin-tour" component={AdminTour}/>
-        <Route exact path ="/admin-room" component={AdminRoom}/>
-        <Route exact path ="/admin-room/:id" component={AdminRoomDetails}/>
+        <Route exact path ="/admin/tour" component={AdminTour}/>
+        <Route exact path ="/admin/room" component={AdminRoom}/>
+        <Route exact path ="/admin/room/:id" component={AdminRoomDetails}/>
       </Switch>
     </>
   )

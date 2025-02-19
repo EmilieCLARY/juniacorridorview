@@ -82,6 +82,28 @@ const getRoomDetails = async (id_rooms) => {
     }
 };
 
+const createRoom = async (formData) => {
+  try {
+    const response = await api.post('/add-room', formData);
+    const id_rooms = response.data.id_rooms;
+
+    // Create a picture for each uploaded image
+    console.log(formData.getAll('images'));
+    const imageUploadPromises = formData.getAll('images').map((image) => {
+      const imageFormData = new FormData();
+      imageFormData.append('id_rooms', id_rooms);
+      imageFormData.append('pic', image);
+      return api.post('/upload', imageFormData);
+    });
+
+    await Promise.all(imageUploadPromises);
+
+    return id_rooms;
+  } catch (error) {
+    console.error('Error creating room:', error);
+    return null;
+  }
+};
 
 export {
   getRooms,
@@ -91,5 +113,6 @@ export {
   getLinks,
   insertInfoPopUp,
   insertLink,
-  getRoomDetails
+  getRoomDetails,
+  createRoom // Export the new function
 };
