@@ -170,6 +170,14 @@ function updateImage(id_pictures, data, callback) {
     });
 }
 
+function deleteImage(id_pictures, callback) {
+    console.log('Deleting picture', id_pictures);
+    const sql = `DELETE FROM Pictures WHERE id_pictures = ?`;
+    db.query(sql, [id_pictures], (err) => {
+        callback(err);
+    });
+}
+
 function updateInfospot(id_info_popup, id_pictures, posX, posY, posZ, text, title, image, callback) {
     console.log('Updating info popup', id_info_popup);
     const sql = `UPDATE Info_Popup SET id_pictures = ?, position_x = ?, position_y = ?, position_z = ?, text = ?, title = ?, image = ? WHERE id_info_popup = ?`;
@@ -212,6 +220,22 @@ function addRoom(name, number, id_buildings, callback) {
         } else {
             callback(null, result.insertId);
         }
+    });
+}
+
+function updateRoom(id_rooms, name, number, id_buildings, callback) {
+    console.log('Updating room', id_rooms);
+    const sql = `UPDATE Rooms SET name = ?, number = ?, id_buildings = ? WHERE id_rooms = ?`;
+    db.query(sql, [name, number, id_buildings, id_rooms], (err) => {
+        callback(err);
+    });
+}
+
+function deleteRoom(id_rooms, callback) {
+    console.log('Deleting room', id_rooms);
+    const sql = `DELETE FROM Rooms WHERE id_rooms = ?`;
+    db.query(sql, [id_rooms], (err) => {
+        callback(err);
     });
 }
 
@@ -448,8 +472,11 @@ module.exports = {
     getPicturesByRoomId,
     getFirstPictureByRoomId,
     updateImage,
+    deleteImage,
     updateInfospot,
     updateLink,
     addRoom,
+    updateRoom,
+    deleteRoom,
     getBuildings
 };

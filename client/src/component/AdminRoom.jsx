@@ -17,7 +17,15 @@ const AdminRoom = () => {
     id: []
   });
   const [newRoomModalOpen, setNewRoomModalOpen] = useState(false);
+  const [editRoomModalOpen, setEditRoomModalOpen] = useState(false);
   const [newRoomData, setNewRoomData] = useState({
+    number: '',
+    name: '',
+    building: '',
+    images: []
+  });
+  const [editRoomData, setEditRoomData] = useState({
+    id_rooms: '',
     number: '',
     name: '',
     building: '',
@@ -123,6 +131,78 @@ const AdminRoom = () => {
     }
   };
 
+  const handleDeleteRoom = async (event, id) => {
+    event.stopPropagation();
+    event.preventDefault();
+    if (!window.confirm('Etes-vous sûr de vouloir supprimer la salle ?')) return;
+    console.log(id);
+    try {
+      await api.deleteRoom(id);
+      showLoading([fetchRooms()], 'Suppression de la salle...', 'Salle supprimée avec succès', 'Erreur lors de la suppression de la salle');
+    } catch (error) {
+      console.error('Error deleting room:', error);
+    }
+  }
+
+  const handleEditRoom = async (event, room) => {
+    event.stopPropagation();
+    event.preventDefault();
+    console.log(room);
+    setEditRoomData({
+      id_rooms: room.id_rooms,
+      number: room.number,
+      name: room.name,
+      building: room.building_name,
+      images: []
+    });
+    setEditRoomModalOpen(true);
+  };
+
+  const handleEditRoomChange = (e) => {
+    const { name, value } = e.target;
+    setEditRoomData(prevData => ({
+      ...prevData,
+      [name]: value
+    }));
+  };
+
+  const handleEditRoomImagesChange = (e) => {
+    const files = Array.from(e.target.files);
+    setEditRoomData(prevData => ({
+      ...prevData,
+      images: files
+    }));
+  };
+
+  const handleEditRoomSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append('id_rooms', editRoomData.id_rooms);
+    formData.append('number', editRoomData.number);
+    formData.append('name', editRoomData.name);
+    const building = rooms.find(room => room.building_name === editRoomData.building);
+    formData.append('id_buildings', building.id_buildings);
+    // Add images to form data
+    editRoomData.images.forEach(image => {
+      formData.append('images', image);
+    });
+    try {
+      const updatePromise = api.updateRoom(formData);
+      updatePromise.then(() => {
+        setEditRoomModalOpen(false);
+        setEditRoomData({
+          id_rooms: '',
+          number: '',
+          name: '',
+          building: '',
+        });
+      });
+      showLoading([updatePromise, fetchRooms()], 'Modification de la salle...', 'Salle modifiée avec succès', 'Erreur lors de la modification de la salle');
+    } catch (error) {
+      console.error('Error updating room:', error);
+    }
+  };
+
   return (
     <div className="container mx-auto p-4">
       <button 
@@ -200,6 +280,9 @@ const AdminRoom = () => {
                 <img src={room.imageUrl} alt={`Preview of ${room.name}`} className="object-cover w-full h-full" />
               </div>
             )}
+
+            <button onClick={(event) => handleDeleteRoom(event, room.id_rooms)} className="bg-red-500 text-white px-4 py-2 rounded mr-2">Supprimer</button>
+            <button onClick={(event) => handleEditRoom(event, room)} className="bg-red-500 text-white px-4 py-2 rounded">Modifier</button>
           </div>
         ))}
       </div>
@@ -247,6 +330,53 @@ const AdminRoom = () => {
                 required 
               />
               <button type="submit">Ajouter une salle</button>
+            </form>
+          </div>
+        </div>
+      )}
+      {editRoomModalOpen && (
+        <div className="modal">
+          <div className="modal-content">
+            <span className="close" onClick={() => setEditRoomModalOpen(false)}>&times;</span>
+            <h2>Modifier la salle</h2>
+            <form onSubmit={handleEditRoomSubmit}>
+              <input
+                type="text"
+                name="number"
+                placeholder="Numéro de salle"
+                value={editRoomData.number}
+                onChange={handleEditRoomChange}
+                required
+              />
+              <input
+                type="text"
+                name="name"
+                placeholder="Nom de la salle"
+                value={editRoomData.name}
+                onChange={handleEditRoomChange}
+                required
+              />
+              <Select
+                name="building"
+                options={getUniqueOptions('building_name')}
+                className="basic-single-select"
+                classNamePrefix="select"
+                placeholder="Sélectionner un bâtiment"
+                defaultValue={{ value: editRoomData.building, label: editRoomData.building }}
+                onChange={(selectedOption) => setEditRoomData(prevData => ({
+                  ...prevData,
+                  building: selectedOption.value
+                }))}
+                required
+              />
+              <input
+                type="file"
+                name="images"
+                accept="image/*"
+                multiple
+                onChange={handleEditRoomImagesChange}
+              />
+              <button type="submit">Modifier la salle</button>
             </form>
           </div>
         </div>
