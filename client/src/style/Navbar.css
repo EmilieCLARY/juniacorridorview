@@ -9,3 +9,7 @@ nav a:hover {
   color: inherit; /* Inherit color from parent */
   text-decoration: none; /* Remove underline */
 }
+
+.height-40 {
+  max-height: 40px;
+}

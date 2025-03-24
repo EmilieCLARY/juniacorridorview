@@ -123,7 +123,7 @@ const TourViewer = () => {
     <div className="h-100">
       <div className="bg-junia-lavender grid grid-cols-3 grid-flow-col auto-cols-min gap-10 justify-between p-4 h-full">
         {tours.map(tour => (
-          <div key={tour.id_tours} className="purpleborder text-justify bg-white border-5 border-junia-orange p-2 rounded-3xl">
+          <div key={tour.id_tours} className="purpleborder text-justify bg-white border-5 border-junia-orange p-2 rounded-3xl flex-col">
             <div className="font-title font-bold text-junia-orange text-3xl text-center">{tour.title}</div>
             <div className="font-texts">{tour.description}</div>
             {getPanoramaImagesForTour(tour.id_tours).length > 0 && (
@@ -131,7 +131,7 @@ const TourViewer = () => {
                   <Carousel items={getPanoramaImagesForTour(tour.id_tours)} baseWidth="100%" autoplay={true} autoplayDelay={3000} pauseOnHover={true} loop={true} round={false} />
               </div>
             )}
-            <div onClick={() => handleTourClick(tour.id_tours)} className="text-xl font-title border-2 rounded-3xl w-sm" >Start Tour</div>
+            <div onClick={() => handleTourClick(tour.id_tours)} className="text-xl text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl p-2 w-65 js-center" >Commencer le parcours</div>
           </div>
         ))}
       </div>
