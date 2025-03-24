@@ -175,7 +175,7 @@ const deleteImage = async (id_pictures) => {
     } catch (error) {
         console.error('Error deleting image:', error);
     }
-}
+};
 
 export {
   getRooms,
@@ -188,8 +188,7 @@ export {
   getRoomDetails,
   createRoom, // Export the new function
   getBuildings,
-  createBuilding
-  createRoom,
+  createBuilding,
   updateRoom,
   deleteRoom,
   updateImage,
