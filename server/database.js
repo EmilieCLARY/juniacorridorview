@@ -114,26 +114,18 @@ const getTourStepsWithRoomInfo = (tourId, callback) => {
 };
 
 const getRooms = (callback) => {
-    const sql = `
-        SELECT Rooms.*, Buildings.name as building_name 
-        FROM Rooms 
-        LEFT JOIN Buildings ON Rooms.id_buildings = Buildings.id_buildings
+    const query = `
+        SELECT * 
+        FROM Rooms
+        ORDER BY name ASC
     `;
-    db.query(sql, (err, rows) => {
+    
+    db.query(query, (err, results) => {
         if (err) {
-            console.error('Error fetching rooms', err);
-            callback(err, null);
-        } else {
-            const rooms = rows.map(row => ({
-                id_rooms: row.id_rooms,
-                name: row.name,
-                number: row.number,
-                id_buildings: row.id_buildings,
-                building_name: row.building_name
-            }));
-            console.log('Fetched', rooms.length, 'rooms');
-            callback(null, rooms);
+            console.error('Error executing getRooms query:', err);
+            return callback(err, null);
         }
+        return callback(null, results);
     });
 };
 

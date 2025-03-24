@@ -9,6 +9,7 @@ import { toast } from "sonner"; // Add this line
 const AdminRoom = () => {
   Buffer.from = Buffer.from || require('buffer').Buffer;
   const [rooms, setRooms] = useState([]);
+  const [buildings, setBuildings] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
     building: [],
@@ -22,8 +23,10 @@ const AdminRoom = () => {
     number: '',
     name: '',
     building: '',
+    buildingId: '',
     images: []
   });
+  const [debugInfo, setDebugInfo] = useState({ error: null, buildingData: null });
   const [editRoomData, setEditRoomData] = useState({
     id_rooms: '',
     number: '',
@@ -42,26 +45,83 @@ const AdminRoom = () => {
     });
   }
 
+  const fetchBuildings = async () => {
+    try {
+      const buildingsData = await api.getBuildings();
+        
+      if (!buildingsData || buildingsData.length === 0) {
+        setDebugInfo(prev => ({ ...prev, error: "No building data received" }));
+        toast.error('Aucun bâtiment trouvé. Veuillez en créer un.');
+        return [];
+      }
+      
+      // Improved check for id_buildings that properly handles value 0
+      if (buildingsData[0].id_buildings === undefined || 
+          buildingsData[0].id_buildings === null || 
+          buildingsData[0].name === undefined) {
+        setDebugInfo(prev => ({ 
+          ...prev, 
+          error: "Building data doesn't have expected fields", 
+          buildingData: buildingsData 
+        }));
+        toast.error('Format de données des bâtiments incorrect');
+        return [];
+      }
+      
+      setBuildings(buildingsData);
+      setDebugInfo(prev => ({ ...prev, buildingData: buildingsData, error: null }));
+      return buildingsData;
+    } catch (error) {
+      console.error('Error fetching buildings:', error);
+      setDebugInfo(prev => ({ ...prev, error: error.toString() }));
+      toast.error('Erreur lors du chargement des bâtiments');
+      return [];
+    }
+  };
   
   const fetchRooms = async () => {
     try {
       const roomsData = await api.getRooms();
+      // Ensure we have building data before processing rooms
+      let buildingsData = buildings;
+      if (!buildingsData || buildingsData.length === 0) {
+        buildingsData = await fetchBuildings();
+      }
+      
       const roomsWithImages = await Promise.all(
         roomsData.map(async room => {
           const pictures = await api.getPicturesByRoomId(room.id_rooms);
           const imageUrl = pictures.length > 0 ? await api.getImage(pictures[0].id_pictures) : null;
-          return { ...room, imageUrl };
+          
+          // Find the building name that corresponds to this room's building_id
+          const building = buildingsData.find(b => b.id_buildings === room.id_buildings);
+          const building_name = building ? building.name : 'Bâtiment inconnu';
+
+          return { ...room, imageUrl, building_name };
         })
       );
       setRooms(roomsWithImages);
     } catch (error) {
       console.error('Error fetching rooms:', error);
+      toast.error('Erreur lors du chargement des salles');
     }
   };
 
   useEffect(() => {
     if (!dataFetchedRef.current) {
-        showLoading([fetchRooms()], 'Chargement des salles...', 'Chargement des salles réussi', 'Erreur lors du chargement des salles');
+        // Modify loading sequence to ensure buildings load first, then rooms
+        showLoading(
+          [
+            fetchBuildings().then(buildingsData => {
+              if (buildingsData && buildingsData.length > 0) {
+                return fetchRooms();
+              }
+            })
+          ], 
+          'Chargement des données...', 
+          'Chargement réussi', 
+          'Erreur lors du chargement'
+        );
         dataFetchedRef.current = true; 
     }
   }, []);
@@ -106,17 +166,64 @@ const AdminRoom = () => {
     }));
   };
 
+  const getBuildingOptions = () => {
+    if (!buildings || buildings.length === 0) {
+      return [{ value: "manual", label: "Aucun bâtiment disponible" }];
+    }
+  
+    return buildings.map(building => ({ 
+      value: building.id_buildings.toString(), 
+      label: building.name 
+    }));
+  };
+
   const handleNewRoomSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!newRoomData.buildingId && newRoomData.buildingId !== "manual" && newRoomData.buildingId !== "0") {
+      toast.error('Veuillez sélectionner un bâtiment');
+      return;
+    }
+    
     const formData = new FormData();
     formData.append('number', newRoomData.number);
     formData.append('name', newRoomData.name);
-    const building = rooms.find(room => room.building_name === newRoomData.building);
-    formData.append('id_buildings', building.id_buildings);
+    
+    // Handle the case when building selection is "manual"
+    if (newRoomData.buildingId === "manual") {
+      // If your API supports creating a building on the fly
+      if (!newRoomData.building || newRoomData.building.trim() === '') {
+        toast.error('Veuillez entrer un nom pour le bâtiment');
+        return;
+      }
+      
+      try {
+        // Try to create a new building first
+        const createBuildingResponse = await api.createBuilding({ name: newRoomData.building });
+        formData.append('id_buildings', createBuildingResponse.id_buildings);
+      } catch (error) {
+        console.error('Error creating building:', error);
+        toast.error('Erreur lors de la création du bâtiment');
+        return;
+      }
+    } else {
+      // Make sure to also include the building name if your API requires it
+      formData.append('id_buildings', newRoomData.buildingId);
+      formData.append('building_name', newRoomData.building);
+      console.log(`Using building ID: ${newRoomData.buildingId} with name: ${newRoomData.building} for new room`);
+    }
+    
+    // Log all form data for debugging
+    console.log("Form data entries:");
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}: ${value}`);
+    }
+    
     // Add images to form data
     newRoomData.images.forEach(image => {
       formData.append('images', image);
     });
+    
     try {
       await api.createRoom(formData);
       setNewRoomModalOpen(false);
@@ -124,10 +231,13 @@ const AdminRoom = () => {
         number: '',
         name: '',
         building: '',
+        buildingId: '',
+        images: []
       });
       showLoading([fetchRooms()], 'Ajout de la salle...', 'Salle ajoutée avec succès', 'Erreur lors de l\'ajout de la salle');
     } catch (error) {
       console.error('Error creating room:', error);
+      toast.error('Erreur lors de la création de la salle');
     }
   };
 
@@ -287,6 +397,20 @@ const AdminRoom = () => {
         ))}
       </div>
 
+      {debugInfo.error && (
+        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4">
+          <p className="font-bold">Debugging Information</p>
+          <p>Error: {debugInfo.error}</p>
+          <p>Building Data: {debugInfo.buildingData ? JSON.stringify(debugInfo.buildingData, null, 2) : 'None'}</p>
+          <button 
+            onClick={fetchBuildings}
+            className="mt-2 p-2 bg-blue-500 text-white rounded"
+          >
+            Retry Fetching Buildings
+          </button>
+        </div>
+      )}
+
       {newRoomModalOpen && (
         <div className="modal">
           <div className="modal-content">
@@ -311,16 +435,48 @@ const AdminRoom = () => {
               />
               <Select
                 name="building"
-                options={getUniqueOptions('building_name')}
+                options={getBuildingOptions()}
                 className="basic-single-select"
                 classNamePrefix="select"
                 placeholder="Sélectionner un bâtiment"
-                onChange={(selectedOption) => setNewRoomData(prevData => ({
-                  ...prevData,
-                  building: selectedOption.value
-                }))}
+                onChange={(selectedOption) => {
+                  console.log("Building selected:", selectedOption);
+                  if (selectedOption.value === "manual") {
+                    // Show a manual input field if "manual" is selected
+                    setNewRoomData(prevData => ({
+                      ...prevData,
+                      building: "",
+                      buildingId: "manual",
+                      showManualBuildingInput: true
+                    }));
+                  } else {
+                    setNewRoomData(prevData => {
+                      console.log("Setting building data:", {
+                        label: selectedOption.label,
+                        value: selectedOption.value
+                      });
+                      return {
+                        ...prevData,
+                        building: selectedOption.label,
+                        buildingId: selectedOption.value,
+                        showManualBuildingInput: false
+                      };
+                    });
+                  }
+                }}
                 required
               />
+              
+              {newRoomData.showManualBuildingInput && (
+                <input 
+                  type="text" 
+                  name="manualBuilding" 
+                  placeholder="Nom du nouveau bâtiment" 
+                  value={newRoomData.building} 
+                  onChange={(e) => setNewRoomData(prev => ({ ...prev, building: e.target.value }))}
+                  required 
+                />
+              )}
               <input 
                 type="file" 
                 name="images" 

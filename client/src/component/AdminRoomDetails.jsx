@@ -141,9 +141,30 @@ const AdminRoomDetails = () => {
     event.preventDefault();
     const formData = new FormData(event.target);
     await api.insertInfoPopUp(formData);
+    
+    // Mettre à jour les infopopups pour l'image sélectionnée
     const updatedInfoPopups = await getInfoPopup(selectedImageId);
     setInfoPopups(updatedInfoPopups);
-    setAllInfoPopups(await api.getInfoPopup(selectedImageId));
+    
+    // Mettre à jour tous les infopopups
+    const allImageInfoPopups = await Promise.all(
+      pictures.map(async (pic) => await api.getInfoPopup(pic.id_pictures))
+    );
+    setAllInfoPopups(allImageInfoPopups.flat());
+    
+    // Forcer le rechargement du panorama en réinitialisant temporairement l'état
+    if (selectedPicture) {
+      const currentImage = selectedPicture;
+      const currentId = selectedImageId;
+      setSelectedPicture('');
+      setIsLoading(true);
+      
+      // Utiliser setTimeout pour permettre au DOM de se mettre à jour
+      setTimeout(() => {
+        handlePictureClick(currentImage, currentId);
+      }, 100);
+    }
+    
     setNewInfospotModalOpen(false);
     setDisableBackgroundClick(false);
   };
@@ -154,7 +175,26 @@ const AdminRoomDetails = () => {
     await api.insertLink(formData);
     const updatedLinks = await getLinks(selectedImageId);
     setLinks(updatedLinks);
-    setAllLinks(await api.getLinks(selectedImageId));
+
+    // Mettre à jour tous les liens
+    const allImageLinks = await Promise.all(
+      pictures.map(async (pic) => await api.getLinks(pic.id_pictures))
+    );
+    setAllLinks(allImageLinks.flat());
+
+    // Forcer le rechargement du panorama en réinitialisant temporairement l'état
+    if (selectedPicture) {
+      const currentImage = selectedPicture;
+      const currentId = selectedImageId;
+      setSelectedPicture('');
+      setIsLoading(true);
+      
+      // Utiliser setTimeout pour permettre au DOM de se mettre à jour
+      setTimeout(() => {
+        handlePictureClick(currentImage, currentId);
+      }, 100);
+    }
+
     setNewLinkModalOpen(false);
     setDisableBackgroundClick(false);
   };
@@ -168,8 +208,32 @@ const AdminRoomDetails = () => {
 
   const handleModalInfopopup = () => {
     console.log('Opening new infospot modal');
-    setNewInfospotModalOpen(true)
+    setNewInfospotModalOpen(true);
     setDisableBackgroundClick(true);
+    
+    // Automatically select and display the first image in the panorama
+    if (pictures.length > 0) {
+      const firstPicture = pictures[0];
+      setIsLoadingModal(true);
+      setModalSelectedPicture(firstPicture.imageUrl);
+      setSelectedImageId(firstPicture.id_pictures);
+      
+      // Load info popups and links for the first image
+      const infospotsPromise = getInfoPopup(firstPicture.id_pictures);
+      const linksPromise = getLinks(firstPicture.id_pictures);
+      
+      infospotsPromise.then((infospots) => {
+        setModalInfoPopups(infospots);
+      });
+      
+      linksPromise.then((links) => {
+        setModalLinks(links);
+      });
+      
+      Promise.all([infospotsPromise, linksPromise]).then(() => {
+        setIsLoadingModal(false);
+      });
+    }
   }
 
   const closeModalInfospot = () => {
@@ -180,6 +244,30 @@ const AdminRoomDetails = () => {
   const handleModalLink = () => {
     setNewLinkModalOpen(true)
     setDisableBackgroundClick(true);
+
+    // Automatically select and display the first image in the panorama
+    if (pictures.length > 0) {
+      const firstPicture = pictures[0];
+      setIsLoadingModal(true);
+      setModalSelectedPicture(firstPicture.imageUrl);
+      setSelectedImageId(firstPicture.id_pictures);
+      
+      // Load info popups and links for the first image
+      const infospotsPromise = getInfoPopup(firstPicture.id_pictures);
+      const linksPromise = getLinks(firstPicture.id_pictures);
+      
+      infospotsPromise.then((infospots) => {
+        setModalInfoPopups(infospots);
+      });
+      
+      linksPromise.then((links) => {
+        setModalLinks(links);
+      });
+      
+      Promise.all([infospotsPromise, linksPromise]).then(() => {
+        setIsLoadingModal(false);
+      });
+    }
   }
 
   const closeModalLink = () => {

@@ -1,9 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: process.env.BASE_URL, // Use the environment variable
+  baseURL: process.env.BASE_URL || 'http://localhost:8000', // Add explicit fallback
   timeout: 180000, // Increase the timeout to 180 seconds
-
 });
 
 const getRooms = async () => {
@@ -11,7 +10,8 @@ const getRooms = async () => {
     const response = await api.get('/rooms');
     return response.data;
   } catch (error) {
-    console.error('Error fetching rooms', error);
+    console.error('Error fetching rooms:', error);
+    console.error('Error details:', error.response?.data || 'No details available');
     return [];
   }
 };
