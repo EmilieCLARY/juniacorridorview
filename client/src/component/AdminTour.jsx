@@ -51,7 +51,6 @@ const AdminTour = () => {
     });
   }
 
-  // Improve fetchPanoramaUrls to better handle errors and ensure we're logging issues
   const fetchPanoramaUrls = async (steps) => {
     try {
       const panoramaUrlsData = await Promise.all(
@@ -118,9 +117,6 @@ const AdminTour = () => {
       // Create a flat array of all tour steps to fetch panoramas more efficiently
       const allSteps = Object.values(steps).flat();
       const allPanoramaUrls = await fetchPanoramaUrls(allSteps);
-      
-      console.log('Panorama URLs:', allPanoramaUrls);
-      console.log('Tour steps:', steps);
     
       // Batch state updates
       setTours(toursData);
@@ -295,15 +291,6 @@ const AdminTour = () => {
   const getPanoramaImagesForTour = (tourId) => {
     if (!tourSteps[tourId]) return [];
     
-    // Log information about the tour steps and panorama URLs for debugging
-    console.log(`Getting panorama images for tour ${tourId}:`, 
-      tourSteps[tourId].map(step => ({
-        room_id: step.id_rooms,
-        room_name: step.room_name,
-        has_image: !!panoramaUrls[step.id_rooms]
-      }))
-    );
-    
     // Create images array with placeholders for missing images
     const images = tourSteps[tourId].map(step => { 
       return { 
@@ -316,7 +303,6 @@ const AdminTour = () => {
     
     // Only return the array if at least one real image exists
     const hasRealImages = images.some(img => !img.isPlaceholder);
-    console.log(`Tour ${tourId} has ${images.filter(img => !img.isPlaceholder).length}/${images.length} real images`);
     
     // Return all images, including placeholders
     return images;

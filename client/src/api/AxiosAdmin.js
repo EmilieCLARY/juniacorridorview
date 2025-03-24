@@ -7,9 +7,7 @@ const api = axios.create({
 
 const getRooms = async () => {
   try {
-    console.log('Fetching rooms from API');
     const response = await api.get('/rooms');
-    console.log('Rooms API response:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching rooms:', error);
