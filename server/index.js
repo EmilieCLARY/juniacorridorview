@@ -8,7 +8,7 @@ const session = require("express-session");
 const fileUpload = require('express-fileupload'); // Add this line
 const mysql = require('mysql');
 const saltRounds = 10;
-const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture, getTours, getTourStepsWithRoomInfo, updateTourSteps, addTourStep, createTourWithSteps, deleteTour, getRoomNameById, getRoomIdByPictureId, getRooms, getPicturesByRoomId, getFirstPictureByRoomId, updateImage, updateInfospot, updateLink, addRoom, getBuildings } = require('./database');
+const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture, getTours, getTourStepsWithRoomInfo, updateTourSteps, addTourStep, createTourWithSteps, deleteTour, getRoomNameById, getRoomIdByPictureId, getRooms, getPicturesByRoomId, getFirstPictureByRoomId, updateImage, deleteImage, updateInfospot, updateLink, addRoom, updateRoom, deleteRoom,getBuildings } = require('./database');
 
 const PORT = process.env.PORT || 8000;
 
@@ -329,6 +329,18 @@ app.post('/update-image', (req, res) => {
     }
 });
 
+app.delete('/delete-image/:id', (req, res) => {
+    const id_pictures = req.params.id;
+    deleteImage(id_pictures, (err) => {
+        if (err) {
+            console.error('Error deleting image:', err);
+            res.sendStatus(500);
+        } else {
+            res.sendStatus(200);
+        }
+    });
+});
+
 app.post('/update-infospot', (req, res) => {
     const { id_info_popup, id_pictures, posX, posY, posZ, text, title } = req.body;
     const pic = req.files ? req.files.pic : null;
@@ -362,6 +374,30 @@ app.post('/add-room', (req, res) => {
             res.sendStatus(500);
         } else {
             res.json({ id_rooms: roomId });
+        }
+    });
+});
+
+app.post('/update-room', (req, res) => {
+    const { id_rooms, name, number, id_buildings } = req.body;
+    updateRoom(id_rooms, name, number, id_buildings, (err) => {
+        if (err) {
+            console.error('Error updating room:', err);
+            res.sendStatus(500);
+        } else {
+            res.sendStatus(200);
+        }
+    });
+});
+
+app.delete('/delete-room/:id', (req, res) => {
+    const id_rooms = req.params.id;
+    deleteRoom(id_rooms, (err) => {
+        if (err) {
+            console.error('Error deleting room:', err);
+            res.sendStatus(500);
+        } else {
+            res.sendStatus(200);
         }
     });
 });

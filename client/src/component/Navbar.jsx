@@ -57,7 +57,7 @@ const Navbar = () => {
           {routeName}
         </div>
         <div className="flex items-center text-xl text-junia-orange font-title gap-2">
-          <NavLink to="/" className="text-inherit no-underline hover:text-inherit">Menu</NavLink>
+        <NavLink to="/" className="text-inherit no-underline hover:text-inherit"> <img src="\img\house_icon-orange.png" alt="House-icon" className="height-40" /></NavLink>
           <NavLink to="/admin/room" className="text-inherit no-underline hover:text-inherit">Admin</NavLink>
         </div>
       </nav>

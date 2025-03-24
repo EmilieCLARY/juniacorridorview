@@ -3,6 +3,16 @@
   border-color: #3c2c53;;
 }
 
+.w-40{
+  width: 40%;
+}
+.mx-7{
+  margin-left: 7%;
+}
+.js-center{
+  justify-self: center;
+}
+
 /*
 .tours-container {
   display: flex;

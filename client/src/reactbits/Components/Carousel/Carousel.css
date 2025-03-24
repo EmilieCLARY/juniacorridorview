@@ -12,12 +12,13 @@
   padding: 16px;
   /* This padding is taken into account for item width */
   --outer-r: 24px;
-  --p-distance: 12px;
+  --p-distance: 14px;
 }
 
 /* Track */
 .carousel-track {
   display: flex;
+  margin-bottom: 10px;
 }
 
 /* Carousel item */
@@ -122,11 +123,10 @@
   display: flex;
   justify-content: center;
   gap: 10px; /* Adjust as needed */
-  margin: 0 auto; /* Center the indicators */
 }
 
 .carousel-indicator {
-  bottom: 2px !important;
+  bottom: 4px !important;
   height: 8px;
   width: 8px;
   border-radius: 50%;
