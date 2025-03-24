@@ -118,6 +118,7 @@ const getRooms = (callback) => {
         SELECT Rooms.*, Buildings.name as building_name 
         FROM Rooms 
         LEFT JOIN Buildings ON Rooms.id_buildings = Buildings.id_buildings
+        WHERE Rooms.hidden IS NULL OR Rooms.hidden != 0
     `;
     db.query(sql, (err, rows) => {
         if (err) {

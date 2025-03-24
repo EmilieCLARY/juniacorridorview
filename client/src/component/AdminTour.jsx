@@ -77,7 +77,7 @@ const AdminTour = () => {
 
   const fetchRooms = async () => {
     const roomsData = await api.getRooms();
-    return roomsData;
+    return roomsData.filter(room => room.hidden !== 0 && room.hidden !== null);return roomsData.filter(room => room.hidden !== 0 && room.hidden !== null);
   };
 
   const fetchAllData = async () => {
