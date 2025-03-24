@@ -143,6 +143,7 @@ const AdminRoomDetails = () => {
     await api.insertInfoPopUp(formData);
     const updatedInfoPopups = await getInfoPopup(selectedImageId);
     setInfoPopups(updatedInfoPopups);
+    setAllInfoPopups(await api.getInfoPopup(selectedImageId));
     setNewInfospotModalOpen(false);
     setDisableBackgroundClick(false);
   };
@@ -153,6 +154,7 @@ const AdminRoomDetails = () => {
     await api.insertLink(formData);
     const updatedLinks = await getLinks(selectedImageId);
     setLinks(updatedLinks);
+    setAllLinks(await api.getLinks(selectedImageId));
     setNewLinkModalOpen(false);
     setDisableBackgroundClick(false);
   };
