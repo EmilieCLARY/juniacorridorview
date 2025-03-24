@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import * as tourApi from '../api/AxiosTour';
 import * as api from '../api/AxiosAdmin';
 import { Buffer } from 'buffer';
@@ -51,18 +51,30 @@ const AdminTour = () => {
     });
   }
 
+  // Improve fetchPanoramaUrls to better handle errors and ensure we're logging issues
   const fetchPanoramaUrls = async (steps) => {
-    const panoramaUrlsData = await Promise.all(
-      steps.map(async step => {
-        const picture = await tourApi.getFirstPictureByRoomId(step.id_rooms);
-        if (picture) {
-          const imageUrl = await tourApi.getImage(picture.id_pictures);
-          return { id_rooms: step.id_rooms, imageUrl };
-        }
-        return { id_rooms: step.id_rooms, imageUrl: null };
-      })
-    );
-    return Object.fromEntries(panoramaUrlsData.map(panorama => [panorama.id_rooms, panorama.imageUrl]));
+    try {
+      const panoramaUrlsData = await Promise.all(
+        steps.map(async step => {
+          try {
+            const picture = await tourApi.getFirstPictureByRoomId(step.id_rooms);
+            if (picture) {
+              const imageUrl = await tourApi.getImage(picture.id_pictures);
+              return { id_rooms: step.id_rooms, imageUrl };
+            }
+            console.log(`No picture found for room ID: ${step.id_rooms}`);
+            return { id_rooms: step.id_rooms, imageUrl: null };
+          } catch (error) {
+            console.error(`Error fetching panorama for room ${step.id_rooms}:`, error);
+            return { id_rooms: step.id_rooms, imageUrl: null };
+          }
+        })
+      );
+      return Object.fromEntries(panoramaUrlsData.map(panorama => [panorama.id_rooms, panorama.imageUrl]));
+    } catch (error) {
+      console.error('Error in fetchPanoramaUrls:', error);
+      return {};
+    }
   };
 
   const fetchToursInfo = async () => {
@@ -75,46 +87,64 @@ const AdminTour = () => {
     return { toursData, steps };
   };
 
+  // Improve fetchRooms to handle errors gracefully
   const fetchRooms = async () => {
-    const roomsData = await api.getRooms();
-    return roomsData.filter(room => room.hidden !== 0 && room.hidden !== null);return roomsData.filter(room => room.hidden !== 0 && room.hidden !== null);
-  };
-
-  const fetchAllData = async () => {
-    console.log('Fetching all data...');
     try {
-      const { toursData, steps } = await fetchToursInfo();
-      setTours(toursData);
-      setTourSteps(steps);
-
-      const panoramaUrlsData = await Promise.all(
-        toursData.map(async tour => {
-          const tourSteps = steps[tour.id_tours];
-          return fetchPanoramaUrls(tourSteps);
-        })
-      );
-      const panoramaUrls = panoramaUrlsData.reduce((acc, urls) => ({ ...acc, ...urls }), {});
-      setPanoramaUrls(panoramaUrls);
-
-      const roomsData = await fetchRooms();
-      setRooms(roomsData);
+      const roomsData = await api.getRooms();
+      return roomsData.filter(room => room.hidden !== 0 && room.hidden !== null);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching rooms:", error);
+      toast.error("Impossible de charger les salles. Certaines fonctionnalités peuvent être limitées.");
+      return []; // Return empty array if rooms can't be loaded
     }
   };
 
-  const fetchData = async () => {
-    showLoading([fetchAllData()], 'Chargement...', 'Chargement des données réussi', 'Erreur lors du chargement des données');
+  // Modify fetchAllData to continue even if rooms fail to load
+  const fetchAllData = async () => {
+    console.log('Fetching all data...');
+    try {
+      // Fetch tours and steps (most important data)
+      const { toursData, steps } = await fetchToursInfo();
+      
+      // Try to fetch rooms but continue if it fails
+      let roomsData = [];
+      try {
+        roomsData = await fetchRooms();
+      } catch (error) {
+        console.error("Failed to fetch rooms:", error);
+        // Continue with empty rooms array
+      }
+      
+      // Create a flat array of all tour steps to fetch panoramas more efficiently
+      const allSteps = Object.values(steps).flat();
+      const allPanoramaUrls = await fetchPanoramaUrls(allSteps);
+      
+      console.log('Panorama URLs:', allPanoramaUrls);
+      console.log('Tour steps:', steps);
+    
+      // Batch state updates
+      setTours(toursData);
+      setTourSteps(steps);
+      setRooms(roomsData);
+      setPanoramaUrls(allPanoramaUrls);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      toast.error("Erreur lors du chargement des données");
+    }
   };
 
-  useEffect(() => {
-    if (loading.current) return;
-    loading.current = true;
-
-    fetchData().then(r => {
-      loading.current = false;
-    });
+  const fetchData = useCallback(async () => {
+    showLoading([fetchAllData()], 'Chargement...', 'Chargement des données réussi', 'Erreur lors du chargement des données');
   }, []);
+
+  useEffect(() => {
+    if (!loading.current) {
+      loading.current = true;
+      fetchData().then(() => {
+        loading.current = false;
+      });
+    }
+  }, [fetchData]);
 
   const handleEditTour = async (tour) => {
     setSelectedTour(tour);
@@ -168,7 +198,10 @@ const AdminTour = () => {
 
   const fetchUpdatedTour = async (tourId) => {
     try {
-      const updatedTour = await tourApi.getTourById(tourId);
+      // Replace getTourById with getTours and filter for the specific tour
+      const toursData = await tourApi.getTours();
+      const updatedTour = toursData.find(tour => tour.id_tours === tourId);
+      
       const updatedSteps = await tourApi.getTourSteps(tourId);
       setTours((prevTours) => prevTours.map(tour => tour.id_tours === tourId ? updatedTour : tour));
       setTourSteps((prevSteps) => ({
@@ -257,22 +290,52 @@ const AdminTour = () => {
     }
   };
 
+  // Improve the getPanoramaImagesForTour function to better handle and debug image loading
+  // Update getPanoramaImagesForTour to include placeholder images for missing panoramas
   const getPanoramaImagesForTour = (tourId) => {
     if (!tourSteps[tourId]) return [];
-    let tmp = tourSteps[tourId].map(step => { return { src: panoramaUrls[step.id_rooms], alt: `Panorama of ${step.room_name}`, roomName: step.room_name }; });
-    if (tmp.some(image => !image.src)) return [];
-    return tmp;
+    
+    // Log information about the tour steps and panorama URLs for debugging
+    console.log(`Getting panorama images for tour ${tourId}:`, 
+      tourSteps[tourId].map(step => ({
+        room_id: step.id_rooms,
+        room_name: step.room_name,
+        has_image: !!panoramaUrls[step.id_rooms]
+      }))
+    );
+    
+    // Create images array with placeholders for missing images
+    const images = tourSteps[tourId].map(step => { 
+      return { 
+        src: panoramaUrls[step.id_rooms] || 'https://via.placeholder.com/800x600?text=No+Image+Available', 
+        alt: `Panorama of ${step.room_name}`, 
+        roomName: step.room_name,
+        isPlaceholder: !panoramaUrls[step.id_rooms]
+      }; 
+    });
+    
+    // Only return the array if at least one real image exists
+    const hasRealImages = images.some(img => !img.isPlaceholder);
+    console.log(`Tour ${tourId} has ${images.filter(img => !img.isPlaceholder).length}/${images.length} real images`);
+    
+    // Return all images, including placeholders
+    return images;
   };
 
-  const handleCarouselChange = (tourId, index) => {
+  // Update handleCarouselChange to handle cases with placeholder images
+  const handleCarouselChange = useCallback((tourId, index) => {
     const images = getPanoramaImagesForTour(tourId);
     if (images.length > 0) {
-      setCurrentRoomName(prevState => ({
-        ...prevState,
-        [tourId]: images[index].roomName
-      }));
+      setCurrentRoomName((prevState) => {
+        if (prevState[tourId] === images[index].roomName) return prevState; // Prevent unnecessary updates
+        return {
+          ...prevState,
+          [tourId]: images[index].roomName,
+        };
+      });
     }
-  };
+  }, [tourSteps, panoramaUrls]); // Add dependencies here
+  
 
   const filteredTours = tours.filter(tour =>
     tour.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -282,6 +345,12 @@ const AdminTour = () => {
     <div className="container mx-auto p-4">
       <div className="header mb-4">
         <h1 className="text-2xl font-bold mb-2">Information des parcours</h1>
+        {rooms.length === 0 && (
+          <div className="bg-amber-100 border-l-4 border-amber-500 text-amber-700 p-4 mb-4" role="alert">
+            <p className="font-bold">Attention</p>
+            <p>Impossible de charger les salles depuis le serveur. La création et modification de parcours peut être limitée.</p>
+          </div>
+        )}
         <input
           type="text"
           placeholder="Rechercher un parcours..."
@@ -297,22 +366,35 @@ const AdminTour = () => {
             <h3 className="text-xl font-semibold mb-2">{tour.title}</h3>
             <h4> Description </h4>
             <p className="mb-2">{tour.description}</p>
-            {getPanoramaImagesForTour(tour.id_tours).length > 0 && (
-              <div className="">
-                <h4>Étapes</h4>
-                <p>Nom de la salle : {currentRoomName[tour.id_tours]}</p>
-                <Carousel
-                  items={getPanoramaImagesForTour(tour.id_tours)}
-                  baseWidth="100%"
-                  autoplay={true}
-                  autoplayDelay={3000}
-                  pauseOnHover={true}
-                  loop={true}
-                  round={false}
-                  onChange={(index) => handleCarouselChange(tour.id_tours, index)}
-                />
-              </div>
-            )}
+            <div className="">
+              <h4>Étapes</h4>
+              {tourSteps[tour.id_tours] ? (
+                tourSteps[tour.id_tours].length > 0 ? (
+                  <>
+                    <p>Nom de la salle : {currentRoomName[tour.id_tours] || (getPanoramaImagesForTour(tour.id_tours)[0]?.roomName || 'Aucune salle disponible')}</p>
+                    <Carousel
+                      items={getPanoramaImagesForTour(tour.id_tours)}
+                      baseWidth="100%"
+                      autoplay={true}
+                      autoplayDelay={3000}
+                      pauseOnHover={true}
+                      loop={true}
+                      round={false}
+                      onChange={(index) => handleCarouselChange(tour.id_tours, index)}
+                    />
+                    {getPanoramaImagesForTour(tour.id_tours).every(img => img.isPlaceholder) && (
+                      <p className="text-amber-500 mt-2">
+                        Attention: Ce parcours n'a pas d'images panoramiques. Veuillez en ajouter dans la gestion des salles.
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <p>Aucune étape disponible pour ce parcours</p>
+                )
+              ) : (
+                <p>Chargement des étapes...</p>
+              )}
+            </div>
             <button onClick={() => handleDeleteTour(tour.id_tours)} className="bg-red-500 text-white px-4 py-2 rounded mr-2">Supprimer</button>
             <button onClick={() => handleEditTour(tour)} className="bg-red-500 text-white px-4 py-2 rounded">Modifier</button>
           </div>
@@ -324,6 +406,11 @@ const AdminTour = () => {
           <div className="modal-content">
             <span className="close" onClick={() => setNewTourModalOpen(false)}>&times;</span>
             <h2>Ajouter un nouveau parcours</h2>
+            {rooms.length === 0 && (
+              <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+                <p>Impossible de charger les salles. Vous ne pourrez pas créer de parcours pour le moment.</p>
+              </div>
+            )}
             <form onSubmit={handleNewTour}>
               <input type="text" name="title" placeholder="Titre du Parcours" required />
               <textarea name="description" placeholder="Description du Parcours" required></textarea>
@@ -339,6 +426,7 @@ const AdminTour = () => {
                           onChange={(e) => handleNewTourStepChange(index, 'id_rooms', e.target.value)}
                           onPointerDown={(e) => e.stopPropagation()}
                           required
+                          disabled={rooms.length === 0}
                         >
                           <option value="">Sélectionner une salle</option>
                           {rooms.map(room => (
@@ -352,8 +440,8 @@ const AdminTour = () => {
                   ))}
                 </SortableContext>
               </DndContext>
-              <button type="button" onClick={handleAddNewTourStep}>Ajouter une étape</button>
-              <button type="submit">Ajouter un parcours</button>
+              <button type="button" onClick={handleAddNewTourStep} disabled={rooms.length === 0}>Ajouter une étape</button>
+              <button type="submit" disabled={rooms.length === 0 || newTourSteps.length === 0}>Ajouter un parcours</button>
             </form>
           </div>
         </div>
@@ -364,6 +452,11 @@ const AdminTour = () => {
           <div className="modal-content">
             <span className="close" onClick={() => setEditTourModalOpen(false)}>&times;</span>
             <h2>Modifier un parcours</h2>
+            {rooms.length === 0 && (
+              <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+                <p>Impossible de charger les salles. Les modifications peuvent être limitées.</p>
+              </div>
+            )}
             <form onSubmit={handleEditTourSubmit}>
                 <input type="hidden" name="id_tours" value={selectedTour.id_tours} />
                 <input type="text" name="title" defaultValue={selectedTour.title} placeholder="Titre du Parcours" required />
