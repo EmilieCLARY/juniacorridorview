@@ -84,6 +84,8 @@ const getRoomDetails = async (id_rooms) => {
 
 const createRoom = async (formData) => {
   try {
+    console.log("Creating room with form data:");
+
     const response = await api.post('/add-room', formData);
     const id_rooms = response.data.id_rooms;
 
@@ -101,7 +103,31 @@ const createRoom = async (formData) => {
     return id_rooms;
   } catch (error) {
     console.error('Error creating room:', error);
+    if (error.response) {
+      console.error('Server response:', error.response.data);
+    }
     return null;
+  }
+};
+
+const getBuildings = async () => {
+  try {
+    console.log('Fetching buildings from API...');
+    const response = await api.get('/buildings');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching buildings:', error);
+    throw error;
+  }
+};
+
+const createBuilding = async (buildingData) => {
+  try {
+    const response = await api.post('/buildings', buildingData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating building:', error);
+    throw error;
   }
 };
 
@@ -114,5 +140,7 @@ export {
   insertInfoPopUp,
   insertLink,
   getRoomDetails,
-  createRoom // Export the new function
+  createRoom, // Export the new function
+  getBuildings,
+  createBuilding
 };
