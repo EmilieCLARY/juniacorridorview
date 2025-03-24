@@ -129,7 +129,8 @@ const getRooms = (callback) => {
                 name: row.name,
                 number: row.number,
                 id_buildings: row.id_buildings,
-                building_name: row.building_name
+                building_name: row.building_name,
+                hidden: row.hidden
             }));
             console.log('Fetched', rooms.length, 'rooms');
             callback(null, rooms);

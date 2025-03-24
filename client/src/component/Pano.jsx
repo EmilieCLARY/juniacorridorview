@@ -48,9 +48,14 @@ const PanoramaViewer = ({ location }) => {
             return { ...room, id_rooms: id };
           })
         );
+        
+        // Filter out hidden rooms even in tour mode
+        roomsData = roomsData.filter(room => !(room.hidden === 0 || room.hidden === null));
+        
         setVisitType(`Visite guidée, Parcours ${tourId}`);
       } else {
         roomsData = await api.getRooms();
+        // No need to filter here as the server already filters out hidden rooms
       }
   
       setRooms(roomsData);
@@ -208,13 +213,15 @@ const PanoramaViewer = ({ location }) => {
           dataFetched.current = true;
       }
   }, [location]);
-  
-  
 
   const filteredRooms = useMemo(() => {
+    // First filter out any rooms that are hidden
+    const visibleRooms = rooms.filter(room => room.hidden !== 0 && room.hidden !== null);
+    
+    // Then apply the tour-specific filtering if needed
     return visitType.startsWith('Visite guidée') 
-      ? rooms.filter(room => tourSteps.some(step => step.id_rooms === room.id_rooms))
-      : rooms;
+      ? visibleRooms.filter(room => tourSteps.some(step => step.id_rooms === room.id_rooms))
+      : visibleRooms;
   }, [visitType, rooms, tourSteps]);
   
   return (
