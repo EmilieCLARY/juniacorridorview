@@ -116,7 +116,7 @@ const getTourStepsWithRoomInfo = (tourId, callback) => {
 const getRooms = (callback) => {
     const query = `
         SELECT * 
-        FROM rooms
+        FROM Rooms
         ORDER BY name ASC
     `;
     
