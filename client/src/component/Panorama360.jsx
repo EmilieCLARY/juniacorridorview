@@ -262,6 +262,19 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
     if (!mountRef.current) return;
     if(isLoading) return;
 
+    // Nettoyer les anciennes ressources
+    if (scene) {
+      // Supprimer les anciens infospots et liens
+      infoMeshes.forEach(mesh => scene.remove(mesh));
+      linksMeshes.forEach(mesh => scene.remove(mesh));
+      displayedPopups.forEach(popup => scene.remove(popup));
+      
+      // Vider les tableaux
+      infoMeshes.length = 0;
+      linksMeshes.length = 0;
+      displayedPopups.length = 0;
+    }
+
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -350,6 +363,11 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
       }
       window.removeEventListener("resize", onWindowResize);
       document.removeEventListener("click", onClick);
+      
+      // Nettoyer les ressources Three.js
+      infoMeshes.length = 0;
+      linksMeshes.length = 0;
+      displayedPopups.length = 0;
     };
   }, [infoPopups, selectedPicture, links, isLoading]);
 
