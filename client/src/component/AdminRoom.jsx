@@ -402,13 +402,13 @@ const AdminRoom = () => {
               </div>
               <div 
                 onClick={(event) => toggleRoomVisibility(event, room)}
-                className={`flex items-center cursor-pointer rounded-full w-24 h-10 p-1 ${!room.hidden ? 'bg-red-500' : 'bg-green-500'}`}
+                className={`flex items-center cursor-pointer rounded-full w-24 h-10 p-1 ${room.hidden ? 'bg-red-500' : 'bg-green-500'}`}
               >
-                <div className={`flex items-center justify-center text-xs font-medium h-8 w-8 rounded-full transition-transform duration-300 transform ${!room.hidden ? 'bg-white' : 'translate-x-14 bg-white'}`}>
-                  {!room.hidden ? 'I' : 'V'}
+                <div className={`flex items-center justify-center text-xs font-medium h-8 w-8 rounded-full transition-transform duration-300 transform ${room.hidden ? 'bg-white' : 'translate-x-14 bg-white'}`}>
+                  {room.hidden ? 'I' : 'V'}
                 </div>
-                <span className={`absolute ml-2 text-xs font-bold text-white ${!room.hidden ? 'ml-11' : ''}`}>
-                  {!room.hidden ? 'Invisible' : 'Visible'}
+                <span className={`absolute ml-2 text-xs font-bold text-white ${room.hidden ? 'ml-11' : ''}`}>
+                  {room.hidden ? 'Invisible' : 'Visible'}
                 </span>
               </div>
             </div>
