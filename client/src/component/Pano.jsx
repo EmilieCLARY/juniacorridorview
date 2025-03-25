@@ -226,22 +226,24 @@ const PanoramaViewer = ({ location }) => {
   
   return (
     <div>
-      <h1>{visitType}</h1>
+      
       <div className="panorama-container">
-        <div className="rooms-list">
-          <h3>Salles visitables</h3>
-          <ul>
+        <div className="rooms-list flex-col">
+          <div className="font-title font-bold text-2xl text-junia-orange">
+            Autres Salles
+          </div>
+          
             {filteredRooms.map(room => (
-              <li key={room.id_rooms} onClick={() => handleRoomClick(room.id_rooms)}>
-                {room.name} ({room.number})
+              <div key={room.id_rooms} className="flex items-end justify-center h-150" onClick={() => handleRoomClick(room.id_rooms)}>
+                <div className="text-junia-orange font-bold bottom-0 absolute  z-1">{room.name} ({room.number})</div>
                 {roomPreviews[room.id_rooms] && (
-                  <div className="room-preview">
+                  <div className="room-preview z-0 bottom-0">
                     <img src={roomPreviews[room.id_rooms]} alt={`Preview of ${room.name}`} />
                   </div>
                 )}
-              </li>
+              </div>
             ))}
-          </ul>
+          
         </div>
         <div>
           {/*{images.map((image, index) => (
@@ -253,7 +255,7 @@ const PanoramaViewer = ({ location }) => {
           ))}*/}
         </div>
         <div className="panorama-content">
-        <h2>Salle actuelle : {currentRoomName} ({currentRoomNumber})</h2>
+        {/*<h2>Salle actuelle : {currentRoomName} ({currentRoomNumber})</h2>*/}
           <Panorama360 
             infoPopups={infoPopups[currentImageId] || []} 
             selectedPicture={images.find(image => image.id === currentImageId)?.imageBlob ? URL.createObjectURL(images.find(image => image.id === currentImageId).imageBlob) : null} 

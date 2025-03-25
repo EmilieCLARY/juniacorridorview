@@ -99,11 +99,11 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
         context.textAlign = 'center';
         context.fillText(popup.title.toUpperCase(), canvasWidth / 2, 90);
 
-        // 'X' button
-        context.font = 'Bold 70px Arial';
-        context.fillStyle = '#3c2c53';
-        context.textAlign = 'center';
-        context.fillText('X', canvasWidth - 80, 80);
+        //// 'X' button
+        //context.font = 'Bold 70px Arial';
+        //context.fillStyle = '#3c2c53';
+        //context.textAlign = 'center';
+        //context.fillText('X', canvasWidth - 80, 80);
 
         // Text
         context.font = 'Normal 50px Arial';
@@ -187,11 +187,11 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
         context.textAlign = 'center';
         context.fillText(popup.title.toUpperCase(), canvasWidth / 2, 90);
 
-        // 'X' button
-        context.font = 'Bold 70px Arial';
-        context.fillStyle = '#3c2c53';
-        context.textAlign = 'center';
-        context.fillText('X', canvasWidth - 80, 80);
+        //// 'X' button
+        //context.font = 'Bold 70px Arial';
+        //context.fillStyle = '#3c2c53';
+        //context.textAlign = 'center';
+        //context.fillText('X', canvasWidth - 80, 80);
 
         // Text
         context.font = 'Normal 50px Arial';
