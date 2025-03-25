@@ -8,7 +8,8 @@ const session = require("express-session");
 const fileUpload = require('express-fileupload'); // Add this line
 const mysql = require('mysql');
 const saltRounds = 10;
-const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture, getTours, getTourStepsWithRoomInfo, updateTourSteps, addTourStep, createTourWithSteps, deleteTour, getRoomNameById, getRoomIdByPictureId, getRooms, getPicturesByRoomId, getFirstPictureByRoomId, updateImage, deleteImage, updateInfospot, updateLink, addRoom, updateRoom, deleteRoom, getBuildings, updateRoomVisibility, insertRoomPreview, getRoomPreview } = require('./database');
+const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture, getTours, getTourStepsWithRoomInfo, updateTourSteps, addTourStep, createTourWithSteps, deleteTour, getRoomNameById, getRoomIdByPictureId, getRooms, getPicturesByRoomId, getFirstPictureByRoomId, updateImage, deleteImage, updateInfospot, updateLink, addRoom, updateRoom, deleteRoom, getBuildings, updateRoomVisibility, insertRoomPreview, getRoomPreview, deleteInfoPopUp, deleteLink} = require('./database');
+
 
 const PORT = process.env.PORT || 8000;
 
@@ -354,11 +355,35 @@ app.post('/update-infospot', (req, res) => {
     });
 });
 
+app.delete('/delete-infospot/:id', (req, res) => {
+    const id_info_popup = req.params.id;
+    deleteInfoPopUp(id_info_popup, (err) => {
+        if (err) {
+            console.error('Error deleting infospot:', err);
+            res.sendStatus(500);
+        } else {
+            res.sendStatus(200);
+        }
+    });
+});
+
 app.post('/update-link', (req, res) => {
     const { id_links, id_pictures, posX, posY, posZ, id_pictures_destination } = req.body;
     updateLink(id_links, id_pictures, posX, posY, posZ, id_pictures_destination, (err) => {
         if (err) {
             console.error('Error updating link:', err);
+            res.sendStatus(500);
+        } else {
+            res.sendStatus(200);
+        }
+    });
+});
+
+app.delete('/delete-link/:id', (req, res) => {
+    const id_links = req.params.id;
+    deleteLink(id_links, (err) => {
+        if (err) {
+            console.error('Error deleting link:', err);
             res.sendStatus(500);
         } else {
             res.sendStatus(200);

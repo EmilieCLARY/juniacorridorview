@@ -173,6 +173,7 @@ const deleteImage = async (id_pictures) => {
     }
 };
 
+
 const updateRoomVisibility = async (id_rooms, hidden) => {
   try {
     await api.post('/update-room-visibility', { id_rooms, hidden });
@@ -206,6 +207,38 @@ const getRoomPreview = async (id_rooms) => {
     }
     return null;
   }
+
+const updateInfospot = async (formData) => {
+    try {
+        await api.post('/update-infospot', formData);
+    } catch (error) {
+        console.error('Error updating infospot:', error);
+    }
+};
+
+const updateLink = async (formData) => {
+    try {
+        await api.post('/update-link', formData);
+    } catch (error) {
+        console.error('Error updating link:', error);
+    }
+};
+
+const deleteLink = async (id_links) => {
+    try {
+        await api.delete(`/delete-link/${id_links}`);
+    } catch (error) {
+        console.error('Error deleting link:', error);
+    }
+};
+
+const deleteInfospot = async (id_infospots) => {
+    try {
+        await api.delete(`/delete-infospot/${id_infospots}`);
+    } catch (error) {
+        console.error('Error deleting infospot:', error);
+    }
+
 };
 
 export {
@@ -226,4 +259,8 @@ export {
   deleteImage,
   updateRoomVisibility,
   getRoomPreview
+  updateInfospot,
+  updateLink,
+  deleteLink,
+  deleteInfospot
 };
