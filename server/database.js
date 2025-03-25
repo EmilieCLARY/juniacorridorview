@@ -231,6 +231,14 @@ function deleteRoom(id_rooms, callback) {
     });
 }
 
+function updateRoomVisibility(id_rooms, hidden, callback) {
+    console.log('Updating room visibility', id_rooms, hidden);
+    const sql = `UPDATE Rooms SET hidden = ? WHERE id_rooms = ?`;
+    db.query(sql, [hidden, id_rooms], (err) => {
+        callback(err);
+    });
+}
+
 function retrieveInfoPopUpByIdPicture(id_pictures, callback) {
     const sql = `SELECT * FROM Info_Popup WHERE id_pictures = ?`;
     db.query(sql, [id_pictures], (err, rows) => {
@@ -470,5 +478,6 @@ module.exports = {
     addRoom,
     updateRoom,
     deleteRoom,
+    updateRoomVisibility,
     getBuildings
 };

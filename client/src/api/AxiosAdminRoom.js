@@ -177,6 +177,14 @@ const deleteImage = async (id_pictures) => {
     }
 };
 
+const updateRoomVisibility = async (id_rooms, hidden) => {
+  try {
+    await api.post('/update-room-visibility', { id_rooms, hidden });
+  } catch (error) {
+    console.error('Error updating room visibility:', error);
+  }
+};
+
 export {
   getRooms,
   getPicturesByRoomId,
@@ -192,5 +200,6 @@ export {
   updateRoom,
   deleteRoom,
   updateImage,
-  deleteImage
+  deleteImage,
+  updateRoomVisibility
 };

@@ -8,7 +8,7 @@ const session = require("express-session");
 const fileUpload = require('express-fileupload'); // Add this line
 const mysql = require('mysql');
 const saltRounds = 10;
-const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture, getTours, getTourStepsWithRoomInfo, updateTourSteps, addTourStep, createTourWithSteps, deleteTour, getRoomNameById, getRoomIdByPictureId, getRooms, getPicturesByRoomId, getFirstPictureByRoomId, updateImage, deleteImage, updateInfospot, updateLink, addRoom, updateRoom, deleteRoom,getBuildings } = require('./database');
+const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture, getTours, getTourStepsWithRoomInfo, updateTourSteps, addTourStep, createTourWithSteps, deleteTour, getRoomNameById, getRoomIdByPictureId, getRooms, getPicturesByRoomId, getFirstPictureByRoomId, updateImage, deleteImage, updateInfospot, updateLink, addRoom, updateRoom, deleteRoom,getBuildings, updateRoomVisibility } = require('./database');
 
 const PORT = process.env.PORT || 8000;
 
@@ -388,6 +388,18 @@ app.post('/update-room', (req, res) => {
             res.sendStatus(200);
         }
     });
+});
+
+app.post('/update-room-visibility', (req, res) => {
+  const { id_rooms, hidden } = req.body;
+  updateRoomVisibility(id_rooms, hidden, (err) => {
+    if (err) {
+      console.error('Error updating room visibility:', err);
+      res.sendStatus(500);
+    } else {
+      res.sendStatus(200);
+    }
+  });
 });
 
 app.delete('/delete-room/:id', (req, res) => {

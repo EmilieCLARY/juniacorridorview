@@ -313,6 +313,20 @@ const AdminRoom = () => {
     }
   };
 
+  const toggleRoomVisibility = async (event, room) => {
+    event.stopPropagation();
+    event.preventDefault();
+    try {
+      const updatedRoom = { ...room, hidden: !room.hidden };
+      await api.updateRoomVisibility(updatedRoom.id_rooms, updatedRoom.hidden);
+      setRooms(prevRooms => prevRooms.map(r => r.id_rooms === room.id_rooms ? updatedRoom : r));
+      toast.success(`La salle a été ${updatedRoom.hidden ? 'désactivée' : 'activée'}`);
+    } catch (error) {
+      console.error('Error toggling room visibility:', error);
+      toast.error('Erreur lors du changement de visibilité de la salle');
+    }
+  };
+
   return (
     <div className="container mx-auto p-4">
       <button 
@@ -379,11 +393,24 @@ const AdminRoom = () => {
             className="p-4 border border-gray-300 rounded shadow hover:shadow-lg transition-shadow duration-300"
             onClick={() => handleRoomClick(room.id_rooms)}
           >
-            <div className="mb-2">
-              <h3 className="text-xl font-bold">{room.name}</h3>
-              <p>Numéro de salle : {room.number}</p>
-              <p>Bâtiment : {room.building_name}</p>
-              <p>ID Salle: {room.id_rooms}</p>
+            <div className="mb-2 flex justify-between items-center">
+              <div>
+                <h3 className="text-xl font-bold">{room.name}</h3>
+                <p>Numéro de salle : {room.number}</p>
+                <p>Bâtiment : {room.building_name}</p>
+                <p>ID Salle: {room.id_rooms}</p>
+              </div>
+              <div 
+                onClick={(event) => toggleRoomVisibility(event, room)}
+                className={`flex items-center cursor-pointer rounded-full w-24 h-10 p-1 ${!room.hidden ? 'bg-red-500' : 'bg-green-500'}`}
+              >
+                <div className={`flex items-center justify-center text-xs font-medium h-8 w-8 rounded-full transition-transform duration-300 transform ${!room.hidden ? 'bg-white' : 'translate-x-14 bg-white'}`}>
+                  {!room.hidden ? 'I' : 'V'}
+                </div>
+                <span className={`absolute ml-2 text-xs font-bold text-white ${!room.hidden ? 'ml-11' : ''}`}>
+                  {!room.hidden ? 'Invisible' : 'Visible'}
+                </span>
+              </div>
             </div>
             {room.imageUrl && (
               <div className="w-full h-48 overflow-hidden rounded">
