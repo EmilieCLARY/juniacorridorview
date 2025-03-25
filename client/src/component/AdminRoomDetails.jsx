@@ -575,8 +575,8 @@ const AdminRoomDetails = () => {
                   <input type="text" name="posX" placeholder="Position X" value={parseFloat(posX).toFixed(4) || ''} onChange={(e) => setPosX(e.target.value)} required readOnly />
                   <input type="text" name="posY" placeholder="Position Y" value={parseFloat(posY).toFixed(4) || ''} onChange={(e) => setPosY(e.target.value)} required readOnly />
                   <input type="text" name="posZ" placeholder="Position Z" value={parseFloat(posZ).toFixed(4) || ''} onChange={(e) => setPosZ(e.target.value)} required readOnly />
-                  <input type="text" name="text" placeholder="Texte" required defaultValue={editInfospotMod ? infospotToEdit.text : ''}/>
-                  <input type="text" name="title" placeholder="Titre" required defaultValue={editInfospotMod ? infospotToEdit.title : ''}/>
+                  <input type="text" name="text" placeholder="Texte" required defaultValue={editInfospotMod ? infospotToEdit.text : ''} maxLength="300"/>
+                  <input type="text" name="title" placeholder="Titre" required defaultValue={editInfospotMod ? infospotToEdit.title : ''} maxLength="40"/>
                   <input type="file" name="pic" />
                   <button type="submit">{editInfospotMod ? "Modifier" : "Ajouter"}</button>
                 </form>
