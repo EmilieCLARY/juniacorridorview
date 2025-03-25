@@ -255,6 +255,14 @@ function deleteRoom(id_rooms, callback) {
     });
 }
 
+function updateRoomVisibility(id_rooms, hidden, callback) {
+    console.log('Updating room visibility', id_rooms, hidden);
+    const sql = `UPDATE Rooms SET hidden = ? WHERE id_rooms = ?`;
+    db.query(sql, [hidden, id_rooms], (err) => {
+        callback(err);
+    });
+}
+
 function retrieveInfoPopUpByIdPicture(id_pictures, callback) {
     const sql = `SELECT * FROM Info_Popup WHERE id_pictures = ?`;
     db.query(sql, [id_pictures], (err, rows) => {
@@ -466,6 +474,65 @@ const deleteTour = (id_tours, callback) => {
     });
 };
 
+const getRoomPreview = (id_rooms, callback) => {
+    const sql = `SELECT preview FROM Room_Previews WHERE id_rooms = ? LIMIT 1`;
+    db.query(sql, [id_rooms], (err, rows) => {
+        if (err) {
+            console.error('Error fetching room preview', err);
+            callback(err, null);
+        } else {
+            if (rows.length > 0) {
+                callback(null, rows[0].preview);
+            } else {
+                callback(null, null);
+            }
+        }
+    });
+};
+
+const insertRoomPreview = (id_rooms, previewData, callback) => {
+    console.log('Inserting room preview for room', id_rooms);
+    const checkSql = `SELECT id_room_previews FROM Room_Previews WHERE id_rooms = ?`;
+    db.query(checkSql, [id_rooms], (err, rows) => {
+        if (err) {
+            console.error('Error checking for existing room preview', err);
+            callback(err);
+            return;
+        }
+        
+        if (rows.length > 0) {
+            // Update existing preview
+            const updateSql = `UPDATE Room_Previews SET preview = ? WHERE id_rooms = ?`;
+            db.query(updateSql, [previewData, id_rooms], (err) => {
+                if (err) {
+                    console.error('Error updating room preview', err);
+                }
+                callback(err);
+            });
+        } else {
+            // Insert new preview
+            const insertSql = `INSERT INTO Room_Previews (id_rooms, preview) VALUES (?, ?)`;
+            db.query(insertSql, [id_rooms, previewData], (err) => {
+                if (err) {
+                    console.error('Error inserting room preview', err);
+                }
+                callback(err);
+            });
+        }
+    });
+};
+
+const deleteRoomPreview = (id_rooms, callback) => {
+    console.log('Deleting room preview for room', id_rooms);
+    const sql = `DELETE FROM Room_Previews WHERE id_rooms = ?`;
+    db.query(sql, [id_rooms], (err) => {
+        if (err) {
+            console.error('Error deleting room preview', err);
+        }
+        callback(err);
+    });
+};
+
 module.exports = {
     db,
     getTables,
@@ -496,5 +563,9 @@ module.exports = {
     addRoom,
     updateRoom,
     deleteRoom,
-    getBuildings
+    updateRoomVisibility,
+    getBuildings,
+    getRoomPreview,
+    insertRoomPreview,
+    deleteRoomPreview
 };

@@ -24,7 +24,8 @@ const AdminRoom = () => {
     name: '',
     building: '',
     buildingId: '',
-    images: []
+    images: [],
+    previewImage: null
   });
   const [debugInfo, setDebugInfo] = useState({ error: null, buildingData: null });
   const [editRoomData, setEditRoomData] = useState({
@@ -32,7 +33,8 @@ const AdminRoom = () => {
     number: '',
     name: '',
     building: '',
-    images: []
+    images: [],
+    previewImage: null
   });
   const history = useHistory();
   const dataFetchedRef = useRef(false);
@@ -90,14 +92,44 @@ const AdminRoom = () => {
       
       const roomsWithImages = await Promise.all(
         roomsData.map(async room => {
-          const pictures = await api.getPicturesByRoomId(room.id_rooms);
-          const imageUrl = pictures.length > 0 ? await api.getImage(pictures[0].id_pictures) : null;
+          // First try to get the preview image
+          let previewUrl = null;
+          let hasPreview = false;
+          
+          try {
+            previewUrl = await api.getRoomPreview(room.id_rooms);
+            // If we got a valid URL back, set hasPreview to true
+            hasPreview = !!previewUrl;
+          } catch (error) {
+            // Just silently continue if preview fetch fails
+            console.log(`No preview found for room ${room.id_rooms}`);
+          }
+          
+          // If no preview, fall back to the panoramic image
+          let imageUrl = null;
+          if (!previewUrl) {
+            try {
+              const pictures = await api.getPicturesByRoomId(room.id_rooms);
+              if (pictures.length > 0) {
+                imageUrl = await api.getImage(pictures[0].id_pictures);
+              }
+            } catch (error) {
+              console.log(`Error fetching panoramic image for room ${room.id_rooms}:`, error);
+            }
+          } else {
+            imageUrl = previewUrl;
+          }
           
           // Find the building name that corresponds to this room's building_id
           const building = buildingsData.find(b => b.id_buildings === room.id_buildings);
           const building_name = building ? building.name : 'Bâtiment inconnu';
 
-          return { ...room, imageUrl, building_name };
+          return { 
+            ...room, 
+            imageUrl, 
+            building_name,
+            hasPreview 
+          };
         })
       );
       setRooms(roomsWithImages);
@@ -135,7 +167,10 @@ const AdminRoom = () => {
 
   const getUniqueOptions = (key) => {
     const uniqueValues = [...new Set(rooms.map(room => room[key]))];
-    return uniqueValues.map(value => ({ value, label: value }));
+    // Sort values alphabetically
+    return uniqueValues
+      .sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' }))
+      .map(value => ({ value, label: value }));
   };
 
   const filteredRooms = rooms.filter(room =>
@@ -163,6 +198,14 @@ const AdminRoom = () => {
     setNewRoomData(prevData => ({
       ...prevData,
       images: files
+    }));
+  };
+
+  const handleNewRoomPreviewChange = (e) => {
+    const file = e.target.files[0];
+    setNewRoomData(prevData => ({
+      ...prevData,
+      previewImage: file
     }));
   };
 
@@ -213,10 +256,9 @@ const AdminRoom = () => {
       console.log(`Using building ID: ${newRoomData.buildingId} with name: ${newRoomData.building} for new room`);
     }
     
-    // Log all form data for debugging
-    console.log("Form data entries:");
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}: ${value}`);
+    // Add preview image to form data
+    if (newRoomData.previewImage) {
+      formData.append('previewImage', newRoomData.previewImage);
     }
     
     // Add images to form data
@@ -232,7 +274,8 @@ const AdminRoom = () => {
         name: '',
         building: '',
         buildingId: '',
-        images: []
+        images: [],
+        previewImage: null
       });
       showLoading([fetchRooms()], 'Ajout de la salle...', 'Salle ajoutée avec succès', 'Erreur lors de l\'ajout de la salle');
     } catch (error) {
@@ -256,7 +299,6 @@ const AdminRoom = () => {
   const handleEditRoom = async (event, room) => {
     event.stopPropagation();
     event.preventDefault();
-    console.log(room);
     setEditRoomData({
       id_rooms: room.id_rooms,
       number: room.number,
@@ -283,18 +325,36 @@ const AdminRoom = () => {
     }));
   };
 
+  const handleEditRoomPreviewChange = (e) => {
+    const file = e.target.files[0];
+    setEditRoomData(prevData => ({
+      ...prevData,
+      previewImage: file
+    }));
+  };
+
   const handleEditRoomSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
     formData.append('id_rooms', editRoomData.id_rooms);
     formData.append('number', editRoomData.number);
     formData.append('name', editRoomData.name);
+    
+    // Find the building and add error handling
     const building = rooms.find(room => room.building_name === editRoomData.building);
+    if (!building) {
+      console.error(`Building with name "${editRoomData.building}" not found`);
+      toast.error(`Bâtiment "${editRoomData.building}" introuvable. Veuillez réessayer.`);
+      return;
+    }
+    
     formData.append('id_buildings', building.id_buildings);
-    // Add images to form data
-    editRoomData.images.forEach(image => {
-      formData.append('images', image);
-    });
+    
+    // Add preview image to form data if it exists
+    if (editRoomData.previewImage) {
+      formData.append('previewImage', editRoomData.previewImage);
+    }
+        
     try {
       const updatePromise = api.updateRoom(formData);
       updatePromise.then(() => {
@@ -304,11 +364,31 @@ const AdminRoom = () => {
           number: '',
           name: '',
           building: '',
+          images: [],
+          previewImage: null
         });
       });
       showLoading([updatePromise, fetchRooms()], 'Modification de la salle...', 'Salle modifiée avec succès', 'Erreur lors de la modification de la salle');
     } catch (error) {
       console.error('Error updating room:', error);
+      toast.error('Erreur lors de la modification de la salle');
+    }
+
+    // Remove the try-catch block that's causing the error
+    // The room data will be refreshed by the fetchRooms call above
+  };
+
+  const toggleRoomVisibility = async (event, room) => {
+    event.stopPropagation();
+    event.preventDefault();
+    try {
+      const updatedRoom = { ...room, hidden: !room.hidden };
+      await api.updateRoomVisibility(updatedRoom.id_rooms, updatedRoom.hidden);
+      setRooms(prevRooms => prevRooms.map(r => r.id_rooms === room.id_rooms ? updatedRoom : r));
+      toast.success(`La salle a été ${updatedRoom.hidden ? 'désactivée' : 'activée'}`);
+    } catch (error) {
+      console.error('Error toggling room visibility:', error);
+      toast.error('Erreur lors du changement de visibilité de la salle');
     }
   };
 
@@ -364,7 +444,7 @@ const AdminRoom = () => {
         <Select
           isMulti
           name="id"
-          options={rooms.map(room => ({ value: room.id_rooms.toString(), label: room.id_rooms.toString() }))}
+          options={rooms.map(room => ({ value: room.id_rooms.toString(), label: room.id_rooms.toString() })).sort((a, b) => a.value - b.value)}
           className="basic-multi-select"
           classNamePrefix="select"
           placeholder="Filtrer par ID"
@@ -378,15 +458,33 @@ const AdminRoom = () => {
             className="p-4 border border-gray-300 rounded shadow hover:shadow-lg transition-shadow duration-300"
             onClick={() => handleRoomClick(room.id_rooms)}
           >
-            <div className="mb-2">
-              <h3 className="text-xl font-bold">{room.name}</h3>
-              <p>Numéro de salle : {room.number}</p>
-              <p>Bâtiment : {room.building_name}</p>
-              <p>ID Salle: {room.id_rooms}</p>
+            <div className="mb-2 flex justify-between items-center">
+              <div>
+                <h3 className="text-xl font-bold">{room.name}</h3>
+                <p>Numéro de salle : {room.number}</p>
+                <p>Bâtiment : {room.building_name}</p>
+                <p>ID Salle: {room.id_rooms}</p>
+              </div>
+              <div 
+                onClick={(event) => toggleRoomVisibility(event, room)}
+                className={`flex items-center cursor-pointer rounded-full w-24 h-10 p-1 ${room.hidden ? 'bg-red-500' : 'bg-green-500'}`}
+              >
+                <div className={`flex items-center justify-center text-xs font-medium h-8 w-8 rounded-full transition-transform duration-300 transform ${room.hidden ? 'bg-white' : 'translate-x-14 bg-white'}`}>
+                  {room.hidden ? 'I' : 'V'}
+                </div>
+                <span className={`absolute ml-2 text-xs font-bold text-white ${room.hidden ? 'ml-11' : ''}`}>
+                  {room.hidden ? 'Invisible' : 'Visible'}
+                </span>
+              </div>
             </div>
             {room.imageUrl && (
-              <div className="w-full h-48 overflow-hidden rounded">
+              <div className="w-full h-48 overflow-hidden rounded relative">
                 <img src={room.imageUrl} alt={`Preview of ${room.name}`} className="object-cover w-full h-full" />
+                {room.hasPreview && (
+                  <div className="absolute top-2 right-2 bg-junia-orange text-white text-xs font-bold px-2 py-1 rounded">
+                    Preview
+                  </div>
+                )}
               </div>
             )}
 
@@ -476,14 +574,26 @@ const AdminRoom = () => {
                   required 
                 />
               )}
-              <input 
-                type="file" 
-                name="images" 
-                accept="image/*" 
-                multiple 
-                onChange={handleNewRoomImagesChange} 
-                required 
-              />
+              <div className="form-group">
+                <label>Images panoramiques (360°)</label>
+                <input 
+                  type="file" 
+                  name="images" 
+                  accept="image/*" 
+                  multiple 
+                  onChange={handleNewRoomImagesChange} 
+                  required 
+                />
+              </div>
+              <div className="form-group">
+                <label>Image de prévisualisation de la salle</label>
+                <input 
+                  type="file" 
+                  name="previewImage" 
+                  accept="image/*" 
+                  onChange={handleNewRoomPreviewChange} 
+                />
+              </div>
               <button type="submit">Ajouter une salle</button>
             </form>
           </div>
@@ -524,13 +634,16 @@ const AdminRoom = () => {
                 }))}
                 required
               />
-              <input
-                type="file"
-                name="images"
-                accept="image/*"
-                multiple
-                onChange={handleEditRoomImagesChange}
-              />
+              {/* Removed panoramic images input */}
+              <div className="form-group">
+                <label>Modifier l'image de prévisualisation de la salle</label>
+                <input
+                  type="file"
+                  name="previewImage"
+                  accept="image/*"
+                  onChange={handleEditRoomPreviewChange}
+                />
+              </div>
               <button type="submit">Modifier la salle</button>
             </form>
           </div>

@@ -84,13 +84,9 @@ const getRoomDetails = async (id_rooms) => {
 
 const createRoom = async (formData) => {
   try {
-    console.log("Creating room with form data:");
-
     const response = await api.post('/add-room', formData);
     const id_rooms = response.data.id_rooms;
 
-    // Create a picture for each uploaded image
-    console.log(formData.getAll('images'));
     const imageUploadPromises = formData.getAll('images').map((image) => {
       const imageFormData = new FormData();
       imageFormData.append('id_rooms', id_rooms);
@@ -177,6 +173,41 @@ const deleteImage = async (id_pictures) => {
     }
 };
 
+
+const updateRoomVisibility = async (id_rooms, hidden) => {
+  try {
+    await api.post('/update-room-visibility', { id_rooms, hidden });
+  } catch (error) {
+    console.error('Error updating room visibility:', error);
+  }
+};
+
+const getRoomPreview = async (id_rooms) => {
+  try {
+    const response = await api.get(`/room-preview/${id_rooms}`, { 
+      responseType: 'blob',
+      validateStatus: status => {
+        // Consider both 200 and 404 as valid responses
+        return status === 200 || status === 404;
+      }
+    });
+    
+    // If we got a successful response with image data
+    if (response.status === 200) {
+      const imageUrl = URL.createObjectURL(response.data);
+      return imageUrl;
+    }
+    
+    // If we got a 404, return null (no preview image available)
+    return null;
+  } catch (error) {
+    // Only log errors that aren't 404s
+    if (error.response && error.response.status !== 404) {
+      console.error('Error fetching room preview image:', error);
+    }
+    return null;
+  }
+
 const updateInfospot = async (formData) => {
     try {
         await api.post('/update-infospot', formData);
@@ -207,6 +238,7 @@ const deleteInfospot = async (id_infospots) => {
     } catch (error) {
         console.error('Error deleting infospot:', error);
     }
+
 };
 
 export {
@@ -218,13 +250,15 @@ export {
   insertInfoPopUp,
   insertLink,
   getRoomDetails,
-  createRoom, // Export the new function
+  createRoom,
   getBuildings,
   createBuilding,
   updateRoom,
   deleteRoom,
   updateImage,
   deleteImage,
+  updateRoomVisibility,
+  getRoomPreview
   updateInfospot,
   updateLink,
   deleteLink,

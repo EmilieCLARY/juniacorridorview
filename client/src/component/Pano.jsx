@@ -216,7 +216,7 @@ const PanoramaViewer = ({ location }) => {
 
   const filteredRooms = useMemo(() => {
     // First filter out any rooms that are hidden
-    const visibleRooms = rooms.filter(room => room.hidden !== 0 && room.hidden !== null);
+    const visibleRooms = rooms.filter(room => room.hidden !== 1);
     
     // Then apply the tour-specific filtering if needed
     return visitType.startsWith('Visite guidée') 
