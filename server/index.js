@@ -8,7 +8,7 @@ const session = require("express-session");
 const fileUpload = require('express-fileupload'); // Add this line
 const mysql = require('mysql');
 const saltRounds = 10;
-const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture, getTours, getTourStepsWithRoomInfo, updateTourSteps, addTourStep, createTourWithSteps, deleteTour, getRoomNameById, getRoomIdByPictureId, getRooms, getPicturesByRoomId, getFirstPictureByRoomId, updateImage, deleteImage, updateInfospot, updateLink, addRoom, updateRoom, deleteRoom,getBuildings, updateRoomVisibility } = require('./database');
+const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture, getTours, getTourStepsWithRoomInfo, updateTourSteps, addTourStep, createTourWithSteps, deleteTour, getRoomNameById, getRoomIdByPictureId, getRooms, getPicturesByRoomId, getFirstPictureByRoomId, updateImage, deleteImage, updateInfospot, updateLink, addRoom, updateRoom, deleteRoom, getBuildings, updateRoomVisibility, insertRoomPreview, getRoomPreview } = require('./database');
 
 const PORT = process.env.PORT || 8000;
 
@@ -368,11 +368,22 @@ app.post('/update-link', (req, res) => {
 
 app.post('/add-room', (req, res) => {
     const { name, number, id_buildings } = req.body;
+    const previewImage = req.files && req.files.previewImage ? req.files.previewImage : null;
+    
     addRoom(name, number, id_buildings, (err, roomId) => {
         if (err) {
             console.error('Error adding room:', err);
             res.sendStatus(500);
         } else {
+            // If a preview image was provided, save it
+            if (previewImage) {
+                insertRoomPreview(roomId, previewImage.data, (err) => {
+                    if (err) {
+                        console.error('Error saving room preview image:', err);
+                        // Continue even if preview save fails
+                    }
+                });
+            }
             res.json({ id_rooms: roomId });
         }
     });
@@ -380,11 +391,22 @@ app.post('/add-room', (req, res) => {
 
 app.post('/update-room', (req, res) => {
     const { id_rooms, name, number, id_buildings } = req.body;
+    const previewImage = req.files && req.files.previewImage ? req.files.previewImage : null;
+    
     updateRoom(id_rooms, name, number, id_buildings, (err) => {
         if (err) {
             console.error('Error updating room:', err);
             res.sendStatus(500);
         } else {
+            // If a preview image was provided, update it
+            if (previewImage) {
+                insertRoomPreview(id_rooms, previewImage.data, (err) => {
+                    if (err) {
+                        console.error('Error updating room preview image:', err);
+                        // Continue even if preview update fails
+                    }
+                });
+            }
             res.sendStatus(200);
         }
     });
@@ -404,12 +426,49 @@ app.post('/update-room-visibility', (req, res) => {
 
 app.delete('/delete-room/:id', (req, res) => {
     const id_rooms = req.params.id;
-    deleteRoom(id_rooms, (err) => {
+    
+    // Delete the room preview first
+    deleteRoomPreview(id_rooms, (err) => {
         if (err) {
-            console.error('Error deleting room:', err);
+            console.error('Error deleting room preview:', err);
+            // Continue with room deletion even if preview deletion fails
+        }
+        
+        // Then delete the room
+        deleteRoom(id_rooms, (err) => {
+            if (err) {
+                console.error('Error deleting room:', err);
+                res.sendStatus(500);
+            } else {
+                res.sendStatus(200);
+            }
+        });
+    });
+});
+
+app.get('/room-preview/:id', (req, res) => {
+    const id_rooms = req.params.id;
+    getRoomPreview(id_rooms, async (err, previewData) => {
+        if (err) {
+            console.error('Error fetching room preview', err);
             res.sendStatus(500);
+        } else if (previewData) {
+            try {
+                const FileType = await import('file-type');
+                const contentType = await FileType.fileTypeFromBuffer(previewData);
+                if (contentType) {
+                    res.type(contentType.mime);
+                } else {
+                    res.type('application/octet-stream');
+                }
+                res.end(previewData);
+            } catch (error) {
+                console.error('Error determining file type', error);
+                res.type('application/octet-stream');
+                res.end(previewData);
+            }
         } else {
-            res.sendStatus(200);
+            res.sendStatus(404);
         }
     });
 });
