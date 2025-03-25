@@ -12,6 +12,7 @@ const TourViewer = () => {
   const [tourSteps, setTourSteps] = useState({});
   const [rooms, setRooms] = useState({});
   const [panoramaUrls, setPanoramaUrls] = useState({});
+  const [previewUrls, setPreviewUrls] = useState({});
   const [currentRoomName, setCurrentRoomName] = useState({});
   const loading = useRef(false);
   const history = useHistory();
@@ -35,26 +36,46 @@ const TourViewer = () => {
 
       // Fetch room details and one panorama URL for each step
       const roomDetails = await Promise.all(
-        stepsData.map(step => api.getRoomDetails(step.id_rooms))
+        stepsData.map(step => api.getRoomDetails(step.id_rooms)
+          .then(room => ({ ...room, id_rooms: step.id_rooms })) // Add id_rooms to the room object
+        )
       );
       setRooms(prevRooms => ({
         ...prevRooms,
         ...Object.fromEntries(roomDetails.map(room => [room.id_rooms, room]))
       }));
 
-      const panoramaUrlsData = await Promise.all(
+      // Try to get previews first, fall back to panorama images
+      const imageUrlsData = await Promise.all(
         stepsData.map(async step => {
-          const picture = await api.getFirstPictureByRoomId(step.id_rooms);
-          if (picture) {
-            const imageUrl = await api.getImage(picture.id_pictures);
-            return { id_rooms: step.id_rooms, imageUrl };
+          // First try to get room preview
+          const previewUrl = await api.getRoomPreview(step.id_rooms);
+          
+          if (previewUrl) {
+            // If we have a preview, use it
+            return { id_rooms: step.id_rooms, imageUrl: previewUrl, isPreview: true };
+          } else {
+            // If no preview, fallback to panorama
+            const picture = await api.getFirstPictureByRoomId(step.id_rooms);
+            if (picture) {
+              const imageUrl = await api.getImage(picture.id_pictures);
+              return { id_rooms: step.id_rooms, imageUrl, isPreview: false };
+            }
+            return { id_rooms: step.id_rooms, imageUrl: null, isPreview: false };
           }
-          return { id_rooms: step.id_rooms, imageUrl: null };
         })
       );
+      
+      // Store the image URLs
       setPanoramaUrls(prevUrls => ({
         ...prevUrls,
-        ...Object.fromEntries(panoramaUrlsData.map(panorama => [panorama.id_rooms, panorama.imageUrl]))
+        ...Object.fromEntries(imageUrlsData.map(data => [data.id_rooms, data.imageUrl]))
+      }));
+      
+      // Also store which images are previews (for UI indicators if needed)
+      setPreviewUrls(prevPreviewState => ({
+        ...prevPreviewState,
+        ...Object.fromEntries(imageUrlsData.map(data => [data.id_rooms, data.isPreview]))
       }));
     } catch (error) {
       console.error('Error fetching tour steps:', error);
@@ -118,8 +139,9 @@ const TourViewer = () => {
     let tmp = tourSteps[tourId].map(step => { 
       return { 
         src: panoramaUrls[step.id_rooms], 
-        alt: `Panorama of ${rooms[step.id_rooms]?.name}`,
-        roomName: rooms[step.id_rooms]?.name || 'Salle inconnue'
+        alt: `Image of ${rooms[step.id_rooms]?.name}`,
+        roomName: rooms[step.id_rooms]?.name || 'Salle inconnue',
+        isPreview: previewUrls[step.id_rooms] || false
       }; 
     });
     if (tmp.some(image => !image.src)) return []; // Wait until all URLs are available
