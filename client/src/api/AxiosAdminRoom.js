@@ -177,6 +177,38 @@ const deleteImage = async (id_pictures) => {
     }
 };
 
+const updateInfospot = async (formData) => {
+    try {
+        await api.post('/update-infospot', formData);
+    } catch (error) {
+        console.error('Error updating infospot:', error);
+    }
+};
+
+const updateLink = async (formData) => {
+    try {
+        await api.post('/update-link', formData);
+    } catch (error) {
+        console.error('Error updating link:', error);
+    }
+};
+
+const deleteLink = async (id_links) => {
+    try {
+        await api.delete(`/delete-link/${id_links}`);
+    } catch (error) {
+        console.error('Error deleting link:', error);
+    }
+};
+
+const deleteInfospot = async (id_infospots) => {
+    try {
+        await api.delete(`/delete-infospot/${id_infospots}`);
+    } catch (error) {
+        console.error('Error deleting infospot:', error);
+    }
+};
+
 export {
   getRooms,
   getPicturesByRoomId,
@@ -192,5 +224,9 @@ export {
   updateRoom,
   deleteRoom,
   updateImage,
-  deleteImage
+  deleteImage,
+  updateInfospot,
+  updateLink,
+  deleteLink,
+  deleteInfospot
 };

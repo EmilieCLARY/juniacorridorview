@@ -245,7 +245,6 @@ const AdminRoom = () => {
     event.stopPropagation();
     event.preventDefault();
     if (!window.confirm('Etes-vous sûr de vouloir supprimer la salle ?')) return;
-    console.log(id);
     try {
       await api.deleteRoom(id);
       showLoading([fetchRooms()], 'Suppression de la salle...', 'Salle supprimée avec succès', 'Erreur lors de la suppression de la salle');
