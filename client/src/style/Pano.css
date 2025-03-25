@@ -34,6 +34,25 @@
   margin-bottom: 20px;
 }
 
+.w-15{
+  width: 15%;
+}
+.wrapped-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  
+}
+.wrapped-text:hover {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  /*background-color: white;*/
+  display: inline-block;
+  width: 15%;
+    
+}
+/*
 .rooms-list {
   width: 200px;
   padding: 10px;
@@ -48,7 +67,7 @@
 .rooms-list li {
   margin-bottom: 10px;
   cursor: pointer;
-}
+}*/
 
 .panorama-content {
   flex: 1;
@@ -77,3 +96,27 @@
   border: 1px solid #ccc;
   border-radius: 5px;
 }
+.text-ellipsis-none {
+  text-overflow: clip;
+}
+
+.h-90 {
+  height: 90px;
+}
+
+
+.bg-gradient-to-t {
+  background-image: linear-gradient(to top, white 0%, transparent 100%);
+}
+
+
+.radh-20 {
+  height: 20px;
+}
+
+
+/*bg-light-white un fond blanc avec un peu de transparence*/
+.bg-light-white {
+  background-color: rgba(255, 255, 255, 0.8);
+}
+

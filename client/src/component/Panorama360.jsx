@@ -196,6 +196,7 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
         context.fillStyle = 'white';
         context.textAlign = 'center';
 
+
         // Wrap title text if it exceeds the canvas width
         const titleLines = wrapText(context, popup.title.toUpperCase().slice(0, 40), canvasWidth - 100); // Add padding
         const titleYStart = 80; // Starting Y position for the title

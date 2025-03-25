@@ -226,22 +226,27 @@ const PanoramaViewer = ({ location }) => {
   
   return (
     <div>
-      <h1>{visitType}</h1>
+      
       <div className="panorama-container">
-        <div className="rooms-list">
-          <h3>Salles visitables</h3>
-          <ul>
-            {filteredRooms.map(room => (
-              <li key={room.id_rooms} onClick={() => handleRoomClick(room.id_rooms)}>
-                {room.name} ({room.number})
+        <div className="rooms-list flex-col w-15">
+          <div className="font-title font-bold text-2xl text-junia-orange">
+            Autres Salles
+          </div>
+          
+          {filteredRooms.map(room => (
+              <div key={room.id_rooms} className="flex  justify-start items-end h-64 m-2" onClick={() => handleRoomClick(room.id_rooms)}>
+                
                 {roomPreviews[room.id_rooms] && (
-                  <div className="room-preview">
-                    <img src={roomPreviews[room.id_rooms]} alt={`Preview of ${room.name}`} />
+                  <div className=" w-full h-full relative">
+                    <img src={roomPreviews[room.id_rooms]} alt={`Preview of ${room.name}`} className="h-full w-full object-cover rounded-lg" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-white to-transparent rounded-lg"></div>
+                   
                   </div>
                 )}
-              </li>
+                <div className="text-junia-orange font-bold absolute bottom-0 z-10 w-15 wrapped-text  px-3">{room.name} ({room.number})</div>
+              </div>
             ))}
-          </ul>
+          
         </div>
         <div>
           {/*{images.map((image, index) => (
@@ -253,7 +258,7 @@ const PanoramaViewer = ({ location }) => {
           ))}*/}
         </div>
         <div className="panorama-content">
-        <h2>Salle actuelle : {currentRoomName} ({currentRoomNumber})</h2>
+        {/*<h2>Salle actuelle : {currentRoomName} ({currentRoomNumber})</h2>*/}
           <Panorama360 
             infoPopups={infoPopups[currentImageId] || []} 
             selectedPicture={images.find(image => image.id === currentImageId)?.imageBlob ? URL.createObjectURL(images.find(image => image.id === currentImageId).imageBlob) : null} 
