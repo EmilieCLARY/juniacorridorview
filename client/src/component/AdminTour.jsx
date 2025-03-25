@@ -39,6 +39,7 @@ const AdminTour = () => {
   const [rooms, setRooms] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [panoramaUrls, setPanoramaUrls] = useState({});
+  const [previewUrls, setPreviewUrls] = useState({}); // Add this state for tracking previews
   const [currentRoomName, setCurrentRoomName] = useState({});
   const loading = useRef(false);
   const history = useHistory();
@@ -56,19 +57,33 @@ const AdminTour = () => {
       const panoramaUrlsData = await Promise.all(
         steps.map(async step => {
           try {
-            const picture = await tourApi.getFirstPictureByRoomId(step.id_rooms);
-            if (picture) {
-              const imageUrl = await tourApi.getImage(picture.id_pictures);
-              return { id_rooms: step.id_rooms, imageUrl };
+            // First try to get room preview
+            const previewUrl = await tourApi.getRoomPreview(step.id_rooms);
+            
+            if (previewUrl) {
+              // If we have a preview, use it
+              return { id_rooms: step.id_rooms, imageUrl: previewUrl, isPreview: true };
+            } else {
+              // If no preview, fallback to panorama
+              const picture = await tourApi.getFirstPictureByRoomId(step.id_rooms);
+              if (picture) {
+                const imageUrl = await tourApi.getImage(picture.id_pictures);
+                return { id_rooms: step.id_rooms, imageUrl, isPreview: false };
+              }
+              console.log(`No picture found for room ID: ${step.id_rooms}`);
+              return { id_rooms: step.id_rooms, imageUrl: null, isPreview: false };
             }
-            console.log(`No picture found for room ID: ${step.id_rooms}`);
-            return { id_rooms: step.id_rooms, imageUrl: null };
           } catch (error) {
-            console.error(`Error fetching panorama for room ${step.id_rooms}:`, error);
-            return { id_rooms: step.id_rooms, imageUrl: null };
+            console.error(`Error fetching images for room ${step.id_rooms}:`, error);
+            return { id_rooms: step.id_rooms, imageUrl: null, isPreview: false };
           }
         })
       );
+      
+      // Store which images are previews
+      setPreviewUrls(Object.fromEntries(panoramaUrlsData.map(data => [data.id_rooms, data.isPreview])));
+      
+      // Return panorama URLs as before
       return Object.fromEntries(panoramaUrlsData.map(panorama => [panorama.id_rooms, panorama.imageUrl]));
     } catch (error) {
       console.error('Error in fetchPanoramaUrls:', error);
@@ -297,6 +312,7 @@ const AdminTour = () => {
         src: panoramaUrls[step.id_rooms] || 'https://via.placeholder.com/800x600?text=No+Image+Available', 
         alt: `Panorama of ${step.room_name}`, 
         roomName: step.room_name,
+        isPreview: previewUrls[step.id_rooms] || false,
         isPlaceholder: !panoramaUrls[step.id_rooms]
       }; 
     });

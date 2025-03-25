@@ -28,6 +28,10 @@ const AdminRoomDetails = () => {
   const [roomName, setRoomName] = useState('');
   const dataFetchedRef = useRef(false);
   const firstLoad = useRef(true);
+  const [linkToEdit, setLinkToEdit] = useState(null);
+  const [editLinkMod, setEditLinkMod] = useState(false);
+  const [infospotToEdit, setInfospotToEdit] = useState(null);
+  const [editInfospotMod, setEditInfospotMod] = useState(false);
 
   // Separate state for modal panorama
   const [modalSelectedPicture, setModalSelectedPicture] = useState('');
@@ -140,6 +144,12 @@ const AdminRoomDetails = () => {
   const handleNewInfospotSubmit = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
+    // If input file is empty, alert the user
+    if (formData.get('pic').size === 0) {
+        alert('Veuillez sélectionner une image pour l\'infobulle');
+        return;
+    }
+
     await api.insertInfoPopUp(formData);
     
     // Mettre à jour les infopopups pour l'image sélectionnée
@@ -239,6 +249,11 @@ const AdminRoomDetails = () => {
   const closeModalInfospot = () => {
     setNewInfospotModalOpen(false);
     setDisableBackgroundClick(false);
+    setEditInfospotMod(false);
+    setInfospotToEdit(null);
+    setPosX('');
+    setPosY('');
+    setPosZ('');
   }
 
   const handleModalLink = () => {
@@ -273,9 +288,14 @@ const AdminRoomDetails = () => {
   const closeModalLink = () => {
     setNewLinkModalOpen(false);
     setDisableBackgroundClick(false);
+    setEditLinkMod(false);
+    setLinkToEdit(null);
+    setPosX('');
+    setPosY('');
+    setPosZ('');
   }
 
-  const handleSelectPositionClick = () => {
+  const handleSelectPositionClick = (e) => {
     setIsSelectingPosition(true);
     window.isSelectingPosition = true;
     window.isFirstClick = true;
@@ -298,6 +318,121 @@ const AdminRoomDetails = () => {
       setIsLoadingModal(false);
     });
   };
+
+  const handleDeleteInfoPopup = async (event, id) => {
+    event.stopPropagation();
+    event.preventDefault();
+    if (!window.confirm('Etes-vous sûr de vouloir supprimer l\'infobulle ?')) return;
+    try {
+        const deletePromise = api.deleteInfospot(id);
+        deletePromise.then(() => {
+            const updatedInfoPopups = infoPopups.filter(popup => popup.id_info_popup !== id);
+            setInfoPopups(updatedInfoPopups);
+            const updatedAllInfoPopups = allInfoPopups.filter(popup => popup.id_info_popup !== id);
+            setAllInfoPopups(updatedAllInfoPopups);
+            toast.success('Infobulle supprimée');
+        });
+    } catch (error) {
+        console.error('Error deleting infopopup:', error);
+    }
+  }
+
+  const handleEditInfoPopup = async (event, popup) => {
+    console.log('Editing infopopup', popup);
+    setDisableBackgroundClick(true);
+    setInfospotToEdit(popup);
+    setEditInfospotMod(true);
+    setPosX(popup.position_x);
+    setPosY(popup.position_y);
+    setPosZ(popup.position_z);
+    // Display the image of current picture containing the infopopup
+    const imageUrl = pictures.find(pic => pic.id_pictures === popup.id_pictures).imageUrl;
+    handleModalPictureClick(imageUrl, popup.id_pictures);
+    setNewInfospotModalOpen(true);
+  }
+
+  const handleEditInfospotSubmit = async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    // If input file is empty, delete the image from the form data
+    if (formData.get('pic').size === 0) {
+        formData.delete('pic');
+    }
+    formData.append('id_info_popup', infospotToEdit.id_info_popup);
+    await api.updateInfospot(formData);
+    const updatedInfoPopups = await getInfoPopup(selectedImageId);
+    setInfoPopups(updatedInfoPopups);
+    const allImageInfoPopups = await Promise.all(
+        pictures.map(async (pic) => await api.getInfoPopup(pic.id_pictures))
+    );
+    setAllInfoPopups(allImageInfoPopups.flat());
+    if (selectedPicture) {
+        const currentImage = selectedPicture;
+        const currentId = selectedImageId;
+        setSelectedPicture('');
+        setIsLoading(true);
+        setTimeout(() => {
+            handlePictureClick(currentImage, currentId);
+        }, 100);
+    }
+    setNewInfospotModalOpen(false);
+    setDisableBackgroundClick(false);
+    setEditInfospotMod(false);
+  }
+
+  const handleDeleteLink = async (event, id) => {
+    event.stopPropagation();
+    event.preventDefault();
+    if (!window.confirm('Etes-vous sûr de vouloir supprimer le lien ?')) return;
+    try {
+      const deletePromise = api.deleteLink(id);
+      deletePromise.then(() => {
+        const updatedLinks = links.filter(link => link.id_links !== id);
+        setLinks(updatedLinks);
+        const updatedAllLinks = allLinks.filter(link => link.id_links !== id);
+        setAllLinks(updatedAllLinks);
+        toast.success('Lien supprimé');
+      });
+    } catch (error) {
+        console.error('Error deleting link:', error);
+    }
+  }
+
+  const handleEditLink = async (event, link) => {
+    console.log('Editing link', link);
+    setDisableBackgroundClick(true);
+    setLinkToEdit(link);
+    setEditLinkMod(true);
+    // Display the image of current link
+    const imageUrl = pictures.find(pic => pic.id_pictures === link.id_pictures).imageUrl;
+    handleModalPictureClick(imageUrl, link.id_pictures);
+    setNewLinkModalOpen(true);
+  }
+
+  const handleEditLinkSubmit = async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    formData.append('id_links', linkToEdit.id_links);
+    await api.updateLink(formData);
+    const updatedLinks = await getLinks(selectedImageId);
+    setLinks(updatedLinks);
+    const allImageLinks = await Promise.all(
+      pictures.map(async (pic) => await api.getLinks(pic.id_pictures))
+    );
+    setAllLinks(allImageLinks.flat());
+    if (selectedPicture) {
+      const currentImage = selectedPicture;
+      const currentId = selectedImageId;
+      setSelectedPicture('');
+      setIsLoading(true);
+      setTimeout(() => {
+        handlePictureClick(currentImage, currentId);
+      }, 100);
+    }
+    setNewLinkModalOpen(false);
+    setDisableBackgroundClick(false);
+    setEditLinkMod(false);
+  }
 
   return (
     <div className="admin-room-details-container">
@@ -323,7 +458,7 @@ const AdminRoomDetails = () => {
               selectedPicture={selectedPicture}
               links={links}
               onLinkClick={handleLinkClick}
-              onPositionSelect={handlePositionSelect}
+              onPositionSelect={() => {}}
               isLoading={isLoading}
               disableClick={disableBackgroundClick}
             />
@@ -365,6 +500,8 @@ const AdminRoomDetails = () => {
                 <img src={`data:image/jpeg;base64,${Buffer.from(popup.image).toString('base64')}`} alt={`Aperçu de ${popup.title}`} />
               </div>
             )}
+            <button onClick={(event) => handleDeleteInfoPopup(event, popup.id_info_popup)} className="bg-red-500 text-white px-4 py-2 rounded mr-2">Supprimer</button>
+            <button onClick={(event) => handleEditInfoPopup(event, popup)} className="bg-red-500 text-white px-4 py-2 rounded">Modifier</button>
           </div>
         ))}
       </div>
@@ -400,6 +537,8 @@ const AdminRoomDetails = () => {
             <div className="link-image">
               <img src={pictures.find(pic => pic.id_pictures === link.id_pictures_destination)?.imageUrl} alt={`Destination ${link.id_pictures_destination}`} />
             </div>
+            <button onClick={(event) => handleDeleteLink(event, link.id_links)} className="bg-red-500 text-white px-4 py-2 rounded mr-2">Supprimer</button>
+            <button onClick={(event) => handleEditLink(event, link)} className="bg-red-500 text-white px-4 py-2 rounded">Modifier</button>
           </div>
         ))}
       </div>
@@ -408,36 +547,38 @@ const AdminRoomDetails = () => {
         <div className="modal">
           <div className="modal-content">
             <span className="close" onClick={closeModalInfospot}>&times;</span>
-            <h2>Ajouter une nouvelle infobulle</h2>
+            <h2>{editInfospotMod ? 'Modifier l\'infobulle' : 'Ajouter une nouvelle infobulle'}</h2>
             <div className="modal-body">
-              <div className="image-preview-column">
-                {pictures.map(picture => (
-                  <div key={picture.id_pictures} className="image-preview" onClick={() => handleModalPictureClick(picture.imageUrl, picture.id_pictures)}>
-                    <img src={picture.imageUrl} alt={`Aperçu de ${picture.id_pictures}`} />
-                  </div>
-                ))}
-              </div>
+              {!editInfospotMod && (
+                <div className="image-preview-column">
+                  {pictures.map(picture => (
+                    <div key={picture.id_pictures} className="image-preview" onClick={() => handleModalPictureClick(picture.imageUrl, picture.id_pictures)}>
+                      <img src={picture.imageUrl} alt={`Aperçu de ${picture.id_pictures}`} />
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="viewer-column panorama-container">
                 <Panorama360
                   infoPopups={modalInfoPopups}
                   selectedPicture={modalSelectedPicture}
                   links={modalLinks}
-                  onLinkClick={handleLinkClick}
+                  onLinkClick={() => {}}
                   onPositionSelect={handlePositionSelect}
                   isLoading={isLoadingModal}
                 />
               </div>
               <div className="form-column">
-                <button type="button" onClick={handleSelectPositionClick}>Positionner</button>
-                <form onSubmit={handleNewInfospotSubmit}>
+                <button type="button" onClick={( event ) => handleSelectPositionClick(event)}>Positionner</button>
+                <form onSubmit={editInfospotMod ? handleEditInfospotSubmit : handleNewInfospotSubmit}>
                   <input type="hidden" name="id_pictures" value={selectedImageId || ''} />
-                  <input type="text" name="posX" placeholder="Position X" value={parseFloat(posX).toFixed(4) || ''} onChange={(e) => setPosX(e.target.value)} required readOnly/>
-                  <input type="text" name="posY" placeholder="Position Y" value={parseFloat(posY).toFixed(4) || ''} onChange={(e) => setPosY(e.target.value)} required readOnly/>
-                  <input type="text" name="posZ" placeholder="Position Z" value={parseFloat(posZ).toFixed(4) || ''} onChange={(e) => setPosZ(e.target.value)} required readOnly/>
-                  <input type="text" name="text" placeholder="Texte" required />
-                  <input type="text" name="title" placeholder="Titre" required />
+                  <input type="text" name="posX" placeholder="Position X" value={parseFloat(posX).toFixed(4) || ''} onChange={(e) => setPosX(e.target.value)} required readOnly />
+                  <input type="text" name="posY" placeholder="Position Y" value={parseFloat(posY).toFixed(4) || ''} onChange={(e) => setPosY(e.target.value)} required readOnly />
+                  <input type="text" name="posZ" placeholder="Position Z" value={parseFloat(posZ).toFixed(4) || ''} onChange={(e) => setPosZ(e.target.value)} required readOnly />
+                  <input type="text" name="text" placeholder="Texte" required defaultValue={editInfospotMod ? infospotToEdit.text : ''}/>
+                  <input type="text" name="title" placeholder="Titre" required defaultValue={editInfospotMod ? infospotToEdit.title : ''}/>
                   <input type="file" name="pic" />
-                  <button type="submit">Ajouter une infobulle</button>
+                  <button type="submit">{editInfospotMod ? "Modifier" : "Ajouter"}</button>
                 </form>
               </div>
             </div>
@@ -449,7 +590,7 @@ const AdminRoomDetails = () => {
         <div className="modal">
           <div className="modal-content">
             <span className="close" onClick={closeModalLink}>&times;</span>
-            <h2>Add New Link</h2>
+            <h2>{editLinkMod ? 'Modifier le lien' : 'Ajouter un nouveau lien'}</h2>
             <div className="modal-body">
               <div className="image-preview-column">
                 {pictures.map(picture => (
@@ -464,20 +605,20 @@ const AdminRoomDetails = () => {
                   infoPopups={modalInfoPopups}
                   selectedPicture={modalSelectedPicture}
                   links={modalLinks}
-                  onLinkClick={handleLinkClick}
+                  onLinkClick={() => {}}
                   onPositionSelect={handlePositionSelect}
                   isLoading={isLoadingModal}
                 />
               </div>
               <div className="form-column">
-                <button type="button" onClick={handleSelectPositionClick}>Select Position</button>
-                <form onSubmit={handleNewLinkSubmit}>
+                <button type="button" onClick={( event ) => handleSelectPositionClick(event)}>Positionner</button>
+                <form onSubmit={editLinkMod ? handleEditLinkSubmit : handleNewLinkSubmit}>
                   <input type="hidden" name="id_pictures" value={selectedImageId || ''} />
-                  <input type="text" name="posX" placeholder="Position X" value={parseFloat(posX).toFixed(4) || ''} onChange={(e) => setPosX(e.target.value)} required readOnly/>
-                  <input type="text" name="posY" placeholder="Position Y" value={parseFloat(posY).toFixed(4) || ''} onChange={(e) => setPosY(e.target.value)} required readOnly/>
-                  <input type="text" name="posZ" placeholder="Position Z" value={parseFloat(posZ).toFixed(4) || ''} onChange={(e) => setPosZ(e.target.value)} required readOnly/>
-                  <input type="text" name="id_pictures_destination" placeholder="Picture Destination ID" required/>
-                  <button type="submit">Add Link</button>
+                  <input type="text" name="posX" placeholder="Position X" value={parseFloat(posX).toFixed(4) || ''} onChange={(e) => setPosX(e.target.value)} required readOnly />
+                  <input type="text" name="posY" placeholder="Position Y" value={parseFloat(posY).toFixed(4) || ''} onChange={(e) => setPosY(e.target.value)} required readOnly />
+                  <input type="text" name="posZ" placeholder="Position Z" value={parseFloat(posZ).toFixed(4) || ''} onChange={(e) => setPosZ(e.target.value)} required readOnly />
+                  <input type="text" name="id_pictures_destination" placeholder="Picture Destination ID" required defaultValue={editLinkMod ? linkToEdit.id_pictures_destination : ''} />
+                  <button type="submit">{editLinkMod ? "Modifier" : "Ajouter"}</button>
                 </form>
               </div>
             </div>

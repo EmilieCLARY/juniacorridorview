@@ -61,14 +61,14 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
         }
 
         // Calculate the dimensions of the canvas
-        canvasWidth = 40 + 2 * imageWidth + 40; // Add extra width for the image and padding
+        canvasWidth = 50 + 2 * imageWidth + 50; // Add extra width for the image and padding
 
         // Calculate the height needed for the text
-        const textLines = wrapText(context, popup.text, imageWidth);
+        const textLines = wrapText(context, popup.text.slice(0, 50), imageWidth); 
         const textHeight = textLines.length * lineHeight + 50;
 
         // Adjust canvas height based on text and image height
-        canvasHeight = Math.max(imageHeight, textHeight) + 200; // Add extra height for the title and padding
+        canvasHeight = Math.max(imageHeight, textHeight) + 325; // Add extra height for the title and padding
 
         // Set the canvas dimensions
         canvas.width = canvasWidth;
@@ -97,21 +97,31 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
         context.font = 'Bold 70px Arial';
         context.fillStyle = 'white';
         context.textAlign = 'center';
-        context.fillText(popup.title.toUpperCase(), canvasWidth / 2, 90);
 
-        //// 'X' button
-        //context.font = 'Bold 70px Arial';
-        //context.fillStyle = '#3c2c53';
-        //context.textAlign = 'center';
-        //context.fillText('X', canvasWidth - 80, 80);
+        // Wrap title text if it exceeds the canvas width
+        const titleLines = wrapText(context, popup.title.toUpperCase().slice(0, 40), canvasWidth - 80); // Add padding
+        const titleYStart = 110; // Starting Y position for the title
+        const titleLineHeight = 70; // Line height for the title
+
+        titleLines.forEach((line, i) => {
+          context.fillText(line, canvasWidth / 2, titleYStart + i * titleLineHeight);
+        });
+
+/*        // 'X' button
+        context.font = 'Bold 70px Arial';
+        context.fillStyle = '#3c2c53';
+        context.textAlign = 'center';
+        context.fillText('X', canvasWidth - 80, 80);
+*/
 
         // Text
-        context.font = 'Normal 50px Arial';
+        context.font = 'Normal 52px Arial';
         context.fillStyle = 'white';
         context.textAlign = 'left';
 
         const textX = 40;
-        const textY = 150;
+        const titleHeight = titleLines.length * titleLineHeight;
+        const textY = titleYStart + titleHeight ; // Add padding after title
 
         let lines = wrapText(context, popup.text, imageWidth);
         lines.forEach((line, i) => {
@@ -119,14 +129,14 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
         });
 
         const imgX = canvasWidth - imageWidth - 40;
-        const imgY = 150;
+        const imgY = titleYStart + titleHeight + 10; // Add padding after title
 
         // Image (optional)
         if (popup.image) {
           // Draw image
           context.drawImage(image, imgX, imgY, imageWidth, imageHeight);
 
-          // Draw black border around the image
+          // Draw border around the image
           context.strokeStyle = '#3c2c53';
           context.lineWidth = 5;
           context.strokeRect(imgX, imgY, imageWidth, imageHeight);
@@ -156,7 +166,7 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
         const textHeight = textLines.length * lineHeight + 200;
 
         // Adjust canvas height based on text and image height
-        canvasHeight = imageHeight + textHeight + 75; // Add extra height for the title and padding
+        canvasHeight = imageHeight + textHeight + 115; // Add extra height for the title and padding
 
         // Set the canvas dimensions
         canvas.width = canvasWidth;
@@ -185,13 +195,23 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
         context.font = 'Bold 70px Arial';
         context.fillStyle = 'white';
         context.textAlign = 'center';
-        context.fillText(popup.title.toUpperCase(), canvasWidth / 2, 90);
 
-        //// 'X' button
-        //context.font = 'Bold 70px Arial';
-        //context.fillStyle = '#3c2c53';
-        //context.textAlign = 'center';
-        //context.fillText('X', canvasWidth - 80, 80);
+
+        // Wrap title text if it exceeds the canvas width
+        const titleLines = wrapText(context, popup.title.toUpperCase().slice(0, 40), canvasWidth - 100); // Add padding
+        const titleYStart = 80; // Starting Y position for the title
+        const titleLineHeight = 70; // Line height for the title
+
+        titleLines.forEach((line, i) => {
+          context.fillText(line, canvasWidth / 2, titleYStart + i * titleLineHeight);
+        });
+
+/*       // 'X' button
+        context.font = 'Bold 70px Arial';
+        context.fillStyle = '#3c2c53';
+        context.textAlign = 'center';
+        context.fillText('X', canvasWidth - 80, 80);
+*/
 
         // Text
         context.font = 'Normal 50px Arial';
@@ -199,7 +219,8 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
         context.textAlign = 'left';
 
         const textX = 40;
-        const textY = 150;
+        const titleHeight = titleLines.length * titleLineHeight;
+        const textY = titleYStart + titleHeight + 30; // Add padding after title
 
         let lines = wrapText(context, popup.text, imageWidth);
         lines.forEach((line, i) => {
@@ -207,8 +228,8 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
         });
 
         const imgX = (canvasWidth - imageWidth) / 2
-        const imgY = textHeight + 50;
-
+        const imgY = textY + lines.length * lineHeight + 50;
+        
         // Image (optional)
         if (popup.image) {
           // Draw image

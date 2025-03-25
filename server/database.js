@@ -172,10 +172,18 @@ function deleteImage(id_pictures, callback) {
 
 function updateInfospot(id_info_popup, id_pictures, posX, posY, posZ, text, title, image, callback) {
     console.log('Updating info popup', id_info_popup);
-    const sql = `UPDATE Info_Popup SET id_pictures = ?, position_x = ?, position_y = ?, position_z = ?, text = ?, title = ?, image = ? WHERE id_info_popup = ?`;
-    db.query(sql, [id_pictures, posX, posY, posZ, text, title, image, id_info_popup], (err) => {
-        callback(err);
-    });
+    console.log('Image:', image);
+    if(image) {
+        const sql = `UPDATE Info_Popup SET id_pictures = ?, position_x = ?, position_y = ?, position_z = ?, text = ?, title = ?, image = ? WHERE id_info_popup = ?`;
+        db.query(sql, [id_pictures, posX, posY, posZ, text, title, image, id_info_popup], (err) => {
+            callback(err);
+        });
+    } else {
+        const sql = `UPDATE Info_Popup SET id_pictures = ?, position_x = ?, position_y = ?, position_z = ?, text = ?, title = ? WHERE id_info_popup = ?`;
+        db.query(sql, [id_pictures, posX, posY, posZ, text, title, id_info_popup], (err) => {
+            callback(err);
+        });
+    }
 }
 
 function insertInfoPopUp(id_pictures, posX, posY, posZ, text, title, image, callback) {
@@ -183,6 +191,14 @@ function insertInfoPopUp(id_pictures, posX, posY, posZ, text, title, image, call
     const sql = `INSERT INTO Info_Popup (id_pictures, position_x, position_y, position_z, text, title, image) VALUES (?, ?, ?, ?, ?, ?, ?)`;
     const params = [id_pictures, posX, posY, posZ, text, title, image || null];
     db.query(sql, params, (err) => {
+        callback(err);
+    });
+}
+
+function deleteInfoPopUp(id_info_popup, callback) {
+    console.log('Deleting info popup', id_info_popup);
+    const sql = `DELETE FROM Info_Popup WHERE id_info_popup = ?`;
+    db.query(sql, [id_info_popup], (err) => {
         callback(err);
     });
 }
@@ -199,6 +215,14 @@ function updateLink(id_links, id_pictures, posX, posY, posZ, id_pictures_destina
     console.log('Updating link', id_links);
     const sql = `UPDATE Links SET id_pictures = ?, position_x = ?, position_y = ?, position_z = ?, id_pictures_destination = ? WHERE id_links = ?`;
     db.query(sql, [id_pictures, posX, posY, posZ, id_pictures_destination, id_links], (err) => {
+        callback(err);
+    });
+}
+
+function deleteLink(id_links, callback) {
+    console.log('Deleting link', id_links);
+    const sql = `DELETE FROM Links WHERE id_links = ?`;
+    db.query(sql, [id_links], (err) => {
         callback(err);
     });
 }
@@ -227,6 +251,14 @@ function deleteRoom(id_rooms, callback) {
     console.log('Deleting room', id_rooms);
     const sql = `DELETE FROM Rooms WHERE id_rooms = ?`;
     db.query(sql, [id_rooms], (err) => {
+        callback(err);
+    });
+}
+
+function updateRoomVisibility(id_rooms, hidden, callback) {
+    console.log('Updating room visibility', id_rooms, hidden);
+    const sql = `UPDATE Rooms SET hidden = ? WHERE id_rooms = ?`;
+    db.query(sql, [hidden, id_rooms], (err) => {
         callback(err);
     });
 }
@@ -442,6 +474,65 @@ const deleteTour = (id_tours, callback) => {
     });
 };
 
+const getRoomPreview = (id_rooms, callback) => {
+    const sql = `SELECT preview FROM Room_Previews WHERE id_rooms = ? LIMIT 1`;
+    db.query(sql, [id_rooms], (err, rows) => {
+        if (err) {
+            console.error('Error fetching room preview', err);
+            callback(err, null);
+        } else {
+            if (rows.length > 0) {
+                callback(null, rows[0].preview);
+            } else {
+                callback(null, null);
+            }
+        }
+    });
+};
+
+const insertRoomPreview = (id_rooms, previewData, callback) => {
+    console.log('Inserting room preview for room', id_rooms);
+    const checkSql = `SELECT id_room_previews FROM Room_Previews WHERE id_rooms = ?`;
+    db.query(checkSql, [id_rooms], (err, rows) => {
+        if (err) {
+            console.error('Error checking for existing room preview', err);
+            callback(err);
+            return;
+        }
+        
+        if (rows.length > 0) {
+            // Update existing preview
+            const updateSql = `UPDATE Room_Previews SET preview = ? WHERE id_rooms = ?`;
+            db.query(updateSql, [previewData, id_rooms], (err) => {
+                if (err) {
+                    console.error('Error updating room preview', err);
+                }
+                callback(err);
+            });
+        } else {
+            // Insert new preview
+            const insertSql = `INSERT INTO Room_Previews (id_rooms, preview) VALUES (?, ?)`;
+            db.query(insertSql, [id_rooms, previewData], (err) => {
+                if (err) {
+                    console.error('Error inserting room preview', err);
+                }
+                callback(err);
+            });
+        }
+    });
+};
+
+const deleteRoomPreview = (id_rooms, callback) => {
+    console.log('Deleting room preview for room', id_rooms);
+    const sql = `DELETE FROM Room_Previews WHERE id_rooms = ?`;
+    db.query(sql, [id_rooms], (err) => {
+        if (err) {
+            console.error('Error deleting room preview', err);
+        }
+        callback(err);
+    });
+};
+
 module.exports = {
     db,
     getTables,
@@ -467,8 +558,14 @@ module.exports = {
     deleteImage,
     updateInfospot,
     updateLink,
+    deleteInfoPopUp,
+    deleteLink,
     addRoom,
     updateRoom,
     deleteRoom,
-    getBuildings
+    updateRoomVisibility,
+    getBuildings,
+    getRoomPreview,
+    insertRoomPreview,
+    deleteRoomPreview
 };
