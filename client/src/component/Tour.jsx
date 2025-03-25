@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef, useState, useCallback} from "react";
 import { useHistory } from "react-router-dom";
 import * as api from '../api/AxiosTour';
 import '../style/Tour.css';
@@ -12,6 +12,7 @@ const TourViewer = () => {
   const [tourSteps, setTourSteps] = useState({});
   const [rooms, setRooms] = useState({});
   const [panoramaUrls, setPanoramaUrls] = useState({});
+  const [currentRoomName, setCurrentRoomName] = useState({});
   const loading = useRef(false);
   const history = useHistory();
 
@@ -114,10 +115,29 @@ const TourViewer = () => {
 
   const getPanoramaImagesForTour = (tourId) => {
     if (!tourSteps[tourId]) return [];
-    let tmp = tourSteps[tourId].map(step => { return { src: panoramaUrls[step.id_rooms], alt: `Panorama of ${rooms[step.id_rooms]?.name}` }; });
+    let tmp = tourSteps[tourId].map(step => { 
+      return { 
+        src: panoramaUrls[step.id_rooms], 
+        alt: `Panorama of ${rooms[step.id_rooms]?.name}`,
+        roomName: rooms[step.id_rooms]?.name || 'Salle inconnue'
+      }; 
+    });
     if (tmp.some(image => !image.src)) return []; // Wait until all URLs are available
     return tmp;
   };
+
+  const handleCarouselChange = useCallback((tourId, index) => {
+    const images = getPanoramaImagesForTour(tourId);
+    if (images.length > 0) {
+      setCurrentRoomName((prevState) => {
+        if (prevState[tourId] === images[index].roomName) return prevState;
+        return {
+          ...prevState,
+          [tourId]: images[index].roomName,
+        };
+      });
+    }
+  }, [tourSteps, panoramaUrls, rooms]);
 
   return (
     <div className="h-100">
@@ -128,7 +148,17 @@ const TourViewer = () => {
             <div className="font-texts">{tour.description}</div>
             {getPanoramaImagesForTour(tour.id_tours).length > 0 && (
               <div className="">
-                  <Carousel items={getPanoramaImagesForTour(tour.id_tours)} baseWidth="100%" autoplay={true} autoplayDelay={3000} pauseOnHover={true} loop={true} round={false} />
+                  <p className="font-texts font-bold text-center text-junia-violet">Salle : {currentRoomName[tour.id_tours] || getPanoramaImagesForTour(tour.id_tours)[0]?.roomName}</p>
+                  <Carousel 
+                    items={getPanoramaImagesForTour(tour.id_tours)} 
+                    baseWidth="100%" 
+                    autoplay={true} 
+                    autoplayDelay={3000} 
+                    pauseOnHover={true} 
+                    loop={true} 
+                    round={false}
+                    onChange={(index) => handleCarouselChange(tour.id_tours, index)}
+                  />
               </div>
             )}
             <div onClick={() => handleTourClick(tour.id_tours)} className="text-xl text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl p-2 w-65 js-center" >Commencer le parcours</div>
