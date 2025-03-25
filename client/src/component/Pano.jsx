@@ -49,13 +49,11 @@ const PanoramaViewer = ({ location }) => {
           })
         );
         
-        // Filter out hidden rooms in tour mode
         roomsData = roomsData.filter(room => room.hidden !== 1);
         
         setVisitType(`Visite guidée, Parcours ${tourId}`);
       } else {
         roomsData = await api.getRooms();
-        // Ensure we filter out hidden rooms in regular mode as well
         roomsData = roomsData.filter(room => room.hidden !== 1);
       }
   
