@@ -167,7 +167,10 @@ const AdminRoom = () => {
 
   const getUniqueOptions = (key) => {
     const uniqueValues = [...new Set(rooms.map(room => room[key]))];
-    return uniqueValues.map(value => ({ value, label: value }));
+    // Sort values alphabetically
+    return uniqueValues
+      .sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' }))
+      .map(value => ({ value, label: value }));
   };
 
   const filteredRooms = rooms.filter(room =>
@@ -442,7 +445,7 @@ const AdminRoom = () => {
         <Select
           isMulti
           name="id"
-          options={rooms.map(room => ({ value: room.id_rooms.toString(), label: room.id_rooms.toString() }))}
+          options={rooms.map(room => ({ value: room.id_rooms.toString(), label: room.id_rooms.toString() })).sort((a, b) => a.value - b.value)}
           className="basic-multi-select"
           classNamePrefix="select"
           placeholder="Filtrer par ID"
