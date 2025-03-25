@@ -187,6 +187,14 @@ function insertInfoPopUp(id_pictures, posX, posY, posZ, text, title, image, call
     });
 }
 
+function deleteInfoPopUp(id_info_popup, callback) {
+    console.log('Deleting info popup', id_info_popup);
+    const sql = `DELETE FROM Info_Popup WHERE id_info_popup = ?`;
+    db.query(sql, [id_info_popup], (err) => {
+        callback(err);
+    });
+}
+
 function insertLink(id_pictures, posX, posY, posZ, id_pictures_destination, callback) {
     console.log('Inserting link from', id_pictures, 'to', id_pictures_destination);
     const sql = `INSERT INTO Links (id_pictures, position_x, position_y, position_z, id_pictures_destination) VALUES (?, ?, ?, ?, ?)`;
@@ -199,6 +207,14 @@ function updateLink(id_links, id_pictures, posX, posY, posZ, id_pictures_destina
     console.log('Updating link', id_links);
     const sql = `UPDATE Links SET id_pictures = ?, position_x = ?, position_y = ?, position_z = ?, id_pictures_destination = ? WHERE id_links = ?`;
     db.query(sql, [id_pictures, posX, posY, posZ, id_pictures_destination, id_links], (err) => {
+        callback(err);
+    });
+}
+
+function deleteLink(id_links, callback) {
+    console.log('Deleting link', id_links);
+    const sql = `DELETE FROM Links WHERE id_links = ?`;
+    db.query(sql, [id_links], (err) => {
         callback(err);
     });
 }
@@ -467,6 +483,8 @@ module.exports = {
     deleteImage,
     updateInfospot,
     updateLink,
+    deleteInfoPopUp,
+    deleteLink,
     addRoom,
     updateRoom,
     deleteRoom,

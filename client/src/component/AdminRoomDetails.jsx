@@ -28,6 +28,10 @@ const AdminRoomDetails = () => {
   const [roomName, setRoomName] = useState('');
   const dataFetchedRef = useRef(false);
   const firstLoad = useRef(true);
+  const [linkToEdit, setLinkToEdit] = useState(null);
+  const [editLinkMod, setEditLinkMod] = useState(false);
+  const [infospotToEdit, setInfospotToEdit] = useState(null);
+  const [editInfospotMod, setEditInfospotMod] = useState(false);
 
   // Separate state for modal panorama
   const [modalSelectedPicture, setModalSelectedPicture] = useState('');
@@ -299,6 +303,56 @@ const AdminRoomDetails = () => {
     });
   };
 
+  const handleDeleteInfoPopup = async (event, id) => {
+    event.stopPropagation();
+    event.preventDefault();
+    if (!window.confirm('Etes-vous sûr de vouloir supprimer l\'infobulle ?')) return;
+    try {
+        const deletePromise = api.deleteInfospot(id);
+        deletePromise.then(() => {
+            const updatedInfoPopups = infoPopups.filter(popup => popup.id_info_popup !== id);
+            setInfoPopups(updatedInfoPopups);
+            const updatedAllInfoPopups = allInfoPopups.filter(popup => popup.id_info_popup !== id);
+            setAllInfoPopups(updatedAllInfoPopups);
+            toast.success('Infobulle supprimée');
+        });
+    } catch (error) {
+        console.error('Error deleting infopopup:', error);
+    }
+  }
+
+  const handleEditInfoPopup = async (event, popup) => {
+    console.log('Editing infopopup', popup);
+  }
+
+  const handleDeleteLink = async (event, id) => {
+    event.stopPropagation();
+    event.preventDefault();
+    if (!window.confirm('Etes-vous sûr de vouloir supprimer le lien ?')) return;
+    try {
+      const deletePromise = api.deleteLink(id);
+      deletePromise.then(() => {
+        const updatedLinks = links.filter(link => link.id_links !== id);
+        setLinks(updatedLinks);
+        const updatedAllLinks = allLinks.filter(link => link.id_links !== id);
+        setAllLinks(updatedAllLinks);
+        toast.success('Lien supprimé');
+      });
+    } catch (error) {
+        console.error('Error deleting link:', error);
+    }
+  }
+
+  const handleEditLink = async (event, link) => {
+    console.log('Editing link', link);
+    setLinkToEdit(link);
+    setEditLinkMod(true);
+    // Display the image of current link
+    const imageUrl = pictures.find(pic => pic.id_pictures === link.id_pictures).imageUrl;
+    handleModalPictureClick(imageUrl, link.id_pictures);
+    setNewLinkModalOpen(true);
+  }
+
   return (
     <div className="admin-room-details-container">
       <h1>{roomName}</h1>
@@ -365,6 +419,8 @@ const AdminRoomDetails = () => {
                 <img src={`data:image/jpeg;base64,${Buffer.from(popup.image).toString('base64')}`} alt={`Aperçu de ${popup.title}`} />
               </div>
             )}
+            <button onClick={(event) => handleDeleteInfoPopup(event, popup.id_info_popup)} className="bg-red-500 text-white px-4 py-2 rounded mr-2">Supprimer</button>
+            <button onClick={(event) => handleEditInfoPopup(event, popup)} className="bg-red-500 text-white px-4 py-2 rounded">Modifier</button>
           </div>
         ))}
       </div>
@@ -400,6 +456,8 @@ const AdminRoomDetails = () => {
             <div className="link-image">
               <img src={pictures.find(pic => pic.id_pictures === link.id_pictures_destination)?.imageUrl} alt={`Destination ${link.id_pictures_destination}`} />
             </div>
+            <button onClick={(event) => handleDeleteLink(event, link.id_links)} className="bg-red-500 text-white px-4 py-2 rounded mr-2">Supprimer</button>
+            <button onClick={(event) => handleEditLink(event, link)} className="bg-red-500 text-white px-4 py-2 rounded">Modifier</button>
           </div>
         ))}
       </div>
@@ -449,7 +507,7 @@ const AdminRoomDetails = () => {
         <div className="modal">
           <div className="modal-content">
             <span className="close" onClick={closeModalLink}>&times;</span>
-            <h2>Add New Link</h2>
+            <h2>{editLinkMod ? 'Modifier le lien' : 'Ajouter un nouveau lien'}</h2>
             <div className="modal-body">
               <div className="image-preview-column">
                 {pictures.map(picture => (
@@ -470,14 +528,14 @@ const AdminRoomDetails = () => {
                 />
               </div>
               <div className="form-column">
-                <button type="button" onClick={handleSelectPositionClick}>Select Position</button>
+                <button type="button" onClick={handleSelectPositionClick}>Selectionner une position</button>
                 <form onSubmit={handleNewLinkSubmit}>
                   <input type="hidden" name="id_pictures" value={selectedImageId || ''} />
-                  <input type="text" name="posX" placeholder="Position X" value={parseFloat(posX).toFixed(4) || ''} onChange={(e) => setPosX(e.target.value)} required readOnly/>
-                  <input type="text" name="posY" placeholder="Position Y" value={parseFloat(posY).toFixed(4) || ''} onChange={(e) => setPosY(e.target.value)} required readOnly/>
-                  <input type="text" name="posZ" placeholder="Position Z" value={parseFloat(posZ).toFixed(4) || ''} onChange={(e) => setPosZ(e.target.value)} required readOnly/>
-                  <input type="text" name="id_pictures_destination" placeholder="Picture Destination ID" required/>
-                  <button type="submit">Add Link</button>
+                  <input type="text" name="posX" placeholder="Position X" value={parseFloat(posX).toFixed(4) || ''} onChange={(e) => setPosX(e.target.value)} required readOnly />
+                  <input type="text" name="posY" placeholder="Position Y" value={parseFloat(posY).toFixed(4) || ''} onChange={(e) => setPosY(e.target.value)} required readOnly />
+                  <input type="text" name="posZ" placeholder="Position Z" value={parseFloat(posZ).toFixed(4) || ''} onChange={(e) => setPosZ(e.target.value)} required readOnly />
+                  <input type="text" name="id_pictures_destination" placeholder="Picture Destination ID" required defaultValue={editLinkMod ? linkToEdit.id_pictures_destination : ''} />
+                  <button type="submit">Ajouter</button>
                 </form>
               </div>
             </div>
