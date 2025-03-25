@@ -49,13 +49,14 @@ const PanoramaViewer = ({ location }) => {
           })
         );
         
-        // Filter out hidden rooms even in tour mode
-        roomsData = roomsData.filter(room => !(room.hidden === 0 || room.hidden === null));
+        // Filter out hidden rooms in tour mode
+        roomsData = roomsData.filter(room => room.hidden !== 1);
         
         setVisitType(`Visite guidée, Parcours ${tourId}`);
       } else {
         roomsData = await api.getRooms();
-        // No need to filter here as the server already filters out hidden rooms
+        // Ensure we filter out hidden rooms in regular mode as well
+        roomsData = roomsData.filter(room => room.hidden !== 1);
       }
   
       setRooms(roomsData);
@@ -91,8 +92,6 @@ const PanoramaViewer = ({ location }) => {
       // Charger les images principales
       const imagesData = roomPreviewsData.flatMap(preview => preview.images);
       setImages(imagesData);
-      setCurrentImageId(imagesData[0]?.id || null);
-
       isLoading.current = false;
     } catch (error) {
       console.error("Erreur lors du chargement des données :", error);
@@ -244,13 +243,6 @@ const PanoramaViewer = ({ location }) => {
           </ul>
         </div>
         <div>
-          {/*{images.map((image, index) => (
-            <div key={`${image.id}-${index}`}>
-              <button onClick={() => displayImage(image.imageBlob, image.id)}>
-                Display Image {image.id}
-              </button>
-            </div>
-          ))}*/}
         </div>
         <div className="panorama-content">
         <h2>Salle actuelle : {currentRoomName} ({currentRoomNumber})</h2>
@@ -263,31 +255,6 @@ const PanoramaViewer = ({ location }) => {
           />
         </div>
       </div>
-      {/*<div className="forms-container">
-        <form onSubmit={handleUpload}>
-          <input type="file" name="pic" />
-          <input type="text" name="id_rooms" placeholder="id_rooms"/>
-          <input type="submit" value="Upload a file"/>
-        </form>
-        <form onSubmit={handleInsertInfoPopUp}>
-          <input type="text" name="id_pictures" placeholder="id_pictures" />
-          <input type="text" name="posX" placeholder="posX" />
-          <input type="text" name="posY" placeholder="posY" />
-          <input type="text" name="posZ" placeholder="posZ" />
-          <input type="text" name="text" placeholder="text" />
-          <input type="text" name="title" placeholder="title" />
-          <input type="file" name="pic" />
-          <input type="submit" value="Add Info Popup" />
-        </form>
-        <form onSubmit={handleInsertLink}>
-          <input type="text" name="id_pictures" placeholder="id_pictures" />
-          <input type="text" name="posX" placeholder="posX" />
-          <input type="text" name="posY" placeholder="posY" />
-          <input type="text" name="posZ" placeholder="posZ" />
-          <input type="text" name="id_pictures_destination" placeholder="id_pictures_destination" />
-          <input type="submit" value="Add Link" />
-        </form>
-      </div>*/}
     </div>
   );
 };

@@ -193,7 +193,7 @@ const getRoomPreview = async (id_rooms) => {
     });
     
     // If we got a successful response with image data
-    if (response.status === 200) {
+    if (response.status === 200) { 
       const imageUrl = URL.createObjectURL(response.data);
       return imageUrl;
     }
