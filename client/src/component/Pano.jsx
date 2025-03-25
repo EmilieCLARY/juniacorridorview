@@ -228,19 +228,22 @@ const PanoramaViewer = ({ location }) => {
     <div>
       
       <div className="panorama-container">
-        <div className="rooms-list flex-col">
+        <div className="rooms-list flex-col w-15">
           <div className="font-title font-bold text-2xl text-junia-orange">
             Autres Salles
           </div>
           
-            {filteredRooms.map(room => (
-              <div key={room.id_rooms} className="flex items-end justify-center h-150" onClick={() => handleRoomClick(room.id_rooms)}>
-                <div className="text-junia-orange font-bold bottom-0 absolute  z-1">{room.name} ({room.number})</div>
+          {filteredRooms.map(room => (
+              <div key={room.id_rooms} className="flex  justify-start items-end h-64 m-2" onClick={() => handleRoomClick(room.id_rooms)}>
+                
                 {roomPreviews[room.id_rooms] && (
-                  <div className="room-preview z-0 bottom-0">
-                    <img src={roomPreviews[room.id_rooms]} alt={`Preview of ${room.name}`} />
+                  <div className=" w-full h-full relative">
+                    <img src={roomPreviews[room.id_rooms]} alt={`Preview of ${room.name}`} className="h-full w-full object-cover rounded-lg" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-white to-transparent rounded-lg"></div>
+                   
                   </div>
                 )}
+                <div className="text-junia-orange font-bold absolute bottom-0 z-10 w-15 wrapped-text  px-3">{room.name} ({room.number})</div>
               </div>
             ))}
           
