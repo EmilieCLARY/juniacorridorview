@@ -207,6 +207,7 @@ const getRoomPreview = async (id_rooms) => {
     }
     return null;
   }
+};
 
 const updateInfospot = async (formData) => {
     try {
@@ -258,7 +259,7 @@ export {
   updateImage,
   deleteImage,
   updateRoomVisibility,
-  getRoomPreview
+  getRoomPreview,
   updateInfospot,
   updateLink,
   deleteLink,
