@@ -5,6 +5,7 @@ import { getTourSteps } from '../api/AxiosTour';
 import '../style/Pano.css';
 import { toast } from "sonner";
 import Panorama360 from './Panorama360';
+import Loader from "./Loader";
 
 const PanoramaViewer = ({ location }) => {
   Buffer.from = Buffer.from || require('buffer').Buffer;
@@ -19,6 +20,7 @@ const PanoramaViewer = ({ location }) => {
   const [currentRoomNumber, setCurrentRoomNumber] = useState('');
   const [rooms, setRooms] = useState([]);
   const [roomPreviews, setRoomPreviews] = useState({});
+  const [previewFlags, setPreviewFlags] = useState({}); // Track which images are previews
   const [visitType, setVisitType] = useState('Visite libre');
   const [tourSteps, setTourSteps] = useState([]);
   const dataFetched = useRef(false);
@@ -26,6 +28,25 @@ const PanoramaViewer = ({ location }) => {
   
   const loadingImage = useRef(false);
   const [loadingImageBeforeRoomSwitch, setLoadingImageBeforeRoomSwitch] = useState(false);
+
+  const [loading, setLoading] = useState(true);
+  const [textLoading, setTextLoading] = useState("Chargement des données...");
+
+  const showLoading = (promises, textLoading, textSuccess, textError) => {
+    setLoading(true);
+    setTextLoading(textLoading);
+    // Return a toaster success after all promises are resolved
+    Promise.all(promises)
+        .then(() => {
+          setLoading(false);
+          toast.success(textSuccess);
+        })
+        .catch((error) => {
+          setLoading(false);
+          console.error('Error fetching data:', error);
+          toast.error(textError);
+        });
+  }
 
   const fetchAllData = async () => {
     try {
@@ -58,37 +79,78 @@ const PanoramaViewer = ({ location }) => {
       }
   
       setRooms(roomsData);
-  
-      // Charger les images des pièces
-      const roomPreviewsData = await Promise.all(
-        roomsData.map(async room => {
+
+      // Fetch room previews first, then fall back to panoramas if needed
+      const previewPromises = roomsData.map(async room => {
+        try {
+          // Try to get room preview first
+          const previewUrl = await api.getRoomPreview(room.id_rooms);
+          
+          if (previewUrl) {
+            // If we got a preview, use it and flag it as a preview
+            return { id_rooms: room.id_rooms, imageUrl: previewUrl, isPreview: true };
+          }
+          
+          // Otherwise, fall back to panorama images
           const pictures = await api.getPicturesByRoomId(room.id_rooms);
-          const images = await Promise.all(
-            pictures.map(async picture => {
-              const imageBlob = await api.getImage(picture.id_pictures);
-              return { id: picture.id_pictures, imageBlob };
-            })
-          );
-          return { id_rooms: room.id_rooms, images };
-        })
-      );
-  
-      setRoomPreviews(
+          const images = pictures.length > 0 ? 
+            await api.getImage(pictures[0].id_pictures) : null;
+            
+          return { id_rooms: room.id_rooms, imageUrl: images, isPreview: false };
+        } catch (error) {
+          console.error(`Error fetching preview for room ${room.id_rooms}:`, error);
+          return { id_rooms: room.id_rooms, imageUrl: null, isPreview: false };
+        }
+      });
+      
+      const roomPreviewsData = await Promise.all(previewPromises);
+      
+      // Set room previews
+      const roomPreviewsObj = {};
+      
+      roomPreviewsData.forEach(preview => {
+        if (preview.isPreview) {
+          // If it's a true preview, use it directly
+          roomPreviewsObj[preview.id_rooms] = preview.imageUrl;
+        } else if (preview.imageUrl) {
+          // If it's a blob from panorama image, create a URL
+          roomPreviewsObj[preview.id_rooms] = URL.createObjectURL(preview.imageUrl);
+        }
+      });
+      
+      setRoomPreviews(roomPreviewsObj);
+      
+      // Set preview flags
+      setPreviewFlags(
         Object.fromEntries(roomPreviewsData.map(preview => [
           preview.id_rooms, 
-          preview.images.length > 0 ? URL.createObjectURL(preview.images[0].imageBlob) : null
+          preview.isPreview
         ]))
       );
   
+      // Continue with loading all room images for panoramas
+      const roomImagesPromises = roomsData.map(async room => {
+        const pictures = await api.getPicturesByRoomId(room.id_rooms);
+        const images = await Promise.all(
+          pictures.map(async picture => {
+            const imageBlob = await api.getImage(picture.id_pictures);
+            return { id: picture.id_pictures, imageBlob };
+          })
+        );
+        return { id_rooms: room.id_rooms, images };
+      });
+      
+      const allRoomImagesData = await Promise.all(roomImagesPromises);
+      
       // Charger toutes les images des pièces
-      const allRoomImages = roomPreviewsData.reduce((acc, preview) => {
+      const allRoomImages = allRoomImagesData.reduce((acc, preview) => {
         acc[preview.id_rooms] = preview.images;
         return acc;
       }, {});
       setAllRoomImages(allRoomImages);
   
       // Charger les images principales
-      const imagesData = roomPreviewsData.flatMap(preview => preview.images);
+      const imagesData = allRoomImagesData.flatMap(preview => preview.images);
       setImages(imagesData);
       isLoading.current = false;
     } catch (error) {
@@ -149,11 +211,7 @@ const PanoramaViewer = ({ location }) => {
     const roomDetailsPromise = roomIdPromise.then(roomId => fetchRoomDetails(roomId));
 
     if(!isLoading.current || firstLoad) {
-      toast.promise(Promise.all([retrievedPopupsPromise, retrievedLinksPromise, roomIdPromise, roomDetailsPromise]), {
-          loading: 'Chargement...',
-          success: 'Chargement des données réussi',
-          error: 'Erreur lors du chargement des données',
-      });
+      showLoading([retrievedPopupsPromise, retrievedLinksPromise, roomIdPromise, roomDetailsPromise], 'Chargement des données...', 'Chargement des données réussi', 'Erreur lors du chargement des données');
     }
 
     retrievedPopupsPromise.then((retrievedPopupsPromise) => {
@@ -222,36 +280,41 @@ const PanoramaViewer = ({ location }) => {
   }, [visitType, rooms, tourSteps]);
   
   return (
-    <div>
-      
+    <div >
+      <Loader show={loading} text={textLoading} />
       <div className="panorama-container">
-        <div className="rooms-list flex-col w-15">
-          <div className="font-title font-bold text-2xl text-junia-orange">
+        <div className="h-full scrollable-list flex-col w-15" id="style-2">
+          <div className="font-title text-center py-2 font-bold text-2xl text-white bg-junia-purple  rounded-xl mx-5 my-2">
             Autres Salles
           </div>
           
           {filteredRooms.map(room => (
-              <div key={room.id_rooms} className="flex  justify-start items-end h-64 m-2" onClick={() => handleRoomClick(room.id_rooms)}>
-                
-                {roomPreviews[room.id_rooms] && (
-                  <div className=" w-full h-full relative">
-                    <img src={roomPreviews[room.id_rooms]} alt={`Preview of ${room.name}`} className="h-full w-full object-cover rounded-lg" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-white to-transparent rounded-lg"></div>
-                   
-                  </div>
-                )}
-                <div className="text-junia-orange font-bold absolute bottom-0 z-10 w-15 wrapped-text  px-3">{room.name} ({room.number})</div>
+            <div
+              key={room.id_rooms}
+              className="room-container"
+              onClick={() => handleRoomClick(room.id_rooms)}
+            >
+              {roomPreviews[room.id_rooms] && (
+                <img
+                  src={roomPreviews[room.id_rooms]}
+                  alt={`Preview of ${room.name}`}
+                />
+              )}
+              <div className="bg-white text-center font-bold text-junia-orange room-title border-junia-orange">
+                {room.name} ({room.number})
               </div>
-            ))}
+            </div>
+          ))}
           
         </div>
         <div>
         </div>
         <div className="panorama-content">
         {/*<h2>Salle actuelle : {currentRoomName} ({currentRoomNumber})</h2>*/}
-          <Panorama360 
+        <Panorama360 
             infoPopups={infoPopups[currentImageId] || []} 
-            selectedPicture={images.find(image => image.id === currentImageId)?.imageBlob ? URL.createObjectURL(images.find(image => image.id === currentImageId).imageBlob) : null} 
+            selectedPicture={images.find(image => image.id === currentImageId)?.imageBlob ? 
+              URL.createObjectURL(images.find(image => image.id === currentImageId).imageBlob) : null} 
             links={links[currentImageId] || []}
             onLinkClick={handleLinkClick}
             isLoading={(isLoading.current || firstLoad.current || loadingImageBeforeRoomSwitch) }

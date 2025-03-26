@@ -13,3 +13,24 @@ nav a:hover {
 .height-40 {
   max-height: 40px;
 }
+
+/* Fixe la navbar en haut de la page */
+nav {
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background-color: white; /* Assurez-vous que la navbar a un fond visible */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Ajoutez un espace pour le contenu principal */
+.main-content {
+  margin-top: 60px; /* Correspond à la hauteur de la navbar */
+  height: calc(100vh - 60px); /* Prend tout l'espace restant sous la navbar */
+  display: flex;
+  flex-direction: column;
+}

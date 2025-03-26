@@ -242,6 +242,16 @@ const deleteInfospot = async (id_infospots) => {
 
 };
 
+const getFloors = async () => {
+    try {
+        const response = await api.get('/floors');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching floors:', error);
+        return [];
+    }
+}
+
 export {
   getRooms,
   getPicturesByRoomId,
@@ -263,5 +273,6 @@ export {
   updateInfospot,
   updateLink,
   deleteLink,
-  deleteInfospot
+  deleteInfospot,
+  getFloors
 };

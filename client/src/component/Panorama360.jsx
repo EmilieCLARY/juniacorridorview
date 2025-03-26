@@ -333,7 +333,7 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
     camera.position.set(0, 0, 1);
     controls.update();
 
-    const geometry = new THREE.SphereGeometry(500, 60, 40);
+    const geometry = new THREE.SphereGeometry(500, 32, 16);
     geometry.scale(-1, 1, 1);
     const textureLoader = new THREE.TextureLoader();
     const texture = textureLoader.load(selectedPicture);
