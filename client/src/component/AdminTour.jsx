@@ -14,6 +14,7 @@ import {
   } from '@dnd-kit/modifiers';
 import Carousel from '../reactbits/Components/Carousel/Carousel';
 import '../style/AdminTour.css';
+import Loader from "./Loader";
 
 const SortableItem = ({ id, children }) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
@@ -45,12 +46,23 @@ const AdminTour = () => {
   const loading = useRef(false);
   const history = useHistory();
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [textLoading, setTextLoading] = useState("Chargement des données...");
+
   const showLoading = (promises, textLoading, textSuccess, textError) => {
-    return toast.promise(Promise.all(promises), {
-        loading: textLoading,
-        success: textSuccess,
-        error: textError,
-    });
+    setIsLoading(true);
+    setTextLoading(textLoading);
+    // Return a toaster success after all promises are resolved
+    Promise.all(promises)
+        .then(() => {
+          setIsLoading(false);
+          toast.success(textSuccess);
+        })
+        .catch((error) => {
+          setIsLoading(false);
+          console.error('Error fetching data:', error);
+          toast.error(textError);
+        });
   }
 
   const fetchPanoramaUrls = async (steps) => {
@@ -346,6 +358,7 @@ const AdminTour = () => {
 
   return (
     <div className="min-h-screen">
+      <Loader show={isLoading} text={textLoading} />
       <div className="my-4 flex justify-center">
         <div className="flex gap-8 items-center font-title text-xl">
           <input
@@ -362,6 +375,7 @@ const AdminTour = () => {
             Ajouter un nouveau parcours
           </button>
         </div>
+
       </div>
       
       <div className="h-100">

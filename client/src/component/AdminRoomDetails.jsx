@@ -4,6 +4,7 @@ import * as api from '../api/AxiosAdminRoom';
 import Panorama360 from './Panorama360';
 import { Buffer } from 'buffer';
 import { toast } from "sonner";
+import Loader from "./Loader";
 
 const AdminRoomDetails = () => {
   const { id } = useParams();
@@ -40,12 +41,23 @@ const AdminRoomDetails = () => {
   const [isLoadingModal, setIsLoadingModal] = useState(true);
   const [disableBackgroundClick, setDisableBackgroundClick] = useState(false);
 
+  const [loading, setLoading] = useState(true);
+  const [textLoading, setTextLoading] = useState("Chargement des données...");
+
   const showLoading = (promises, textLoading, textSuccess, textError) => {
-    return toast.promise(Promise.all(promises), {
-        loading: textLoading,
-        success: textSuccess,
-        error: textError,
-    });
+    setLoading(true);
+    setTextLoading(textLoading);
+    // Return a toaster success after all promises are resolved
+    Promise.all(promises)
+        .then(() => {
+          setLoading(false);
+          toast.success(textSuccess);
+        })
+        .catch((error) => {
+          setLoading(false);
+          console.error('Error fetching data:', error);
+          toast.error(textError);
+        });
   }
 
   const fetchAllData = async () => {
@@ -456,6 +468,12 @@ const AdminRoomDetails = () => {
               Ajouter une image 360°
             </button>
           </div>
+      <Loader show={loading} text={textLoading} />
+
+    <div className="admin-room-details-container">
+      <h1>{roomName}</h1>
+      <div className="image-panorama-container">
+        <div className="image-list">
           {pictures.map(picture => (
             <div key={picture.id_pictures} className="mb-2.5">
               <p className="text-sm">ID : {picture.id_pictures}</p>

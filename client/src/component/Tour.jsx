@@ -5,6 +5,7 @@ import '../style/Tour.css';
 import { Buffer } from 'buffer';
 import Carousel from '../reactbits/Components/Carousel/Carousel'
 import {toast} from "sonner";
+import Loader from "./Loader";
 
 const TourViewer = () => {
   Buffer.from = Buffer.from || require('buffer').Buffer;
@@ -16,6 +17,25 @@ const TourViewer = () => {
   const [currentRoomName, setCurrentRoomName] = useState({});
   const loading = useRef(false);
   const history = useHistory();
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [textLoading, setTextLoading] = useState("Chargement des données...");
+
+  const showLoading = (promises, textLoading, textSuccess, textError) => {
+    setIsLoading(true);
+    setTextLoading(textLoading);
+    // Return a toaster success after all promises are resolved
+    Promise.all(promises)
+        .then(() => {
+          setIsLoading(false);
+          toast.success(textSuccess);
+        })
+        .catch((error) => {
+          setIsLoading(false);
+          console.error('Error fetching data:', error);
+          toast.error(textError);
+        });
+  }
 
   const fetchTours = async () => {
     try {
@@ -50,7 +70,7 @@ const TourViewer = () => {
         stepsData.map(async step => {
           // First try to get room preview
           const previewUrl = await api.getRoomPreview(step.id_rooms);
-          
+
           if (previewUrl) {
             // If we have a preview, use it
             return { id_rooms: step.id_rooms, imageUrl: previewUrl, isPreview: true };
@@ -65,13 +85,13 @@ const TourViewer = () => {
           }
         })
       );
-      
+
       // Store the image URLs
       setPanoramaUrls(prevUrls => ({
         ...prevUrls,
         ...Object.fromEntries(imageUrlsData.map(data => [data.id_rooms, data.imageUrl]))
       }));
-      
+
       // Also store which images are previews (for UI indicators if needed)
       setPreviewUrls(prevPreviewState => ({
         ...prevPreviewState,
@@ -91,46 +111,38 @@ const TourViewer = () => {
     }
   };
 
-  const fetchData = async () => {
-    const fetchToursPromise = fetchTours();
-    const fetchRoomsPromise = fetchRooms();
-
-    toast.promise(Promise.all([fetchToursPromise, fetchRoomsPromise]), {
-      loading: 'Chargement...',
-      success: 'Chargement des données réussi',
-      error: 'Erreur lors du chargement des données',
-    });
-  };
+  const fetchAllTourSteps = async () => {
+    try {
+      for (const tour of tours) {
+        await fetchTourSteps(tour.id_tours);
+      }
+    } catch (error) {
+      console.error('Error fetching all tour steps:', error);
+    }
+  }
 
   const handleTourClick = (tourId) => {
     history.push(`/pano?tour_id=${tourId}`);
   };
 
   useEffect(() => {
-    const fetchAllData = async () => {
-      await fetchTours();
-      await fetchRooms();
-    };
-
-    fetchAllData();
-
     if (loading.current) return;
     loading.current = true;
 
-    fetchData().then(r => {
-      loading.current = false;
-    });
+    const fetchToursPromise = fetchTours();
+    const fetchRoomsPromise = fetchRooms();
+
+    Promise.all([fetchToursPromise, fetchRoomsPromise])
+        .then(() => {
+            loading.current = false;
+        }
+    );
   }, []);
 
   useEffect(() => {
-    const fetchAllTourSteps = async () => {
-      for (const tour of tours) {
-        await fetchTourSteps(tour.id_tours);
-      }
-    };
-
     if (tours.length > 0) {
-      fetchAllTourSteps();
+      const fetchAllTourStepsPromise = fetchAllTourSteps();
+      showLoading([fetchAllTourStepsPromise], 'Chargement des parcours...', 'Chargement des parcours réussi', 'Erreur lors du chargement des parcours');
     }
   }, [tours]);
 
@@ -163,6 +175,8 @@ const TourViewer = () => {
 
   return (
     <div className="h-100">
+
+      <Loader show={isLoading} text={textLoading} />
       <div className="bg-junia-lavender grid grid-cols-3 gap-10 justify-between p-4 items-start">
         {tours.map(tour => (
           <div key={tour.id_tours} className="purpleborder text-justify bg-white border-5 border-junia-orange p-2 rounded-3xl flex-col">

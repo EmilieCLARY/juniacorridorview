@@ -4,7 +4,8 @@ import * as api from '../api/AxiosAdminRoom';
 import Select from 'react-select';
 import '../style/AdminRoom.css';
 import { Buffer } from 'buffer';
-import { toast } from "sonner"; // Add this line
+import { toast } from "sonner";
+import Loader from "./Loader"; // Add this line
 
 const AdminRoom = () => {
   Buffer.from = Buffer.from || require('buffer').Buffer;
@@ -45,12 +46,23 @@ const AdminRoom = () => {
   const history = useHistory();
   const dataFetchedRef = useRef(false);
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [textLoading, setTextLoading] = useState("Chargement des données...");
+
   const showLoading = (promises, textLoading, textSuccess, textError) => {
-    return toast.promise(Promise.all(promises), {
-        loading: textLoading,
-        success: textSuccess,
-        error: textError,
-    });
+    setIsLoading(true);
+    setTextLoading(textLoading);
+    // Return a toaster success after all promises are resolved
+    Promise.all(promises)
+      .then(() => {
+        setIsLoading(false);
+        toast.success(textSuccess);
+      })
+      .catch((error) => {
+        setIsLoading(false);
+        console.error('Error fetching data:', error);
+        toast.error(textError);
+      });
   }
 
   const fetchBuildings = async () => {
@@ -167,7 +179,7 @@ const AdminRoom = () => {
 
   useEffect(() => {
     if (!dataFetchedRef.current) {
-        // Modify loading sequence to ensure buildings load first, then rooms
+        // Modify isLoading sequence to ensure buildings load first, then rooms
         //const fetchBuildingsPromise = fetchBuildings();
         //const fetchFloorsPromise = fetchBuildingsPromise.then(() => fetchFloors());
 
@@ -434,112 +446,132 @@ const AdminRoom = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <button 
-        onClick={() => history.push('/admin/tour')}
-        className="mb-4 p-2 bg-blue-500 text-white rounded"
-      >
-        Page d'administration des parcours
-      </button>
+    <div className="mx-auto p-4">
+      <div className="flex  items-start justify-between">
+      <Loader show={isLoading} text={textLoading} />
       <button 
         onClick={() => setNewRoomModalOpen(true)}
-        className="mb-4 p-2 bg-red-500 text-white rounded"
-      >
+        className="px-4 py-2 bg-junia-orange font-title font-bold shadow-md text-white rounded-full">
         Ajouter une nouvelle salle
-      </button>
-      <input
-        type="text"
-        placeholder="Rechercher une salle..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="w-full p-2 mb-4 border border-gray-300 rounded"
-      />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-        <Select
-          isMulti
-          name="building"
-          options={getUniqueOptions('building_name')}
-          className="basic-multi-select"
-          classNamePrefix="select"
-          placeholder="Filtrer par bâtiment"
-          onChange={handleFilterChange}
-        />
-        <Select
+        </button>
+        
+        <input
+          type="text"
+          placeholder="Rechercher une salle..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full p-2 mb-4 research-input bg-white rounded-full"/>
+
+        
+        <button 
+        onClick={() => history.push('/admin/tour')}
+        className="px-4 py-2 bg-junia-orange font-title font-bold shadow-md text-white rounded-full">
+        Page d'administration des parcours
+        </button>
+      </div>
+      
+      
+
+        <div className="grid grid-cols-2 gap-2 py-4">
+          <Select
+            isMulti
+            name="building"
+            options={getUniqueOptions('building_name')}
+            className="basic-multi-select col-span-2" // s'étend sur deux colonnes
+            classNamePrefix="select"
+            placeholder="Filtrer par bâtiment"
+            onChange={handleFilterChange}
+          />
+          <Select
             isMulti
             name="floor"
             options={floors.map(floor => ({ value: floor.id_floors.toString(), label: floor.name })).sort((a, b) => a.value - b.value)}
-            className="basic-multi-select"
+            className="ct"
             classNamePrefix="select"
             placeholder="Filtrer par étage"
             onChange={handleFilterChange}
-        />
-        <Select
-          isMulti
-          name="name"
-          options={getUniqueOptions('name')}
-          className="basic-multi-select"
-          classNamePrefix="select"
-          placeholder="Filtrer par nom"
-          onChange={handleFilterChange}
-        />
-        <Select
-          isMulti
-          name="number"
-          options={getUniqueOptions('number')}
-          className="basic-multi-select"
-          classNamePrefix="select"
-          placeholder="Filtrer par numéro"
-          onChange={handleFilterChange}
-        />
-        <Select
-          isMulti
-          name="id"
-          options={rooms.map(room => ({ value: room.id_rooms.toString(), label: room.id_rooms.toString() })).sort((a, b) => a.value - b.value)}
-          className="basic-multi-select"
-          classNamePrefix="select"
-          placeholder="Filtrer par ID"
-          onChange={handleFilterChange}
-        />
-      </div>
-      <div className="grid grid-cols-3 gap-4">
+          />
+          <Select
+            isMulti
+            name="name"
+            options={getUniqueOptions('name')}
+            className="basic-multi-select"
+            classNamePrefix="select"
+            placeholder="Filtrer par nom"
+            onChange={handleFilterChange}
+          />
+          <Select
+            isMulti
+            name="number"
+            options={getUniqueOptions('number')}
+            className="basic-multi-select"
+            classNamePrefix="select"
+            placeholder="Filtrer par numéro"
+            onChange={handleFilterChange}
+          />
+          <Select
+            isMulti
+            name="id"
+            options={rooms.map(room => ({ value: room.id_rooms.toString(), label: room.id_rooms.toString() })).sort((a, b) => a.value - b.value)}
+            className="basic-multi-select"
+            classNamePrefix="select"
+            placeholder="Filtrer par ID"
+            onChange={handleFilterChange}
+          />
+        </div>
+      <div className="grid grid-cols-2 gap-4">
         {filteredRooms.map(room => (
           <div 
             key={room.id_rooms} 
-            className="p-4 border border-gray-300 rounded shadow hover:shadow-lg transition-shadow duration-300"
-            onClick={() => handleRoomClick(room.id_rooms)}
-          >
-            <div className="mb-2 flex justify-between items-center">
-              <div>
-                <h3 className="text-xl font-bold">{room.name}</h3>
-                <p>Numéro de salle : {room.number}</p>
-                <p>Bâtiment : {room.building_name}</p>
-                <p>ID Salle: {room.id_rooms}</p>
-              </div>
-              <div 
+            className="p-4 border-2 border-black rounded-3xl shadow hover:shadow-lg transition-shadow duration-300 bg-white flex flex-col"
+            onClick={() => handleRoomClick(room.id_rooms)}>
+
+            <div className="mb-2 flex flex-row">
+              <div className="flex flex-col justify-between my-4">
+                <div>
+                <div className="font-junia-purple font-bold">Salle : </div>
+                <div className="text-junia-orange font-title text-2xl font-semibold"> {room.name} </div>
+                </div>
+                <div>
+                <div className="font-junia-purple font-bold"> Numéro : </div>
+                <div className="text-junia-orange font-title text-2xl font-semibold"> {room.number} </div>
+                </div>
+                <div>
+                <div className="font-junia-purple font-bold">Bâtiment : </div>
+                <div className="text-junia-orange font-title text-2xl font-semibold"> {room.building_name} </div>
+                </div>
+                <div>
+                <div className="font-junia-purple font-bold">ID Salle: </div>
+                <div className="text-junia-orange font-title text-2xl font-semibold"> {room.id_rooms} </div>
+                </div>
+                <div 
                 onClick={(event) => toggleRoomVisibility(event, room)}
                 className={`flex items-center cursor-pointer rounded-full w-24 h-10 p-1 ${room.hidden ? 'bg-red-500' : 'bg-green-500'}`}
               >
                 <div className={`flex items-center justify-center text-xs font-medium h-8 w-8 rounded-full transition-transform duration-300 transform ${room.hidden ? 'bg-white' : 'translate-x-14 bg-white'}`}>
                   {room.hidden ? 'I' : 'V'}
                 </div>
-                <span className={`absolute ml-2 text-xs font-bold text-white ${room.hidden ? 'ml-11' : ''}`}>
+                <span className={`ml-2 text-xs font-bold text-white ${room.hidden ? 'ml-11' : ''}`}>
                   {room.hidden ? 'Invisible' : 'Visible'}
                 </span>
               </div>
+              
+              
             </div>
             {room.imageUrl && (
               <div className="w-full h-48 overflow-hidden rounded relative">
-                <img src={room.imageUrl} alt={`Preview of ${room.name}`} className="object-cover w-full h-full" />
+                <img src={room.imageUrl} alt={`Preview of ${room.name}`} className="object-cover h-20 " />
                 {room.hasPreview && (
-                  <div className="absolute top-2 right-2 bg-junia-orange text-white text-xs font-bold px-2 py-1 rounded">
+                  <div className=" top-2 right-2 bg-junia-orange text-white text-xs font-bold px-2 py-1 rounded ">
                     Preview
                   </div>
                 )}
               </div>
             )}
-
-            <button onClick={(event) => handleDeleteRoom(event, room.id_rooms)} className="bg-red-500 text-white px-4 py-2 rounded mr-2">Supprimer</button>
-            <button onClick={(event) => handleEditRoom(event, room)} className="bg-red-500 text-white px-4 py-2 rounded">Modifier</button>
+          </div>
+          <div className="flex justify-between py-4"><button onClick={(event) => handleDeleteRoom(event, room.id_rooms)} className="bg-junia-orange shadow-md font-title font-bold text-white px-4 py-2 rounded-full ">Supprimer</button>
+            <button onClick={(event) => handleEditRoom(event, room)} className="bg-junia-orange shadow-md font-title font-bold text-white px-4 py-2 rounded-full ">Modifier</button></div>
+            
           </div>
         ))}
       </div>

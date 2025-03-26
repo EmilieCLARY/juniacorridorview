@@ -5,6 +5,7 @@ import { getTourSteps } from '../api/AxiosTour';
 import '../style/Pano.css';
 import { toast } from "sonner";
 import Panorama360 from './Panorama360';
+import Loader from "./Loader";
 
 const PanoramaViewer = ({ location }) => {
   Buffer.from = Buffer.from || require('buffer').Buffer;
@@ -27,6 +28,25 @@ const PanoramaViewer = ({ location }) => {
   
   const loadingImage = useRef(false);
   const [loadingImageBeforeRoomSwitch, setLoadingImageBeforeRoomSwitch] = useState(false);
+
+  const [loading, setLoading] = useState(true);
+  const [textLoading, setTextLoading] = useState("Chargement des données...");
+
+  const showLoading = (promises, textLoading, textSuccess, textError) => {
+    setLoading(true);
+    setTextLoading(textLoading);
+    // Return a toaster success after all promises are resolved
+    Promise.all(promises)
+        .then(() => {
+          setLoading(false);
+          toast.success(textSuccess);
+        })
+        .catch((error) => {
+          setLoading(false);
+          console.error('Error fetching data:', error);
+          toast.error(textError);
+        });
+  }
 
   const fetchAllData = async () => {
     try {
@@ -191,11 +211,7 @@ const PanoramaViewer = ({ location }) => {
     const roomDetailsPromise = roomIdPromise.then(roomId => fetchRoomDetails(roomId));
 
     if(!isLoading.current || firstLoad) {
-      toast.promise(Promise.all([retrievedPopupsPromise, retrievedLinksPromise, roomIdPromise, roomDetailsPromise]), {
-          loading: 'Chargement...',
-          success: 'Chargement des données réussi',
-          error: 'Erreur lors du chargement des données',
-      });
+      showLoading([retrievedPopupsPromise, retrievedLinksPromise, roomIdPromise, roomDetailsPromise], 'Chargement des données...', 'Chargement des données réussi', 'Erreur lors du chargement des données');
     }
 
     retrievedPopupsPromise.then((retrievedPopupsPromise) => {
@@ -265,6 +281,7 @@ const PanoramaViewer = ({ location }) => {
   
   return (
     <div >
+      <Loader show={loading} text={textLoading} />
       <div className="panorama-container">
         <div className="h-full scrollable-list flex-col w-15" id="style-2">
           <div className="font-title text-center py-2 font-bold text-2xl text-white bg-junia-purple  rounded-xl mx-5 my-2">
