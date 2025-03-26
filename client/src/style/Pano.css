@@ -180,7 +180,14 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden; /* Empêche les débordements */
+  overflow: auto;
+}
+
+/* Si vous avez besoin de contrôler le défilement uniquement dans certains conteneurs spécifiques, 
+   utilisez des sélecteurs plus précis comme ci-dessous */
+.panorama-container {
+  display: flex;
+  min-height: calc(90vh);
 }
 
 /*
