@@ -8,7 +8,41 @@ const session = require("express-session");
 const fileUpload = require('express-fileupload'); // Add this line
 const mysql = require('mysql');
 const saltRounds = 10;
-const { db, retrieveLinkByIdPicture, insertLink, getTables, storeImageBlob, getAllPictures, insertImage, fetchImageById, insertInfoPopUp, retrieveInfoPopUpByIdPicture, getTours, getTourStepsWithRoomInfo, updateTourSteps, addTourStep, createTourWithSteps, deleteTour, getRoomNameById, getRoomIdByPictureId, getRooms, getPicturesByRoomId, getFirstPictureByRoomId, updateImage, deleteImage, updateInfospot, updateLink, addRoom, updateRoom, deleteRoom, getBuildings, updateRoomVisibility, insertRoomPreview, getRoomPreview, deleteInfoPopUp, deleteLink} = require('./database');
+const { db,
+    retrieveLinkByIdPicture,
+    insertLink,
+    getTables, storeImageBlob,
+    getAllPictures,
+    insertImage,
+    fetchImageById, insertInfoPopUp,
+    retrieveInfoPopUpByIdPicture,
+    getTours,
+    getTourStepsWithRoomInfo,
+    updateTourSteps,
+    addTourStep,
+    createTourWithSteps,
+    deleteTour,
+    getRoomNameById,
+    getRoomIdByPictureId,
+    getRooms,
+    getPicturesByRoomId,
+    getFirstPictureByRoomId,
+    updateImage,
+    deleteImage,
+    updateInfospot,
+    updateLink,
+    addRoom,
+    updateRoom,
+    deleteRoom,
+    getBuildings,
+    updateRoomVisibility,
+    insertRoomPreview,
+    deleteRoomPreview,
+    getRoomPreview,
+    deleteInfoPopUp,
+    deleteLink,
+    getFloors
+} = require('./database');
 
 
 const PORT = process.env.PORT || 8000;
@@ -392,10 +426,10 @@ app.delete('/delete-link/:id', (req, res) => {
 });
 
 app.post('/add-room', (req, res) => {
-    const { name, number, id_buildings } = req.body;
+    const { name, number, id_floors } = req.body;
     const previewImage = req.files && req.files.previewImage ? req.files.previewImage : null;
     
-    addRoom(name, number, id_buildings, (err, roomId) => {
+    addRoom(name, number, id_floors, (err, roomId) => {
         if (err) {
             console.error('Error adding room:', err);
             res.sendStatus(500);
@@ -415,10 +449,10 @@ app.post('/add-room', (req, res) => {
 });
 
 app.post('/update-room', (req, res) => {
-    const { id_rooms, name, number, id_buildings } = req.body;
+    const { id_rooms, name, number, id_floors } = req.body;
     const previewImage = req.files && req.files.previewImage ? req.files.previewImage : null;
     
-    updateRoom(id_rooms, name, number, id_buildings, (err) => {
+    updateRoom(id_rooms, name, number, id_floors, (err) => {
         if (err) {
             console.error('Error updating room:', err);
             res.sendStatus(500);
@@ -451,23 +485,14 @@ app.post('/update-room-visibility', (req, res) => {
 
 app.delete('/delete-room/:id', (req, res) => {
     const id_rooms = req.params.id;
-    
-    // Delete the room preview first
-    deleteRoomPreview(id_rooms, (err) => {
+    // Then delete the room
+    deleteRoom(id_rooms, (err) => {
         if (err) {
-            console.error('Error deleting room preview:', err);
-            // Continue with room deletion even if preview deletion fails
+            console.error('Error deleting room:', err);
+            res.sendStatus(500);
+        } else {
+            res.sendStatus(200);
         }
-        
-        // Then delete the room
-        deleteRoom(id_rooms, (err) => {
-            if (err) {
-                console.error('Error deleting room:', err);
-                res.sendStatus(500);
-            } else {
-                res.sendStatus(200);
-            }
-        });
     });
 });
 
@@ -505,6 +530,17 @@ app.get('/buildings', (req, res) => {
             res.sendStatus(500);
         } else {
             res.json(buildings);
+        }
+    });
+});
+
+app.get('/floors', (req, res) => {
+    getFloors((err, floors) => {
+        if (err) {
+            console.error('Error fetching floors', err);
+            res.sendStatus(500);
+        } else {
+            res.json(floors);
         }
     });
 });

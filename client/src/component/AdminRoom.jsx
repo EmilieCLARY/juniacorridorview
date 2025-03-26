@@ -10,12 +10,14 @@ const AdminRoom = () => {
   Buffer.from = Buffer.from || require('buffer').Buffer;
   const [rooms, setRooms] = useState([]);
   const [buildings, setBuildings] = useState([]);
+  const [floors, setFloors] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
     building: [],
     name: [],
     number: [],
-    id: []
+    id: [],
+    floor: []
   });
   const [newRoomModalOpen, setNewRoomModalOpen] = useState(false);
   const [editRoomModalOpen, setEditRoomModalOpen] = useState(false);
@@ -24,6 +26,8 @@ const AdminRoom = () => {
     name: '',
     building: '',
     buildingId: '',
+    floor: '',
+    floorId: '',
     images: [],
     previewImage: null
   });
@@ -33,6 +37,8 @@ const AdminRoom = () => {
     number: '',
     name: '',
     building: '',
+    floor: '',
+    floorId: '',
     images: [],
     previewImage: null
   });
@@ -80,14 +86,33 @@ const AdminRoom = () => {
       return [];
     }
   };
+
+  const fetchFloors = async () => {
+    try {
+      const floorsData = await api.getFloors();
+      console.log('Fetched floors:', floorsData);
+      setFloors(floorsData);
+      return floorsData;
+    } catch (error) {
+      console.error('Error fetching floors:', error);
+      toast.error('Erreur lors du chargement des étages');
+      return [];
+    }
+  }
   
   const fetchRooms = async () => {
     try {
+      console.log('Fetching rooms...');
       const roomsData = await api.getRooms();
       // Ensure we have building data before processing rooms
       let buildingsData = buildings;
       if (!buildingsData || buildingsData.length === 0) {
         buildingsData = await fetchBuildings();
+      }
+      // Ensure we have floors data before processing rooms
+      let floorsData = floors;
+      if (!floorsData || floorsData.length === 0) {
+        floorsData = await fetchFloors();
       }
       
       const roomsWithImages = await Promise.all(
@@ -120,8 +145,9 @@ const AdminRoom = () => {
             imageUrl = previewUrl;
           }
           
-          // Find the building name that corresponds to this room's building_id
-          const building = buildingsData.find(b => b.id_buildings === room.id_buildings);
+          // Find the building name that corresponds to the room floors id that contains the id_buildings
+          const floor = floorsData.find(f => f.id_floors === room.id_floors);
+          const building = buildingsData.find(b => b.id_buildings === floor.id_buildings);
           const building_name = building ? building.name : 'Bâtiment inconnu';
 
           return { 
@@ -142,23 +168,20 @@ const AdminRoom = () => {
   useEffect(() => {
     if (!dataFetchedRef.current) {
         // Modify loading sequence to ensure buildings load first, then rooms
-        showLoading(
-          [
-            fetchBuildings().then(buildingsData => {
-              if (buildingsData && buildingsData.length > 0) {
-                return fetchRooms();
-              }
-            })
-          ], 
-          'Chargement des données...', 
-          'Chargement réussi', 
-          'Erreur lors du chargement'
-        );
-        dataFetchedRef.current = true; 
+        //const fetchBuildingsPromise = fetchBuildings();
+        //const fetchFloorsPromise = fetchBuildingsPromise.then(() => fetchFloors());
+
+        // Then fetch rooms
+        const fetchRoomsPromise = fetchRooms();
+
+        showLoading([fetchRoomsPromise], 'Chargement des données...', 'Chargement réussi', 'Erreur lors du chargement');
+
+        dataFetchedRef.current = true;
     }
   }, []);
 
   const handleFilterChange = (selectedOptions, { name }) => {
+    console.log('Selected options:', selectedOptions);
     setFilters(prevFilters => ({
       ...prevFilters,
       [name]: selectedOptions.map(option => option.value)
@@ -178,7 +201,8 @@ const AdminRoom = () => {
     (filters.name.length === 0 || filters.name.some(name => room.name.toLowerCase().includes(name.toLowerCase()))) &&
     (filters.number.length === 0 || filters.number.some(number => room.number.includes(number))) &&
     (filters.building.length === 0 || filters.building.some(building => room.building_name.toLowerCase().includes(building.toLowerCase()))) &&
-    (filters.id.length === 0 || filters.id.some(id => room.id_rooms.toString().includes(id)))
+    (filters.id.length === 0 || filters.id.some(id => room.id_rooms.toString().includes(id))) &&
+    (filters.floor.length === 0 || filters.floor.some(floor => room.id_floors.toString().includes(floor)))
   );
 
   const handleRoomClick = (id) => {
@@ -227,6 +251,11 @@ const AdminRoom = () => {
       toast.error('Veuillez sélectionner un bâtiment');
       return;
     }
+
+    if (!newRoomData.floorId && newRoomData.floorId !== "manual" && newRoomData.floorId !== "0") {
+        toast.error('Veuillez sélectionner un étage');
+        return;
+    }
     
     const formData = new FormData();
     formData.append('number', newRoomData.number);
@@ -253,7 +282,8 @@ const AdminRoom = () => {
       // Make sure to also include the building name if your API requires it
       formData.append('id_buildings', newRoomData.buildingId);
       formData.append('building_name', newRoomData.building);
-      console.log(`Using building ID: ${newRoomData.buildingId} with name: ${newRoomData.building} for new room`);
+      formData.append('floor', newRoomData.floor);
+      formData.append('id_floors', newRoomData.floorId);
     }
     
     // Add preview image to form data
@@ -267,17 +297,22 @@ const AdminRoom = () => {
     });
     
     try {
-      await api.createRoom(formData);
-      setNewRoomModalOpen(false);
-      setNewRoomData({
-        number: '',
-        name: '',
-        building: '',
-        buildingId: '',
-        images: [],
-        previewImage: null
+      const createRoomPromise = api.createRoom(formData);
+      const fetchRoomsPromise = createRoomPromise.then(async () => {
+        await fetchRooms()
+        setNewRoomModalOpen(false);
+        setNewRoomData({
+          number: '',
+          name: '',
+          building: '',
+          buildingId: '',
+          floor: '',
+          floorId: '',
+          images: [],
+          previewImage: null
+        });
       });
-      showLoading([fetchRooms()], 'Ajout de la salle...', 'Salle ajoutée avec succès', 'Erreur lors de l\'ajout de la salle');
+      showLoading([createRoomPromise, fetchRoomsPromise], 'Ajout de la salle...', 'Salle ajoutée avec succès', 'Erreur lors de l\'ajout de la salle');
     } catch (error) {
       console.error('Error creating room:', error);
       toast.error('Erreur lors de la création de la salle');
@@ -304,6 +339,8 @@ const AdminRoom = () => {
       number: room.number,
       name: room.name,
       building: room.building_name,
+      floor: floors.find(floor => floor.id_floors === room.id_floors).name,
+      floorId: room.id_floors,
       images: []
     });
     setEditRoomModalOpen(true);
@@ -349,6 +386,7 @@ const AdminRoom = () => {
     }
     
     formData.append('id_buildings', building.id_buildings);
+    formData.append('id_floors', editRoomData.floorId);
     
     // Add preview image to form data if it exists
     if (editRoomData.previewImage) {
@@ -357,18 +395,21 @@ const AdminRoom = () => {
         
     try {
       const updatePromise = api.updateRoom(formData);
-      updatePromise.then(() => {
+      const fetchRoomsPromise = updatePromise.then(async () => {
+        await fetchRooms();
         setEditRoomModalOpen(false);
         setEditRoomData({
           id_rooms: '',
           number: '',
           name: '',
           building: '',
+          floor: '',
+          floorId: '',
           images: [],
           previewImage: null
         });
       });
-      showLoading([updatePromise, fetchRooms()], 'Modification de la salle...', 'Salle modifiée avec succès', 'Erreur lors de la modification de la salle');
+      showLoading([updatePromise, fetchRoomsPromise], 'Modification de la salle...', 'Salle modifiée avec succès', 'Erreur lors de la modification de la salle');
     } catch (error) {
       console.error('Error updating room:', error);
       toast.error('Erreur lors de la modification de la salle');
@@ -422,6 +463,15 @@ const AdminRoom = () => {
           classNamePrefix="select"
           placeholder="Filtrer par bâtiment"
           onChange={handleFilterChange}
+        />
+        <Select
+            isMulti
+            name="floor"
+            options={floors.map(floor => ({ value: floor.id_floors.toString(), label: floor.name })).sort((a, b) => a.value - b.value)}
+            className="basic-multi-select"
+            classNamePrefix="select"
+            placeholder="Filtrer par étage"
+            onChange={handleFilterChange}
         />
         <Select
           isMulti
@@ -563,6 +613,16 @@ const AdminRoom = () => {
                 }}
                 required
               />
+              <Select
+                name="floor"
+                // Options depend on the selected building
+                options={floors.filter(floor => floor.id_buildings === parseInt(newRoomData.buildingId)).map(floor => ({ value: floor.id_floors.toString(), label: floor.name })).sort((a, b) => a.value - b.value)}
+                className="basic-single-select"
+                classNamePrefix="select"
+                placeholder="Sélectionner un étage"
+                onChange={(selectedOption) => setNewRoomData(prevData => ({ ...prevData, floor: selectedOption.label, floorId: selectedOption.value }))}
+                required
+              />
               
               {newRoomData.showManualBuildingInput && (
                 <input 
@@ -632,6 +692,16 @@ const AdminRoom = () => {
                   ...prevData,
                   building: selectedOption.value
                 }))}
+                required
+              />
+              <Select
+                name="floor"
+                options={floors.map(floor => ({ value: floor.id_floors.toString(), label: floor.name })).sort((a, b) => a.value - b.value)}
+                className="basic-single-select"
+                classNamePrefix="select"
+                placeholder="Sélectionner un étage"
+                defaultValue={{ value: editRoomData.floor, label: editRoomData.floor }}
+                onChange={(selectedOption) => setEditRoomData(prevData => ({ ...prevData, floor: selectedOption.label, floorId: selectedOption.value }))}
                 required
               />
               {/* Removed panoramic images input */}

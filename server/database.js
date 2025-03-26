@@ -129,6 +129,22 @@ const getRooms = (callback) => {
     });
 };
 
+const getFloors = (callback) => {
+    const query = `
+        SELECT *
+        FROM Floors
+        ORDER BY name ASC
+    `;
+
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error executing getFloors query:', err);
+            return callback(err, null);
+        }
+        return callback(null, results);
+    });
+}
+
 const getBuildings = (callback) => {
     const sql = `SELECT id_buildings, name FROM Buildings`;
     db.query(sql, (err, rows) => {
@@ -227,10 +243,10 @@ function deleteLink(id_links, callback) {
     });
 }
 
-function addRoom(name, number, id_buildings, callback) {
-    console.log('Adding room', name, number, 'to building', id_buildings);
-    const sql = `INSERT INTO Rooms (name, number, id_buildings) VALUES (?, ?, ?)`;
-    db.query(sql, [name, number, id_buildings], (err, result) => {
+function addRoom(name, number, id_floors, callback) {
+    console.log('Adding room', name, number, 'to floor', id_floors);
+    const sql = `INSERT INTO Rooms (name, number, id_floors) VALUES (?, ?, ?)`;
+    db.query(sql, [name, number, id_floors], (err, result) => {
         if (err) {
             callback(err, null);
         } else {
@@ -239,10 +255,10 @@ function addRoom(name, number, id_buildings, callback) {
     });
 }
 
-function updateRoom(id_rooms, name, number, id_buildings, callback) {
+function updateRoom(id_rooms, name, number, id_floors, callback) {
     console.log('Updating room', id_rooms);
-    const sql = `UPDATE Rooms SET name = ?, number = ?, id_buildings = ? WHERE id_rooms = ?`;
-    db.query(sql, [name, number, id_buildings, id_rooms], (err) => {
+    const sql = `UPDATE Rooms SET name = ?, number = ?, id_floors = ? WHERE id_rooms = ?`;
+    db.query(sql, [name, number, id_floors, id_rooms], (err) => {
         callback(err);
     });
 }
@@ -567,5 +583,6 @@ module.exports = {
     getBuildings,
     getRoomPreview,
     insertRoomPreview,
-    deleteRoomPreview
+    deleteRoomPreview,
+    getFloors
 };
