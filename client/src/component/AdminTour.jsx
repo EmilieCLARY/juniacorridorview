@@ -379,7 +379,7 @@ const AdminTour = () => {
       </div>
       
       <div className="h-100">
-      <div className="bg-junia-lavender grid grid-cols-3 gap-10 justify-between p-4 items-start">
+      <div className="bg-junia-salmon grid grid-cols-3 gap-10 justify-between p-4 items-start">
           {filteredTours.map(tour => (
             <div key={tour.id_tours} className="purpleborder text-justify bg-white border-5 border-junia-orange p-2 rounded-3xl flex flex-col">
               <div className="font-title font-bold text-junia-orange text-3xl text-center">Parcours : {tour.title}</div>
@@ -448,11 +448,6 @@ const AdminTour = () => {
               <div className="text-3xl font-bold font-title text-center">Ajouter un nouveau parcours</div>
               <span className="close items-center" onClick={() => setNewTourModalOpen(false)}>&times;</span>
             </div>
-            {rooms.length === 0 && (
-              <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
-                <p>Impossible de charger les salles. Vous ne pourrez pas créer de parcours pour le moment.</p>
-              </div>
-            )}
             <form onSubmit={handleNewTour}>
               <input type="text" name="title" placeholder="Titre du Parcours" className="font-texts" required />
               <textarea name="description" placeholder="Description du Parcours" className="font-texts" required></textarea>

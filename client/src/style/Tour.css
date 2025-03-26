@@ -13,6 +13,10 @@
   justify-self: center;
 }
 
+.margin-top-8 {
+  margin-top: 3.5rem;
+}
+
 /*
 .tours-container {
   display: flex;
