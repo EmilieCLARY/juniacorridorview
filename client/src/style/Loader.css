@@ -1,0 +1,46 @@
+.loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    z-index: 9999;
+}
+
+.loader-container {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: blink 1s infinite alternate;
+}
+
+.loader-image {
+    width: 80px;
+    height: 80px;
+}
+
+.loader-text {
+    margin-top: 10px;
+    color: white;
+    font-size: 16px;
+    text-align: center;
+}
+
+
+@keyframes blink {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.5;
+    }
+}
