@@ -5,6 +5,7 @@ import Panorama360 from './Panorama360';
 import '../style/AdminRoomDetails.css';
 import { Buffer } from 'buffer';
 import { toast } from "sonner";
+import Loader from "./Loader";
 
 const AdminRoomDetails = () => {
   const { id } = useParams();
@@ -42,12 +43,23 @@ const AdminRoomDetails = () => {
   const [isLoadingModal, setIsLoadingModal] = useState(true);
   const [disableBackgroundClick, setDisableBackgroundClick] = useState(false);
 
+  const [loading, setLoading] = useState(true);
+  const [textLoading, setTextLoading] = useState("Chargement des données...");
+
   const showLoading = (promises, textLoading, textSuccess, textError) => {
-    return toast.promise(Promise.all(promises), {
-        loading: textLoading,
-        success: textSuccess,
-        error: textError,
-    });
+    setLoading(true);
+    setTextLoading(textLoading);
+    // Return a toaster success after all promises are resolved
+    Promise.all(promises)
+        .then(() => {
+          setLoading(false);
+          toast.success(textSuccess);
+        })
+        .catch((error) => {
+          setLoading(false);
+          console.error('Error fetching data:', error);
+          toast.error(textError);
+        });
   }
 
   const fetchAllData = async () => {
@@ -436,6 +448,7 @@ const AdminRoomDetails = () => {
 
   return (
     <div className="admin-room-details-container">
+      <Loader show={loading} text={textLoading} />
       <h1>{roomName}</h1>
       <div className="image-panorama-container">
         <div className="image-list">

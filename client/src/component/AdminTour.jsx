@@ -13,6 +13,7 @@ import {
     restrictToWindowEdges,
   } from '@dnd-kit/modifiers';
 import Carousel from '../reactbits/Components/Carousel/Carousel';
+import Loader from "./Loader";
 
 const SortableItem = ({ id, children }) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
@@ -44,12 +45,23 @@ const AdminTour = () => {
   const loading = useRef(false);
   const history = useHistory();
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [textLoading, setTextLoading] = useState("Chargement des données...");
+
   const showLoading = (promises, textLoading, textSuccess, textError) => {
-    return toast.promise(Promise.all(promises), {
-        loading: textLoading,
-        success: textSuccess,
-        error: textError,
-    });
+    setIsLoading(true);
+    setTextLoading(textLoading);
+    // Return a toaster success after all promises are resolved
+    Promise.all(promises)
+        .then(() => {
+          setIsLoading(false);
+          toast.success(textSuccess);
+        })
+        .catch((error) => {
+          setIsLoading(false);
+          console.error('Error fetching data:', error);
+          toast.error(textError);
+        });
   }
 
   const fetchPanoramaUrls = async (steps) => {
@@ -345,6 +357,7 @@ const AdminTour = () => {
 
   return (
     <div className="container mx-auto p-4">
+      <Loader show={isLoading} text={textLoading} />
       <div className="header mb-4">
         <h1 className="text-2xl font-bold mb-2">Information des parcours</h1>
         {rooms.length === 0 && (
