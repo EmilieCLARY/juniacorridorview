@@ -13,6 +13,7 @@ import {
     restrictToWindowEdges,
   } from '@dnd-kit/modifiers';
 import Carousel from '../reactbits/Components/Carousel/Carousel';
+import '../style/AdminTour.css';
 
 const SortableItem = ({ id, children }) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
@@ -344,83 +345,108 @@ const AdminTour = () => {
   );
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="header mb-4">
-        <h1 className="text-2xl font-bold mb-2">Information des parcours</h1>
-        {rooms.length === 0 && (
-          <div className="bg-amber-100 border-l-4 border-amber-500 text-amber-700 p-4 mb-4" role="alert">
-            <p className="font-bold">Attention</p>
-            <p>Impossible de charger les salles depuis le serveur. La création et modification de parcours peut être limitée.</p>
-          </div>
-        )}
-        <input
-          type="text"
-          placeholder="Rechercher un parcours..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="search-bar p-2 border border-gray-300 rounded mb-4"
-        />
-        <button onClick={openNewTourModal} className="bg-blue-500 text-white px-4 py-2 rounded">Ajouter un nouveau parcours</button>
+    <div className="min-h-screen">
+      <div className="my-4 flex justify-center">
+        <div className="flex gap-8 items-center font-title text-xl">
+          <input
+            type="text"
+            placeholder="Rechercher un parcours..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full p-2 research-input bg-white rounded-full"
+          />
+          <button 
+            onClick={openNewTourModal} 
+            className="text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl p-2 hover:bg-junia-orange-dark rounded-full"
+          >
+            Ajouter un nouveau parcours
+          </button>
+        </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {filteredTours.map(tour => (
-          <div key={tour.id_tours} className="tour-card p-4 border border-gray-300 rounded shadow">
-            <h3 className="text-xl font-semibold mb-2">{tour.title}</h3>
-            <h4> Description </h4>
-            <p className="mb-2">{tour.description}</p>
-            <div className="">
-              <h4>Étapes</h4>
+      
+      <div className="h-100">
+      <div className="bg-junia-lavender grid grid-cols-3 gap-10 justify-between p-4 items-start">
+          {filteredTours.map(tour => (
+            <div key={tour.id_tours} className="purpleborder text-justify bg-white border-5 border-junia-orange p-2 rounded-3xl flex flex-col">
+              <div className="font-title font-bold text-junia-orange text-3xl text-center">Parcours : {tour.title}</div>
+              <div className="font-texts">
+                <p  className="font-texts font-bold text-junia-orange text-2xl">Description</p>
+                {tour.description}
+              </div>
+              
               {tourSteps[tour.id_tours] ? (
                 tourSteps[tour.id_tours].length > 0 ? (
-                  <>
-                    <p>Nom de la salle : {currentRoomName[tour.id_tours] || (getPanoramaImagesForTour(tour.id_tours)[0]?.roomName || 'Aucune salle disponible')}</p>
-                    <Carousel
-                      items={getPanoramaImagesForTour(tour.id_tours)}
-                      baseWidth="100%"
-                      autoplay={true}
-                      autoplayDelay={3000}
-                      pauseOnHover={true}
-                      loop={true}
-                      round={false}
-                      onChange={(index) => handleCarouselChange(tour.id_tours, index)}
-                    />
+                  <div className="mt-4" style={{ height: "500px" }}>
+                    <p  className="font-texts font-bold text-junia-orange text-2xl">Etapes</p>
+                    <p className="font-texts font-bold text-center text-junia-violet">
+                      Salle : {currentRoomName[tour.id_tours] || (getPanoramaImagesForTour(tour.id_tours)[0]?.roomName || 'Aucune salle disponible')}
+                    </p>
+                    <div style={{ height: "450px" }}>
+                      <Carousel
+                        items={getPanoramaImagesForTour(tour.id_tours)}
+                        baseWidth="100%"
+                        autoplay={true}
+                        autoplayDelay={3000}
+                        pauseOnHover={true}
+                        loop={true}
+                        round={false}
+                        onChange={(index) => handleCarouselChange(tour.id_tours, index)}
+                      />
+                    </div>
+                    
                     {getPanoramaImagesForTour(tour.id_tours).every(img => img.isPlaceholder) && (
-                      <p className="text-amber-500 mt-2">
-                        Attention: Ce parcours n'a pas d'images panoramiques. Veuillez en ajouter dans la gestion des salles.
+                      <p className="text-amber-500 mt-2 text-center text-sm">
+                        Attention: Ce parcours n'a pas d'images panoramiques.
                       </p>
                     )}
-                  </>
+                  </div>
                 ) : (
-                  <p>Aucune étape disponible pour ce parcours</p>
+                  <p className="text-center my-4 text-junia-purple">Aucune étape disponible pour ce parcours</p>
                 )
               ) : (
-                <p>Chargement des étapes...</p>
+                <p className="text-center my-4 text-junia-purple">Chargement des étapes...</p>
               )}
+              
+              <div className="flex flex-col items-center justify-center gap-4 margin-top-8 mb-4">
+                <div 
+                  onClick={() => handleEditTour(tour)} 
+                  className="text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl p-2 w-1/3 max-w-max inline-block cursor-pointer"
+                >
+                  Modifier
+                </div>
+                <div 
+                  onClick={() => handleDeleteTour(tour.id_tours)} 
+                  className="text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl p-2 w-1/3 max-w-max inline-block cursor-pointer"
+                >
+                  Supprimer
+                </div>
+              </div>
             </div>
-            <button onClick={() => handleDeleteTour(tour.id_tours)} className="bg-red-500 text-white px-4 py-2 rounded mr-2">Supprimer</button>
-            <button onClick={() => handleEditTour(tour)} className="bg-red-500 text-white px-4 py-2 rounded">Modifier</button>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
+      {/* Modals - Keep existing modal code */}
       {newTourModalOpen && (
         <div className="modal">
           <div className="modal-content">
-            <span className="close" onClick={() => setNewTourModalOpen(false)}>&times;</span>
-            <h2>Ajouter un nouveau parcours</h2>
+            <div className="flex justify-between items-center pb-4">
+              <div className="text-3xl font-bold font-title text-center">Ajouter un nouveau parcours</div>
+              <span className="close items-center" onClick={() => setNewTourModalOpen(false)}>&times;</span>
+            </div>
             {rooms.length === 0 && (
               <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
                 <p>Impossible de charger les salles. Vous ne pourrez pas créer de parcours pour le moment.</p>
               </div>
             )}
             <form onSubmit={handleNewTour}>
-              <input type="text" name="title" placeholder="Titre du Parcours" required />
-              <textarea name="description" placeholder="Description du Parcours" required></textarea>
-              <DndContext onDragEnd={onDragEnd} modifiers={[restrictToVerticalAxis, restrictToWindowEdges]}>
+              <input type="text" name="title" placeholder="Titre du Parcours" className="font-texts" required />
+              <textarea name="description" placeholder="Description du Parcours" className="font-texts" required></textarea>
+              <DndContext onDragEnd={onDragEnd} modifiers={[restrictToVerticalAxis, restrictToWindowEdges]} >
                 <SortableContext items={newTourSteps.map(step => step.id)} strategy={verticalListSortingStrategy}>
                   {newTourSteps.map((step, index) => (
                     <SortableItem key={step.id} id={step.id}>
-                      <div className="draggable-step">
+                      <div className="draggable-step font-title">
                         <h4>Étape {index + 1}</h4>
                         <select
                           name={`steps[${index}][id_rooms]`}
@@ -429,6 +455,7 @@ const AdminTour = () => {
                           onPointerDown={(e) => e.stopPropagation()}
                           required
                           disabled={rooms.length === 0}
+                          className="font-texts"
                         >
                           <option value="">Sélectionner une salle</option>
                           {rooms.map(room => (
@@ -442,8 +469,8 @@ const AdminTour = () => {
                   ))}
                 </SortableContext>
               </DndContext>
-              <button type="button" onClick={handleAddNewTourStep} disabled={rooms.length === 0}>Ajouter une étape</button>
-              <button type="submit" disabled={rooms.length === 0 || newTourSteps.length === 0}>Ajouter un parcours</button>
+              <button type="button" onClick={handleAddNewTourStep} disabled={rooms.length === 0} className="font-texts shadow-md">Ajouter une étape</button>
+              <button type="submit" disabled={rooms.length === 0 || newTourSteps.length === 0} className="font-texts shadow-md">Confirmer l'ajout du parcours</button>
             </form>
           </div>
         </div>
