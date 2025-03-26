@@ -163,13 +163,13 @@ const TourViewer = () => {
 
   return (
     <div className="h-100">
-      <div className="bg-junia-lavender grid grid-cols-3 grid-flow-col auto-cols-min gap-10 justify-between p-4 h-full">
+      <div className="bg-junia-lavender grid grid-cols-3 gap-10 justify-between p-4 items-start">
         {tours.map(tour => (
           <div key={tour.id_tours} className="purpleborder text-justify bg-white border-5 border-junia-orange p-2 rounded-3xl flex-col">
             <div className="font-title font-bold text-junia-orange text-3xl text-center">{tour.title}</div>
             <div className="font-texts">{tour.description}</div>
             {getPanoramaImagesForTour(tour.id_tours).length > 0 && (
-              <div className="">
+              <div className="mt-4 mb-0">
                   <p className="font-texts font-bold text-center text-junia-violet">Salle : {currentRoomName[tour.id_tours] || getPanoramaImagesForTour(tour.id_tours)[0]?.roomName}</p>
                   <Carousel 
                     items={getPanoramaImagesForTour(tour.id_tours)} 
@@ -183,7 +183,14 @@ const TourViewer = () => {
                   />
               </div>
             )}
-            <div onClick={() => handleTourClick(tour.id_tours)} className="text-xl text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl p-2 w-65 js-center" >Commencer le parcours</div>
+            <div className="flex justify-center">
+              <div 
+                onClick={() => handleTourClick(tour.id_tours)} 
+                className="text-xl text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl p-2 w-1/3 max-w-max inline-block mb-2 mt-2"
+              >
+                Commencer le parcours
+              </div>
+            </div>
           </div>
         ))}
       </div>

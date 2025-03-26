@@ -10,6 +10,7 @@
   overflow: hidden;
   border-radius: 24px;
   padding: 16px;
+  padding-top: 0px;
   /* This padding is taken into account for item width */
   --outer-r: 24px;
   --p-distance: 14px;
