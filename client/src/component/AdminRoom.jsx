@@ -4,7 +4,8 @@ import * as api from '../api/AxiosAdminRoom';
 import Select from 'react-select';
 import '../style/AdminRoom.css';
 import { Buffer } from 'buffer';
-import { toast } from "sonner"; // Add this line
+import { toast } from "sonner";
+import Loader from "./Loader"; // Add this line
 
 const AdminRoom = () => {
   Buffer.from = Buffer.from || require('buffer').Buffer;
@@ -45,12 +46,23 @@ const AdminRoom = () => {
   const history = useHistory();
   const dataFetchedRef = useRef(false);
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [textLoading, setTextLoading] = useState("Chargement des données...");
+
   const showLoading = (promises, textLoading, textSuccess, textError) => {
-    return toast.promise(Promise.all(promises), {
-        loading: textLoading,
-        success: textSuccess,
-        error: textError,
-    });
+    setIsLoading(true);
+    setTextLoading(textLoading);
+    // Return a toaster success after all promises are resolved
+    Promise.all(promises)
+      .then(() => {
+        setIsLoading(false);
+        toast.success(textSuccess);
+      })
+      .catch((error) => {
+        setIsLoading(false);
+        console.error('Error fetching data:', error);
+        toast.error(textError);
+      });
   }
 
   const fetchBuildings = async () => {
@@ -167,7 +179,7 @@ const AdminRoom = () => {
 
   useEffect(() => {
     if (!dataFetchedRef.current) {
-        // Modify loading sequence to ensure buildings load first, then rooms
+        // Modify isLoading sequence to ensure buildings load first, then rooms
         //const fetchBuildingsPromise = fetchBuildings();
         //const fetchFloorsPromise = fetchBuildingsPromise.then(() => fetchFloors());
 
@@ -435,6 +447,7 @@ const AdminRoom = () => {
 
   return (
     <div className="container mx-auto p-4">
+      <Loader show={isLoading} text={textLoading} />
       <button 
         onClick={() => history.push('/admin/tour')}
         className="mb-4 p-2 bg-blue-500 text-white rounded"
@@ -522,7 +535,7 @@ const AdminRoom = () => {
                 <div className={`flex items-center justify-center text-xs font-medium h-8 w-8 rounded-full transition-transform duration-300 transform ${room.hidden ? 'bg-white' : 'translate-x-14 bg-white'}`}>
                   {room.hidden ? 'I' : 'V'}
                 </div>
-                <span className={`absolute ml-2 text-xs font-bold text-white ${room.hidden ? 'ml-11' : ''}`}>
+                <span className={`ml-2 text-xs font-bold text-white ${room.hidden ? 'ml-11' : ''}`}>
                   {room.hidden ? 'Invisible' : 'Visible'}
                 </span>
               </div>
