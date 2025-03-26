@@ -252,6 +252,14 @@ const getFloors = async () => {
     }
 }
 
+const uploadFile = async (formData) => {
+  try {
+    await api.post('/upload', formData);
+  } catch (error) {
+    console.error('Error uploading file:', error);
+  }
+};
+
 export {
   getRooms,
   getPicturesByRoomId,
@@ -274,5 +282,6 @@ export {
   updateLink,
   deleteLink,
   deleteInfospot,
-  getFloors
+  getFloors,
+  uploadFile  // Add this to the exports
 };
