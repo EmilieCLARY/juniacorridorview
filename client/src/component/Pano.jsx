@@ -257,40 +257,39 @@ const PanoramaViewer = ({ location }) => {
   }, [visitType, rooms, tourSteps]);
   
   return (
-    <div>
-      
+    <div >
       <div className="panorama-container">
-        <div className="rooms-list flex-col w-15 h-full">
-          <div className="font-title font-bold text-2xl text-junia-orange sticky top-0 bg-white z-10 py-2">
+        <div className="h-full scrollable-list flex-col w-15" id="style-2">
+          <div className="font-title text-center py-2 font-bold text-2xl text-white bg-junia-purple  rounded-xl mx-5 my-2">
             Autres Salles
           </div>
           
           {filteredRooms.map(room => (
-              <div key={room.id_rooms} className="flex  justify-start items-end h-64 m-2" onClick={() => handleRoomClick(room.id_rooms)}>
-                
-                {roomPreviews[room.id_rooms] && (
-                  <div className=" w-full h-full relative">
-                    <img src={roomPreviews[room.id_rooms]} alt={`Preview of ${room.name}`} className="h-full w-full object-cover rounded-lg" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-white to-transparent rounded-lg"></div>
-                    {previewFlags[room.id_rooms] && (
-                      <div className="absolute top-2 right-2 bg-junia-orange text-white text-xs font-bold px-2 py-1 rounded">
-                        Preview
-                      </div>
-                    )}
-                  </div>
-                )}
-                <div className="text-junia-orange font-bold absolute bottom-0 z-10 w-15 wrapped-text  px-3">{room.name} ({room.number})</div>
+            <div
+              key={room.id_rooms}
+              className="room-container"
+              onClick={() => handleRoomClick(room.id_rooms)}
+            >
+              {roomPreviews[room.id_rooms] && (
+                <img
+                  src={roomPreviews[room.id_rooms]}
+                  alt={`Preview of ${room.name}`}
+                />
+              )}
+              <div className="bg-white text-center font-bold text-junia-orange room-title border-junia-orange">
+                {room.name} ({room.number})
               </div>
-            ))}
+            </div>
+          ))}
           
         </div>
         <div>
         </div>
         <div className="panorama-content">
         {/*<h2>Salle actuelle : {currentRoomName} ({currentRoomNumber})</h2>*/}
-          <Panorama360 
+        <Panorama360 
             infoPopups={infoPopups[currentImageId] || []} 
-            selectedPicture={images.find(image => image.id === currentImageId)?.imageBlob ? URL.createObjectURL(images.find(image => image.id === currentImageId).imageBlob) : null} 
+            selectedPicture={images.find(image => image.id === currentImageId)?.imageBlob ? URL.createObjectURL(images.find(image => image.id).imageBlob) : null} 
             links={links[currentImageId] || []}
             onLinkClick={handleLinkClick}
             isLoading={(isLoading.current || firstLoad.current || loadingImageBeforeRoomSwitch) }
