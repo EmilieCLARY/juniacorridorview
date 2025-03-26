@@ -199,7 +199,7 @@ const TourViewer = () => {
                   </div>
               </div>
             )}
-            <div className="flex justify-center">
+            <div className="flex justify-center margin-top-8">
               <div 
                 onClick={() => handleTourClick(tour.id_tours)} 
                 className="text-xl text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl p-2 w-1/3 max-w-max inline-block mb-2 mt-2"

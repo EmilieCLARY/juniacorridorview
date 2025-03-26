@@ -460,6 +460,7 @@ const AdminRoomDetails = () => {
 
   return (
     <div className="flex flex-col items-center">
+      <Loader show={loading} text={textLoading} />
       <h1 className="text-2xl font-bold mt-4">{roomName}</h1>
       <div className="flex w-full h-[500px] mt-5">
         <div className="flex-1 flex flex-col overflow-y-auto p-2.5 border-r border-gray-300">
@@ -468,8 +469,8 @@ const AdminRoomDetails = () => {
               Ajouter une image 360°
             </button>
           </div>
-      <Loader show={loading} text={textLoading} />
-
+        </div>
+      </div>
     <div className="admin-room-details-container">
       <h1>{roomName}</h1>
       <div className="image-panorama-container">
@@ -583,7 +584,7 @@ const AdminRoomDetails = () => {
           </div>
         ))}
       </div>
-
+      </div>
       {newInfospotModalOpen && (
         <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-40 z-10">
           <div className="bg-white p-5 border border-gray-400 w-4/5 max-w-6xl">
