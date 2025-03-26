@@ -5,8 +5,10 @@ import React, { useEffect, useRef, useState } from "react";
 const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositionSelect, isLoading, disableClick}) => {
   const mountRef = useRef(null);
   const infoTexture = new THREE.TextureLoader().load("/img/info.png");
+  infoTexture.colorSpace = THREE.SRGBColorSpace;
   const infoMeshes = [];
-  const linksTexture = new THREE.TextureLoader().load("/img/links.png");                      
+  const linksTexture = new THREE.TextureLoader().load("/img/arrow.png");
+  linksTexture.colorSpace = THREE.SRGBColorSpace;
   const linksMeshes = [];
   const displayedPopups = [];
 
@@ -61,14 +63,14 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
         }
 
         // Calculate the dimensions of the canvas
-        canvasWidth = 50 + 2 * imageWidth + 50; // Add extra width for the image and padding
+        canvasWidth = 60 + 2 * imageWidth + 60; // Add extra width for the image and padding
 
         // Calculate the height needed for the text
         const textLines = wrapText(context, popup.text.slice(0, 50), imageWidth); 
         const textHeight = textLines.length * lineHeight + 50;
 
         // Adjust canvas height based on text and image height
-        canvasHeight = Math.max(imageHeight, textHeight) + 325; // Add extra height for the title and padding
+        canvasHeight = Math.max(imageHeight, textHeight) + 350; // Add extra height for the title and padding
 
         // Set the canvas dimensions
         canvas.width = canvasWidth;
@@ -159,14 +161,14 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
         }
 
         // Calculate the dimensions of the canvas
-        canvasWidth = 40 + imageWidth + 40; // Add extra width for the image and padding
+        canvasWidth = 60 + imageWidth + 60; // Add extra width for the image and padding
 
         // Calculate the height needed for the text
         const textLines = wrapText(context, popup.text, imageWidth);
         const textHeight = textLines.length * lineHeight + 200;
 
         // Adjust canvas height based on text and image height
-        canvasHeight = imageHeight + textHeight + 115; // Add extra height for the title and padding
+        canvasHeight = imageHeight + textHeight + 150; // Add extra height for the title and padding
 
         // Set the canvas dimensions
         canvas.width = canvasWidth;
@@ -199,7 +201,7 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
 
         // Wrap title text if it exceeds the canvas width
         const titleLines = wrapText(context, popup.title.toUpperCase().slice(0, 40), canvasWidth - 100); // Add padding
-        const titleYStart = 80; // Starting Y position for the title
+        const titleYStart = 110; // Starting Y position for the title
         const titleLineHeight = 70; // Line height for the title
 
         titleLines.forEach((line, i) => {
@@ -214,13 +216,13 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
 */
 
         // Text
-        context.font = 'Normal 50px Arial';
+        context.font = 'Normal 52px Arial';
         context.fillStyle = 'white';
         context.textAlign = 'left';
 
         const textX = 40;
         const titleHeight = titleLines.length * titleLineHeight;
-        const textY = titleYStart + titleHeight + 30; // Add padding after title
+        const textY = titleYStart + titleHeight + 10; // Add padding after title
 
         let lines = wrapText(context, popup.text, imageWidth);
         lines.forEach((line, i) => {
@@ -244,7 +246,11 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
 
       // Create texture and mesh after the image is loaded and drawn
       const texture = new THREE.CanvasTexture(canvas);
-      const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
+      texture.colorSpace = THREE.SRGBColorSpace;
+      const material = new THREE.MeshBasicMaterial({ 
+        map: texture, 
+        transparent: true
+      });
       const geometry = new THREE.PlaneGeometry(canvasWidth / 5, canvasHeight / 5);
       const mesh = new THREE.Mesh(geometry, material);
       mesh.position.set(0, 50, 0);
@@ -279,6 +285,10 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
   let sphere;
   let scene;
 
+  // Ajouter ces variables pour le hover
+  const originalScale = new THREE.Vector3(1.2, 1.2, 1.2);
+  const hoverScale = new THREE.Vector3(1.5, 1.5, 1.5);
+
   useEffect(() => {
     if (!mountRef.current) return;
     if(isLoading) return;
@@ -298,14 +308,19 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
 
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({ 
+      antialias: true,
+      preserveDrawingBuffer: true // Ajouter cette option
+    });
     const width = mountRef.current.clientWidth;
     const height = mountRef.current.clientHeight;
 
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     renderer.setSize(width, height);
-    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1;
 
     mountRef.current.appendChild(renderer.domElement);
 
@@ -322,7 +337,10 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
     geometry.scale(-1, 1, 1);
     const textureLoader = new THREE.TextureLoader();
     const texture = textureLoader.load(selectedPicture);
-    const material = new THREE.MeshBasicMaterial({ map: texture });
+    texture.colorSpace = THREE.SRGBColorSpace;
+    const material = new THREE.MeshBasicMaterial({ 
+      map: texture
+    });
     sphere = new THREE.Mesh(geometry, material);
     scene.add(sphere);
 
@@ -342,7 +360,10 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
     if (infoPopups) {
       infoPopups.forEach(popup => {
         const infoGeometry = new THREE.PlaneGeometry(20, 20);
-        const infoMaterial = new THREE.MeshBasicMaterial({ map: infoTexture, transparent: true });
+        const infoMaterial = new THREE.MeshBasicMaterial({ 
+          map: infoTexture, 
+          transparent: true,
+        });
         const infoMesh = new THREE.Mesh(infoGeometry, infoMaterial);
         const pos = new THREE.Vector3(popup.position_x, popup.position_y, popup.position_z).normalize().multiplyScalar(495);
         infoMesh.position.copy(pos);
@@ -355,7 +376,10 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
     if (links) {
       links.forEach(link => {
         const linksGeometry = new THREE.PlaneGeometry(20, 20);
-        const linksMaterial = new THREE.MeshBasicMaterial({ map: linksTexture, transparent: true });
+        const linksMaterial = new THREE.MeshBasicMaterial({ 
+          map: linksTexture, 
+          transparent: true,
+        });
         const linksMesh = new THREE.Mesh(linksGeometry, linksMaterial);
         const pos = new THREE.Vector3(link.position_x, link.position_y, link.position_z).normalize().multiplyScalar(495);
         linksMesh.position.copy(pos);
@@ -366,6 +390,35 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
     
     // Ajouter l'événement de clic
     document.addEventListener("click", onClick);
+
+    // Ajouter la gestion du hover
+    const onMouseMove = (event) => {
+      if (!mountRef.current) return;
+      
+      const rect = mountRef.current.getBoundingClientRect();
+      const mouse = new THREE.Vector2();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(mouse, camera);
+
+      // Réinitialiser l'échelle de tous les meshes
+      [...infoMeshes, ...linksMeshes].forEach(mesh => {
+        mesh.scale.copy(originalScale);
+      });
+
+      // Vérifier le hover sur les infospots et les liens
+      const intersects = raycaster.intersectObjects([...infoMeshes, ...linksMeshes]);
+      if (intersects.length > 0) {
+        intersects[0].object.scale.copy(hoverScale);
+        mountRef.current.style.cursor = 'pointer';
+      } else {
+        mountRef.current.style.cursor = 'grab';
+      }
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
     
     const animate = () => {
       requestAnimationFrame(animate);
@@ -373,7 +426,6 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
       infoMeshes.forEach(mesh => mesh.lookAt(camera.position));
       linksMeshes.forEach(mesh => mesh.lookAt(camera.position));
       displayedPopups.forEach(popup => popup.lookAt(camera.position));
-      renderer.outputEncoding = THREE.sRGBEncoding;
       renderer.render(scene, camera);
     };
     animate();
@@ -384,6 +436,7 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
       }
       window.removeEventListener("resize", onWindowResize);
       document.removeEventListener("click", onClick);
+      document.removeEventListener('mousemove', onMouseMove);
       
       // Nettoyer les ressources Three.js
       infoMeshes.length = 0;
