@@ -10,6 +10,9 @@
   overflow: hidden;
   border-radius: 24px;
   padding: 16px;
+  padding-top: 0px;
+  height: 100%; /* Assurer que le container prend 100% de la hauteur disponible */
+  min-height: 400px; /* Hauteur minimale */
   /* This padding is taken into account for item width */
   --outer-r: 24px;
   --p-distance: 14px;
@@ -19,6 +22,7 @@
 .carousel-track {
   display: flex;
   margin-bottom: 10px;
+  height: calc(100% - 30px); /* Soustraire la hauteur des indicateurs */
 }
 
 /* Carousel item */
@@ -33,6 +37,9 @@
   background-color: #0d0d0d;
   overflow: hidden;
   cursor: grab;
+  height: 100%; /* Assurer que l'item prend toute la hauteur disponible */
+  background-size: cover !important;
+  background-position: center !important;
 }
 
 .carousel-item:active {
