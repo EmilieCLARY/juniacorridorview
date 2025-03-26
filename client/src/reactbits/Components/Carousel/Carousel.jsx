@@ -152,8 +152,9 @@ export default function Carousel({
       className={`carousel-container ${round ? "round" : ""}`}
       style={{
         width: baseWidth,
-        height: '100%', // Adjust height to make the carousel taller
-        ...(round && {borderRadius:"100%", height: baseWidth }),
+        height: round ? baseWidth : "100%", // Utiliser 100% de la hauteur du conteneur parent
+        minHeight: "400px", // Ajouter une hauteur minimum
+        ...(round && {borderRadius:"100%"}),
       }}
     >
       <motion.div

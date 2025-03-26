@@ -169,18 +169,20 @@ const TourViewer = () => {
             <div className="font-title font-bold text-junia-orange text-3xl text-center">{tour.title}</div>
             <div className="font-texts">{tour.description}</div>
             {getPanoramaImagesForTour(tour.id_tours).length > 0 && (
-              <div className="mt-4 mb-0">
+              <div className="mt-4" style={{ height: "500px" }}>
                   <p className="font-texts font-bold text-center text-junia-violet">Salle : {currentRoomName[tour.id_tours] || getPanoramaImagesForTour(tour.id_tours)[0]?.roomName}</p>
-                  <Carousel 
-                    items={getPanoramaImagesForTour(tour.id_tours)} 
-                    baseWidth="100%" 
-                    autoplay={true} 
-                    autoplayDelay={3000} 
-                    pauseOnHover={true} 
-                    loop={true} 
-                    round={false}
-                    onChange={(index) => handleCarouselChange(tour.id_tours, index)}
-                  />
+                  <div style={{ height: "500px" }}>
+                    <Carousel 
+                      items={getPanoramaImagesForTour(tour.id_tours)} 
+                      baseWidth="100%" 
+                      autoplay={true} 
+                      autoplayDelay={3000} 
+                      pauseOnHover={true} 
+                      loop={true} 
+                      round={false}
+                      onChange={(index) => handleCarouselChange(tour.id_tours, index)}
+                    />
+                  </div>
               </div>
             )}
             <div className="flex justify-center">
