@@ -86,12 +86,19 @@ const PanoramaViewer = ({ location }) => {
       const roomPreviewsData = await Promise.all(previewPromises);
       
       // Set room previews
-      setRoomPreviews(
-        Object.fromEntries(roomPreviewsData.map(preview => [
-          preview.id_rooms, 
-          preview.imageUrl
-        ]))
-      );
+      const roomPreviewsObj = {};
+      
+      roomPreviewsData.forEach(preview => {
+        if (preview.isPreview) {
+          // If it's a true preview, use it directly
+          roomPreviewsObj[preview.id_rooms] = preview.imageUrl;
+        } else if (preview.imageUrl) {
+          // If it's a blob from panorama image, create a URL
+          roomPreviewsObj[preview.id_rooms] = URL.createObjectURL(preview.imageUrl);
+        }
+      });
+      
+      setRoomPreviews(roomPreviewsObj);
       
       // Set preview flags
       setPreviewFlags(
@@ -289,7 +296,8 @@ const PanoramaViewer = ({ location }) => {
         {/*<h2>Salle actuelle : {currentRoomName} ({currentRoomNumber})</h2>*/}
         <Panorama360 
             infoPopups={infoPopups[currentImageId] || []} 
-            selectedPicture={images.find(image => image.id === currentImageId)?.imageBlob ? URL.createObjectURL(images.find(image => image.id).imageBlob) : null} 
+            selectedPicture={images.find(image => image.id === currentImageId)?.imageBlob ? 
+              URL.createObjectURL(images.find(image => image.id === currentImageId).imageBlob) : null} 
             links={links[currentImageId] || []}
             onLinkClick={handleLinkClick}
             isLoading={(isLoading.current || firstLoad.current || loadingImageBeforeRoomSwitch) }
