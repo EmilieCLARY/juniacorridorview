@@ -8,7 +8,7 @@
   position: absolute;
   top: 10px;
   right: 10px;
-  background-color: orange;
+  background-color: #f06b42;
   padding: 10px;
   border-radius: 5px;
   z-index: 1000;
@@ -31,7 +31,7 @@
 
 .panorama-container {
   display: flex;
-  margin-bottom: 20px;
+  min-height: calc(90vh);
 }
 
 .w-15{
@@ -41,15 +41,17 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%; /* Assure que le texte reste dans les limites */
   
 }
 .wrapped-text:hover {
   white-space: normal;
-  overflow: visible;
+  overflow: auto; /* Permet de voir tout le texte au survol */
   text-overflow: clip;
   /*background-color: white;*/
   display: inline-block;
   width: 15%;
+  max-width: none; /* Supprime la limite de largeur au survol */
     
 }
 /*
@@ -104,6 +106,9 @@
   height: 90px;
 }
 
+.h-testfull {
+  height: 150px;
+}
 
 .bg-gradient-to-t {
   background-image: linear-gradient(to top, white 0%, transparent 100%);
@@ -120,3 +125,78 @@
   background-color: rgba(255, 255, 255, 0.8);
 }
 
+/* hide the content that overflows*/
+.scrollable-list {
+  max-height: calc(90vh); /* Limite la hauteur à la hauteur de la fenêtre */
+  overflow-y: auto; /* Ajoute un défilement vertical si nécessaire */
+  
+  
+
+}
+
+/* Conteneur pour chaque salle */
+.room-container {
+  display: flex;
+  flex-direction: column; /* Aligne l'image et le titre verticalement */
+  justify-content: flex-end; /* Place le titre en bas */
+  height: 100%; /* Prend toute la hauteur disponible */
+  margin: 0.5rem; /* Espacement entre les salles */
+  overflow: hidden; /* Empêche les débordements */
+  border-width: 1px;
+  border-radius: 10px;
+  border-color: #3c2c53;
+}
+
+.room-container img {
+  flex: 1; /* L'image prend tout l'espace disponible */
+  object-fit: cover; /* Ajuste l'image pour remplir le conteneur */
+  
+}
+
+.room-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  
+}
+
+.room-title:hover {
+  white-space: normal;
+  overflow: auto; /* Permet de voir tout le texte au survol */
+}
+
+.h-sslanavbar {
+  height: 90%;
+}
+
+/* Assurez que le body et html prennent toute la hauteur */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Empêche les débordements */
+}
+
+/*
+ *  STYLE 2
+ */
+
+ #style-2::-webkit-scrollbar-track
+ {
+  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+   border-radius: 4px;
+   background-color: #F5F5F5;
+   margin-top: 10px;
+ }
+ 
+ #style-2::-webkit-scrollbar
+ {
+   width: 6px;
+   background-color: #F5F5F5;
+ }
+ 
+ #style-2::-webkit-scrollbar-thumb
+ {
+   border-radius: 6px;
+   background-color: #f06b42; /* Couleur de la barre de défilement */;
+ }
