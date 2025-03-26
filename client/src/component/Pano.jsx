@@ -19,6 +19,7 @@ const PanoramaViewer = ({ location }) => {
   const [currentRoomNumber, setCurrentRoomNumber] = useState('');
   const [rooms, setRooms] = useState([]);
   const [roomPreviews, setRoomPreviews] = useState({});
+  const [previewFlags, setPreviewFlags] = useState({}); // Track which images are previews
   const [visitType, setVisitType] = useState('Visite libre');
   const [tourSteps, setTourSteps] = useState([]);
   const dataFetched = useRef(false);
@@ -58,37 +59,71 @@ const PanoramaViewer = ({ location }) => {
       }
   
       setRooms(roomsData);
-  
-      // Charger les images des pièces
-      const roomPreviewsData = await Promise.all(
-        roomsData.map(async room => {
+
+      // Fetch room previews first, then fall back to panoramas if needed
+      const previewPromises = roomsData.map(async room => {
+        try {
+          // Try to get room preview first
+          const previewUrl = await api.getRoomPreview(room.id_rooms);
+          
+          if (previewUrl) {
+            // If we got a preview, use it and flag it as a preview
+            return { id_rooms: room.id_rooms, imageUrl: previewUrl, isPreview: true };
+          }
+          
+          // Otherwise, fall back to panorama images
           const pictures = await api.getPicturesByRoomId(room.id_rooms);
-          const images = await Promise.all(
-            pictures.map(async picture => {
-              const imageBlob = await api.getImage(picture.id_pictures);
-              return { id: picture.id_pictures, imageBlob };
-            })
-          );
-          return { id_rooms: room.id_rooms, images };
-        })
-      );
-  
+          const images = pictures.length > 0 ? 
+            await api.getImage(pictures[0].id_pictures) : null;
+            
+          return { id_rooms: room.id_rooms, imageUrl: images, isPreview: false };
+        } catch (error) {
+          console.error(`Error fetching preview for room ${room.id_rooms}:`, error);
+          return { id_rooms: room.id_rooms, imageUrl: null, isPreview: false };
+        }
+      });
+      
+      const roomPreviewsData = await Promise.all(previewPromises);
+      
+      // Set room previews
       setRoomPreviews(
         Object.fromEntries(roomPreviewsData.map(preview => [
           preview.id_rooms, 
-          preview.images.length > 0 ? URL.createObjectURL(preview.images[0].imageBlob) : null
+          preview.imageUrl
+        ]))
+      );
+      
+      // Set preview flags
+      setPreviewFlags(
+        Object.fromEntries(roomPreviewsData.map(preview => [
+          preview.id_rooms, 
+          preview.isPreview
         ]))
       );
   
+      // Continue with loading all room images for panoramas
+      const roomImagesPromises = roomsData.map(async room => {
+        const pictures = await api.getPicturesByRoomId(room.id_rooms);
+        const images = await Promise.all(
+          pictures.map(async picture => {
+            const imageBlob = await api.getImage(picture.id_pictures);
+            return { id: picture.id_pictures, imageBlob };
+          })
+        );
+        return { id_rooms: room.id_rooms, images };
+      });
+      
+      const allRoomImagesData = await Promise.all(roomImagesPromises);
+      
       // Charger toutes les images des pièces
-      const allRoomImages = roomPreviewsData.reduce((acc, preview) => {
+      const allRoomImages = allRoomImagesData.reduce((acc, preview) => {
         acc[preview.id_rooms] = preview.images;
         return acc;
       }, {});
       setAllRoomImages(allRoomImages);
   
       // Charger les images principales
-      const imagesData = roomPreviewsData.flatMap(preview => preview.images);
+      const imagesData = allRoomImagesData.flatMap(preview => preview.images);
       setImages(imagesData);
       isLoading.current = false;
     } catch (error) {

@@ -139,6 +139,33 @@ const getFirstPictureByRoomId = async (id_rooms) => {
   }
 };
 
+const getRoomPreview = async (id_rooms) => {
+  try {
+    const response = await api.get(`/room-preview/${id_rooms}`, { 
+      responseType: 'blob',
+      validateStatus: status => {
+        // Consider both 200 and 404 as valid responses
+        return status === 200 || status === 404;
+      }
+    });
+    
+    // If we got a successful response with image data
+    if (response.status === 200) { 
+      const imageUrl = URL.createObjectURL(response.data);
+      return imageUrl;
+    }
+    
+    // If we got a 404, return null (no preview image available)
+    return null;
+  } catch (error) {
+    // Only log errors that aren't 404s
+    if (error.response && error.response.status !== 404) {
+      console.error('Error fetching room preview image:', error);
+    }
+    return null;
+  }
+};
+
 /**
  * POST
  */
@@ -185,6 +212,7 @@ export {
   getRoomIdByPictureId, 
   getRooms, 
   getPicturesByRoomId, 
-  getFirstPictureByRoomId 
+  getFirstPictureByRoomId,
+  getRoomPreview
 };
 

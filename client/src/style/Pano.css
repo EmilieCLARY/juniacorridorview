@@ -54,22 +54,28 @@
   max-width: none; /* Supprime la limite de largeur au survol */
     
 }
-/*
+
 .rooms-list {
-  width: 200px;
-  padding: 10px;
-  border-right: 1px solid #ccc;
+  overflow-y: auto; /* Enable vertical scrolling */
+  max-height: 100vh; /* Use viewport height */
+  height: 100%; /* Fill available space */
+  padding-bottom: 20px; /* Add some bottom padding */
+  scrollbar-width: thin; /* For Firefox */
 }
 
-.rooms-list ul {
-  list-style-type: none;
-  padding: 0;
+/* For Webkit browsers (Chrome, Safari) */
+.rooms-list::-webkit-scrollbar {
+  width: 6px;
 }
 
-.rooms-list li {
-  margin-bottom: 10px;
-  cursor: pointer;
-}*/
+.rooms-list::-webkit-scrollbar-thumb {
+  background-color: rgba(232, 92, 48, 0.5); /* Semi-transparent JUNIA orange */
+  border-radius: 3px;
+}
+
+.rooms-list::-webkit-scrollbar-track {
+  background: transparent;
+}
 
 .panorama-content {
   flex: 1;
