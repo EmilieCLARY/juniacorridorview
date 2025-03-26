@@ -19,3 +19,37 @@
   border-radius: 4px;
   width: 100%;
 }
+#root{
+  background-color: #fff3f0;
+}
+
+.research-input {
+  border-width: 2px;
+  border-color: #f06b42;
+  width: 50%;
+}
+
+
+
+.research-input::placeholder {
+  color:rgba(240, 107, 66, 0.5)
+}
+
+.font-semibold{
+  --tw-font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-semibold);
+}
+
+.col-span-2 {
+  grid-column: span 2; /* Prend la place de deux colonnes */
+}
+/*
+.basic-multi-select {
+  border-radius: calc(infinity*1px);
+  border-width: 1px;
+  border-color: #f06b42;
+}*/
+
+.basic-multi-select::placeholder {
+  color:rgba(240, 107, 66, 1);
+}
