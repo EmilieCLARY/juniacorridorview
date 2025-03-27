@@ -6,6 +6,7 @@ import { Buffer } from 'buffer';
 import Carousel from '../reactbits/Components/Carousel/Carousel'
 import {toast} from "sonner";
 import Loader from "./Loader";
+import Masonry from 'react-masonry-css';
 
 const TourViewer = () => {
   Buffer.from = Buffer.from || require('buffer').Buffer;
@@ -20,6 +21,13 @@ const TourViewer = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [textLoading, setTextLoading] = useState("Chargement des données...");
+
+  // Define breakpoints for Masonry layout
+  const breakpointColumnsObj = {
+    default: 3,
+    1100: 2,
+    700: 1
+  };
 
   const showLoading = (promises, textLoading, textSuccess, textError) => {
     setIsLoading(true);
@@ -175,40 +183,45 @@ const TourViewer = () => {
 
   return (
     <div className="h-100">
-
       <Loader show={isLoading} text={textLoading} />
-      <div className="bg-junia-lavender grid grid-cols-3 gap-10 justify-between p-4 items-start">
-        {tours.map(tour => (
-          <div key={tour.id_tours} className="purpleborder text-justify bg-white border-5 border-junia-orange p-2 rounded-3xl flex-col">
-            <div className="font-title font-bold text-junia-orange text-3xl text-center">{tour.title}</div>
-            <div className="font-texts">{tour.description}</div>
-            {getPanoramaImagesForTour(tour.id_tours).length > 0 && (
-              <div className="mt-4" style={{ height: "500px" }}>
-                  <p className="font-texts font-bold text-center text-junia-violet">Salle : {currentRoomName[tour.id_tours] || getPanoramaImagesForTour(tour.id_tours)[0]?.roomName}</p>
-                  <div style={{ height: "500px" }}>
-                    <Carousel 
-                      items={getPanoramaImagesForTour(tour.id_tours)} 
-                      baseWidth="100%" 
-                      autoplay={true} 
-                      autoplayDelay={3000} 
-                      pauseOnHover={true} 
-                      loop={true} 
-                      round={false}
-                      onChange={(index) => handleCarouselChange(tour.id_tours, index)}
-                    />
-                  </div>
-              </div>
-            )}
-            <div className="flex justify-center margin-top-8">
-              <div 
-                onClick={() => handleTourClick(tour.id_tours)} 
-                className="text-xl text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl p-2 w-1/3 max-w-max inline-block mb-2 mt-2"
-              >
-                Commencer le parcours
+      <div className="bg-junia-lavender p-4">
+        <Masonry
+          breakpointCols={breakpointColumnsObj}
+          className="my-masonry-grid"
+          columnClassName="my-masonry-grid_column"
+        >
+          {tours.map(tour => (
+            <div key={tour.id_tours} className="purpleborder text-justify bg-white border-5 border-junia-orange p-2 rounded-3xl flex-col">
+              <div className="font-title font-bold text-junia-orange text-3xl text-center">{tour.title}</div>
+              <div className="font-texts">{tour.description}</div>
+              {getPanoramaImagesForTour(tour.id_tours).length > 0 && (
+                <div className="mt-4" style={{ height: "500px" }}>
+                    <p className="font-texts font-bold text-center text-junia-violet">Salle : {currentRoomName[tour.id_tours] || getPanoramaImagesForTour(tour.id_tours)[0]?.roomName}</p>
+                    <div style={{ height: "500px" }}>
+                      <Carousel 
+                        items={getPanoramaImagesForTour(tour.id_tours)} 
+                        baseWidth="100%" 
+                        autoplay={true} 
+                        autoplayDelay={3000} 
+                        pauseOnHover={true} 
+                        loop={true} 
+                        round={false}
+                        onChange={(index) => handleCarouselChange(tour.id_tours, index)}
+                      />
+                    </div>
+                </div>
+              )}
+              <div className="flex justify-center margin-top-8">
+                <div 
+                  onClick={() => handleTourClick(tour.id_tours)} 
+                  className="text-xl text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl p-2 w-1/3 max-w-max inline-block mb-2 mt-2 cursor-pointer bouton-modifier"
+                >
+                  Commencer le parcours
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </Masonry>
       </div>
     </div>
   );

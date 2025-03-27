@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import * as tourApi from '../api/AxiosTour';
 import * as api from '../api/AxiosAdmin';
 import { Buffer } from 'buffer';
@@ -8,6 +8,7 @@ import { DndContext, DragOverlay } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import Masonry from 'react-masonry-css';
 import {
     restrictToVerticalAxis,
     restrictToWindowEdges,
@@ -52,7 +53,7 @@ const customSelectStyles = {
   }),
   menu: (provided) => ({
     ...provided,
-    zIndex: 9999, // Ensure dropdown appears above other elements
+    zIndex: 9999,
   }),
   menuPortal: (provided) => ({
     ...provided,
@@ -96,6 +97,7 @@ const AdminTour = () => {
   const [panoramaUrls, setPanoramaUrls] = useState({});
   const [previewUrls, setPreviewUrls] = useState({});
   const [currentRoomName, setCurrentRoomName] = useState({});
+  const [floors, setFloors] = useState([]);
   const loading = useRef(false);
   const history = useHistory();
 
@@ -170,10 +172,25 @@ const AdminTour = () => {
   const fetchRooms = async () => {
     try {
       const roomsData = await api.getRooms();
+      console.log("Fetched rooms:", roomsData);
       return roomsData.filter(room => room.hidden !== 1);
     } catch (error) {
       console.error("Error fetching rooms:", error);
       toast.error("Impossible de charger les salles. Certaines fonctionnalités peuvent être limitées.");
+      return [];
+    }
+  };
+
+  // Add a function to fetch floors
+  const fetchFloors = async () => {
+    try {
+      const floorsData = await tourApi.getFloors();
+      console.log('Fetched floors:', floorsData);
+      setFloors(floorsData);
+      return floorsData;
+    } catch (error) {
+      console.error("Error fetching floors:", error);
+      toast.error("Impossible de charger les étages.");
       return [];
     }
   };
@@ -183,6 +200,14 @@ const AdminTour = () => {
     try {
       // Fetch tours and steps
       const { toursData, steps } = await fetchToursInfo();
+      
+      // Fetch floors first
+      let floorsData = [];
+      try {
+        floorsData = await fetchFloors();
+      } catch (error) {
+        console.error("Failed to fetch floors:", error);
+      }
       
       let roomsData = [];
       try {
@@ -199,6 +224,7 @@ const AdminTour = () => {
       setTours(toursData);
       setTourSteps(steps);
       setRooms(roomsData);
+      setFloors(floorsData);
       setPanoramaUrls(allPanoramaUrls);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -407,10 +433,39 @@ const AdminTour = () => {
   );
 
   // Format rooms as options for React Select
-  const roomOptions = rooms.map(room => ({
-    value: room.id_rooms,
-    label: `${room.name} (${room.number})`
-  }));
+  const roomOptions = useMemo(() => {
+    // If no floors available, return simple flat options
+    if (!floors || floors.length === 0) {
+      return rooms.map(room => ({
+        value: room.id_rooms,
+        label: `${room.name} (${room.number})`
+      }));
+    }
+    
+    // Group rooms by floors
+    const roomsByFloor = floors.map(floor => {
+      const floorRooms = rooms
+        .filter(room => room.id_floors === floor.id_floors)
+        .map(room => ({
+          value: room.id_rooms,
+          label: `${room.name} (${room.number})`
+        }));
+      
+      return {
+        label: `${floor.name}`,
+        options: floorRooms,
+      };
+    }).filter(group => group.options.length > 0); // Remove empty floors
+    
+    return roomsByFloor;
+  }, [rooms, floors]);
+
+  // Define breakpoints for Masonry layout
+  const breakpointColumnsObj = {
+    default: 3,
+    1100: 2,
+    700: 1
+  };
 
   return (
     <>
@@ -429,17 +484,21 @@ const AdminTour = () => {
             />
             <button 
               onClick={openNewTourModal} 
-              className="text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl p-2 hover:bg-junia-orange-dark rounded-full"
+              className="text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl p-2 rounded-full cursor-pointer bouton-modifier"
             >
               Ajouter un nouveau parcours
             </button>
           </div>
 
         </div>
-        <div className="h-full">
-        <div className="grid grid-cols-3 gap-10 justify-between p-4 items-start">
+        <div className="h-full p-4">
+          <Masonry
+            breakpointCols={breakpointColumnsObj}
+            className="my-masonry-grid"
+            columnClassName="my-masonry-grid_column"
+          >
             {filteredTours.map(tour => (
-              <div key={tour.id_tours} className="purpleborder text-justify bg-white border-5 border-junia-orange p-2 rounded-3xl flex flex-col">
+              <div key={tour.id_tours} className="purpleborder text-justify bg-white border-5 border-junia-orange p-2 rounded-3xl flex flex-col mb-10">
                 <div className="font-title font-bold text-junia-orange text-3xl text-center">Parcours : {tour.title}</div>
                 <div className="font-texts">
                   <p  className="font-texts font-bold text-junia-orange text-2xl">Description</p>
@@ -482,20 +541,20 @@ const AdminTour = () => {
                 <div className="flex flex-col items-center justify-center gap-4 margin-top-8 mb-4">
                   <div 
                     onClick={() => handleEditTour(tour)} 
-                    className="text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl p-2 w-1/3 max-w-max inline-block cursor-pointer"
+                    className="text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl p-2 w-1/3 max-w-max inline-block cursor-pointer bouton-modifier"
                   >
                     Modifier
                   </div>
                   <div 
                     onClick={() => handleDeleteTour(tour.id_tours)} 
-                    className="text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl p-2 w-1/3 max-w-max inline-block cursor-pointer"
+                    className="text-white font-bold shadow-md font-title text-center bg-junia-purple rounded-3xl p-2 w-1/3 max-w-max inline-block cursor-pointer bouton-ajouter"
                   >
                     Supprimer
                   </div>
                 </div>
               </div>
             ))}
-          </div>
+          </Masonry>
         </div>
 
         {newTourModalOpen && (
@@ -527,7 +586,7 @@ const AdminTour = () => {
                               <Select
                                 options={roomOptions}
                                 onChange={(selectedOption) => handleNewTourStepChange(index, 'id_rooms', selectedOption)}
-                                value={roomOptions.find(option => option.value === step.id_rooms) || null}
+                                value={roomOptions.flatMap(group => group.options || []).find(option => option.value === step.id_rooms) || null}
                                 isDisabled={rooms.length === 0}
                                 placeholder="Sélectionner une salle"
                                 styles={customSelectStyles}
@@ -546,8 +605,8 @@ const AdminTour = () => {
                     </div>
                   </SortableContext>
                 </DndContext>
-                <button type="button" onClick={handleAddNewTourStep} disabled={rooms.length === 0} className="font-texts shadow-md">Ajouter une étape</button>
-                <button type="submit" disabled={rooms.length === 0 || newTourSteps.length === 0} className="font-texts shadow-md">Confirmer l'ajout du parcours</button>
+                <button type="button" onClick={handleAddNewTourStep} disabled={rooms.length === 0} className="bouton-ajouter font-texts shadow-md ">Ajouter une étape</button>
+                <button type="submit" disabled={rooms.length === 0 || newTourSteps.length === 0} className="bouton-modifier font-texts shadow-md">Confirmer l'ajout du parcours</button>
               </form>
             </div>
           </div>
@@ -581,7 +640,7 @@ const AdminTour = () => {
                             <div className="w-full" onPointerDown={(e) => e.stopPropagation()}>
                               <Select
                                 options={roomOptions}
-                                defaultValue={roomOptions.find(option => option.value === step.id_rooms) || null}
+                                defaultValue={roomOptions.flatMap(group => group.options || []).find(option => option.value === step.id_rooms) || null}
                                 onChange={(selectedOption) => {
                                   document.getElementById(`step-room-${index}`).value = selectedOption.value;
                                 }}
@@ -636,8 +695,8 @@ const AdminTour = () => {
                       })}
                     </SortableContext>
                   </DndContext>
-                  <button type="button" onClick={handleAddStep} className="font-texts shadow-md">Ajouter une étape</button>
-                  <button type="submit" className="font-texts shadow-md">Modifier le parcours</button>
+                  <button type="button" onClick={handleAddStep} className="bouton-ajouter font-texts shadow-md">Ajouter une étape</button>
+                  <button type="submit" className="bouton-modifier font-texts shadow-md">Modifier le parcours</button>
               </form>
             </div>
           </div>

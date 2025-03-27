@@ -153,6 +153,16 @@ const getRoomPreview = async (id_rooms) => {
   }
 };
 
+const getFloors = async () => {
+  try {
+    const response = await api.get('/floors');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching floors:', error);
+    return [];
+  }
+};
+
 export {
     getTables,
     getTours,
@@ -166,5 +176,6 @@ export {
     getFirstPictureByRoomId,
     getImage,
     getRooms,
-    getRoomPreview
+    getRoomPreview,
+    getFloors
 };
