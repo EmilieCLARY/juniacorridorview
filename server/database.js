@@ -549,6 +549,62 @@ const deleteRoomPreview = (id_rooms, callback) => {
     });
 };
 
+const addBuilding = (name, callback) => {
+    console.log('Inserting building', name);
+    const sql = `INSERT INTO Buildings (name) VALUES (?)`;
+    db.query(sql, [name], (err, result) => {
+        if (err) {
+            callback(err, null);
+        } else {
+            callback(null, result.insertId);
+        }
+    });
+}
+
+const updateBuilding = (id_buildings, name, callback) => {
+    console.log('Updating building', id_buildings);
+    const sql = `UPDATE Buildings SET name = ? WHERE id_buildings = ?`;
+    db.query(sql, [name, id_buildings], (err) => {
+        callback(err);
+    });
+}
+
+const deleteBuilding = (id_buildings, callback) => {
+    console.log('Deleting building', id_buildings);
+    const sql = `DELETE FROM Buildings WHERE id_buildings = ?`;
+    db.query(sql, [id_buildings], (err) => {
+        callback(err);
+    });
+}
+
+const addFloor = (name, id_buildings, callback) => {
+    console.log('Inserting floor', name, 'for building', id_buildings);
+    const sql = `INSERT INTO Floors (name, id_buildings) VALUES (?, ?)`;
+    db.query(sql, [name, id_buildings], (err, result) => {
+        if (err) {
+            callback(err, null);
+        } else {
+            callback(null, result.insertId);
+        }
+    });
+}
+
+const updateFloor = (id_floors, name, id_buildings, callback) => {
+    console.log('Updating floor', id_floors);
+    const sql = `UPDATE Floors SET name = ?, id_buildings = ? WHERE id_floors = ?`;
+    db.query(sql, [name, id_buildings, id_floors], (err) => {
+        callback(err);
+    });
+}
+
+const deleteFloor = (id_floors, callback) => {
+    console.log('Deleting floor', id_floors);
+    const sql = `DELETE FROM Floors WHERE id_floors = ?`;
+    db.query(sql, [id_floors], (err) => {
+        callback(err);
+    });
+}
+
 module.exports = {
     db,
     getTables,
@@ -584,5 +640,11 @@ module.exports = {
     getRoomPreview,
     insertRoomPreview,
     deleteRoomPreview,
-    getFloors
+    getFloors,
+    addBuilding,
+    updateBuilding,
+    deleteBuilding,
+    addFloor,
+    updateFloor,
+    deleteFloor
 };

@@ -14,6 +14,7 @@ import AdminRoomDetails from './component/AdminRoomDetails';
 
 import './App.css';
 import {Toaster} from "sonner";
+import AdminBuilding from "./component/AdminBuilding";
 
 const App = () => {
   return (
@@ -28,6 +29,7 @@ const App = () => {
         <Route exact path ="/admin/tour" component={AdminTour}/>
         <Route exact path ="/admin/room" component={AdminRoom}/>
         <Route exact path ="/admin/room/:id" component={AdminRoomDetails}/>
+        <Route exact path ="/admin/building" component={AdminBuilding}/>
       </Switch>
     </>
   )

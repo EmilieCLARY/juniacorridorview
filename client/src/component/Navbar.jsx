@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import * as api from '../api/AxiosLogin';
 import '../style/Navbar.css';
+import {FaHome} from "react-icons/fa";
 
 const Navbar = () => {
   const [login, setLogin] = useState(false);
@@ -57,7 +58,7 @@ const Navbar = () => {
           {routeName}
         </div>
         <div className="flex items-center text-xl text-junia-orange font-title gap-2">
-        <NavLink to="/" className="text-inherit no-underline hover:text-inherit"> <img src="\img\house_icon-orange.png" alt="House-icon" className="height-40" /></NavLink>
+        <NavLink to="/" className="text-inherit no-underline hover:text-inherit"><FaHome className="text-4xl" /></NavLink>
           <NavLink to="/admin/room" className="text-inherit no-underline hover:text-inherit">Admin</NavLink>
         </div>
       </nav>

@@ -88,3 +88,14 @@ nav{
 .button-type:hover{
   background-color: #e85c30;
 }
+
+.button-type2{
+  background-color: #3c2c53;
+  border-radius: calc(infinity*1px);
+  box-shadow: var(--shadow-md);
+  color:white
+}
+
+.button-type2:hover{
+  background-color: #2c1c43;
+}

@@ -41,7 +41,13 @@ const { db,
     getRoomPreview,
     deleteInfoPopUp,
     deleteLink,
-    getFloors
+    addBuilding,
+    deleteBuilding,
+    updateBuilding,
+    getFloors,
+    addFloor,
+    deleteFloor,
+    updateFloor
 } = require('./database');
 
 
@@ -534,6 +540,42 @@ app.get('/buildings', (req, res) => {
     });
 });
 
+app.post('/add-building', (req, res) => {
+    const { name } = req.body;
+    addBuilding(name, (err) => {
+        if (err) {
+            console.error('Error adding building:', err);
+            res.sendStatus(500);
+        } else {
+            res.sendStatus(200);
+        }
+    });
+});
+
+app.delete('/building/:id', (req, res) => {
+    const id_buildings = req.params.id;
+    deleteBuilding(id_buildings, (err) => {
+        if (err) {
+            console.error('Error deleting building:', err);
+            res.sendStatus(500);
+        } else {
+            res.sendStatus(200);
+        }
+    });
+});
+
+app.post('/update-building', (req, res) => {
+    const { id_buildings, name } = req.body;
+    updateBuilding(id_buildings, name, (err) => {
+        if (err) {
+            console.error('Error updating building:', err);
+            res.sendStatus(500);
+        } else {
+            res.sendStatus(200);
+        }
+    });
+});
+
 app.get('/floors', (req, res) => {
     getFloors((err, floors) => {
         if (err) {
@@ -541,6 +583,42 @@ app.get('/floors', (req, res) => {
             res.sendStatus(500);
         } else {
             res.json(floors);
+        }
+    });
+});
+
+app.post('/add-floor', (req, res) => {
+    const { name, id_buildings } = req.body;
+    addFloor(name, id_buildings, (err) => {
+        if (err) {
+            console.error('Error adding floor:', err);
+            res.sendStatus(500);
+        } else {
+            res.sendStatus(200);
+        }
+    });
+});
+
+app.delete('/floor/:id', (req, res) => {
+    const id_floors = req.params.id;
+    deleteFloor(id_floors, (err) => {
+        if (err) {
+            console.error('Error deleting floor:', err);
+            res.sendStatus(500);
+        } else {
+            res.sendStatus(200);
+        }
+    });
+});
+
+app.post('/update-floor', (req, res) => {
+    const { id_floors, name, id_buildings } = req.body;
+    updateFloor(id_floors, name, id_buildings, (err) => {
+        if (err) {
+            console.error('Error updating floor:', err);
+            res.sendStatus(500);
+        } else {
+            res.sendStatus(200);
         }
     });
 });

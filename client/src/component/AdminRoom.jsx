@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useRef } from "react";
-import { useHistory } from "react-router-dom";
-import * as api from '../api/AxiosAdminRoom';
-import Select from 'react-select';
-import '../style/AdminRoom.css';
 import { Buffer } from 'buffer';
+import React, { useEffect, useRef, useState } from "react";
+import { useHistory } from "react-router-dom";
+import Select from 'react-select';
 import { toast } from "sonner";
+import * as api from '../api/AxiosAdminRoom';
+import '../style/AdminRoom.css';
 import Loader from "./Loader"; // Add this line
 
 const customSelectStyles = {
@@ -315,7 +315,7 @@ const AdminRoom = () => {
     formData.append('name', newRoomData.name);
 
     // Handle the case when building selection is "manual"
-    if (newRoomData.buildingId === "manual") {
+    /*if (newRoomData.buildingId === "manual") {
       // If your API supports creating a building on the fly
       if (!newRoomData.building || newRoomData.building.trim() === '') {
         toast.error('Veuillez entrer un nom pour le bâtiment');
@@ -331,14 +331,14 @@ const AdminRoom = () => {
         toast.error('Erreur lors de la création du bâtiment');
         return;
       }
-    } else {
+    } else {*/
       // Make sure to also include the building name if your API requires it
       formData.append('id_buildings', newRoomData.buildingId);
       formData.append('building_name', newRoomData.building);
       formData.append('floor', newRoomData.floor);
       formData.append('id_floors', newRoomData.floorId);
-    }
-
+    //}
+    
     // Add preview image to form data
     if (newRoomData.previewImage) {
       formData.append('previewImage', newRoomData.previewImage);
@@ -503,12 +503,19 @@ const AdminRoom = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full p-2 mb-4 research-input bg-white rounded-full" />
 
+        <div className={"flex flex-col gap-4"}>
+          <button
+            onClick={() => history.push('/admin/tour')}
+            className="px-4 py-2  button-type font-title font-bold">
+            Page d'administration des parcours
+          </button>
 
-        <button
-          onClick={() => history.push('/admin/tour')}
-          className="px-4 py-2  button-type font-title font-bold">
-          Page d'administration des parcours
-        </button>
+          <button
+            onClick={() => history.push('/admin/building')}
+            className="px-4 py-2  button-type font-title font-bold">
+            Page d'administration des bâtiments
+          </button>
+        </div>
       </div>
 
 
