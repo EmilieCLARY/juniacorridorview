@@ -5,6 +5,7 @@ import Panorama360 from './Panorama360';
 import { Buffer } from 'buffer';
 import { toast } from "sonner";
 import Loader from "./Loader";
+import '../style/AdminRoomDetails.css';
 
 const AdminRoomDetails = () => {
   const { id } = useParams();
@@ -83,6 +84,7 @@ const AdminRoomDetails = () => {
         picturesData.map(async (pic) => await api.getInfoPopup(pic.id_pictures))
       );
       setAllInfoPopups(allInfoPopups.flat());
+      console.log('allInfoPopups', allInfoPopups.flat());
 
       const allLinks = await Promise.all(
         picturesData.map(async (pic) => await api.getLinks(pic.id_pictures))
@@ -452,35 +454,39 @@ const AdminRoomDetails = () => {
   };
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="">
       <Loader show={loading} text={textLoading} />
-      <h1 className="text-2xl font-bold mt-4">{roomName}</h1>
-      <div className="flex w-full h-[500px] mt-5">
-        <div className="flex-1 flex flex-col overflow-y-auto p-2.5 border-r border-gray-300">
-          <div className="flex justify-center mb-4 w-full">
-            <button onClick={() => setAddImageModalOpen(true)} className="bg-orange-600 text-white border-none py-2 px-4 rounded font-bold hover:bg-orange-700 transition-colors">
-              Ajouter une image 360°
-            </button>
-          </div>
-        </div>
-      </div>
-    <div className="admin-room-details-container">
-      <h1>{roomName}</h1>
-      <div className="image-panorama-container">
-        <div className="image-list">
+      
+      {/* à mettre dans la navbar*/}
+      {/*<div className="text-2xl text-junia-purple font-title font-bold mt-4">{roomName}</div>*/}
+
+
+      
+
+
+    <div className="admin-room-details-container flex flex-col items-center bg-junia-salmon">
+      
+      <div className="image-panorama-container bg-white w-80 rounded-2xl mt-4 flex">
+
+        <div className="image-list flex flex-col p-2 justify-between">
+            <div className="button-add-360 flex justify-center ">
+                        <button onClick={() => setAddImageModalOpen(true)} className="button-type font-title font-bold text-2xl p-2">
+                          Ajouter une image 360°
+                        </button>
+            </div>
           {pictures.map(picture => (
-            <div key={picture.id_pictures} className="mb-2.5">
-              <p className="text-sm">ID : {picture.id_pictures}</p>
+            <div key={picture.id_pictures} className="w-40vw p-1 ">
               <img
                 src={picture.imageUrl}
                 alt={`Aperçu de ${picture.id_pictures}`}
                 onClick={() => handlePictureClick(picture.imageUrl, picture.id_pictures)}
-                className="w-full h-auto mb-2.5 cursor-pointer transition-transform duration-200 hover:scale-105"
+                className="rounded-lg"
               />
             </div>
           ))}
         </div>
-        <div className={`flex-3 relative ${newInfospotModalOpen || newLinkModalOpen ? 'pointer-events-none opacity-50' : ''}`} style={{flex: '3'}}>
+
+        <div className={`flex-3 relative w-70  p-4 ${newInfospotModalOpen || newLinkModalOpen ? 'pointer-events-none opacity-50' : ''}`} style={{flex: '3'}}>
           {selectedPicture && (
             <Panorama360
               infoPopups={infoPopups}
@@ -490,94 +496,118 @@ const AdminRoomDetails = () => {
               onPositionSelect={() => {}}
               isLoading={isLoading}
               disableClick={disableBackgroundClick}
+              className=""
             />
           )}
         </div>
+
       </div>
-      <div className="flex justify-between items-center w-full mt-5">
-        <h2 className="text-xl font-semibold">Infobulles</h2>
-        <button onClick={handleModalInfopopup} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ajouter une infobulle</button>
-      </div>
-      <div className="flex items-center mb-5 w-full">
-        <input
-          type="text"
-          placeholder="Recherche par titre"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full px-2.5 py-2.5 mb-5 border border-gray-300 rounded"
-        />
-        <label className="relative inline-block w-[60px] h-[34px] ml-2.5">
-          <input
-            type="checkbox"
-            className="opacity-0 w-0 h-0"
-            checked={showAllInfospots}
-            onChange={() => setShowAllInfospots(!showAllInfospots)}
-          />
-          <span className="absolute cursor-pointer inset-0 bg-gray-300 transition-all duration-300 rounded-full before:absolute before:content-[''] before:h-[26px] before:w-[26px] before:left-1 before:bottom-1 before:bg-white before:transition-all before:duration-300 before:rounded-full peer-checked:bg-blue-500 peer-checked:before:translate-x-[26px]"></span>
-        </label>
-        <span className="ml-2">{showAllInfospots ? "Toutes les infobulles" : "Infobulles de l'image affichée"}</span>
-      </div>
-      <div className="w-full mt-5">
-        {displayedInfoPopups.map((popup) => (
-          <div key={popup.id_info_popup} className="flex justify-between items-center border border-gray-300 p-2.5 mb-2.5">
-            <div className="flex-1">
-              <h3 className="font-semibold">Titre : {popup.title}</h3>
-              <p>Description : {popup.text}</p>
-              <p>ID du panorama : {popup.id_pictures}</p>
-            </div>
-            {popup.image && (
-              <div className="flex-1 flex justify-center">
-                <img src={`data:image/jpeg;base64,${Buffer.from(popup.image).toString('base64')}`} alt={`Aperçu de ${popup.title}`} className="max-w-[100px] max-h-[100px]" />
+
+      {/* Nouveau conteneur flex pour affichage côte à côte */}
+      <div className="content-container">
+        {/* Section des infospots (2/3 de la largeur) */}
+        <div className="infospots-section" style={{width: '66%'}}>
+          {/* Zone de recherche d'infospots en haut des 2/3 gauche */}
+          <div className="info-spot-research-zone w-full mb-4">
+            <div className="flex justify-between items-center w-full mb-4">
+              <div className="text-white text-4xl bg-junia-purple px-4 py-1 font-title font-bold rounded-full">Infobulles</div>
+              <div className="button-type font-bold font-title text-xl px-4 py-2">
+                <button onClick={handleModalInfopopup}>Nouvelle info-bulle</button>
               </div>
-            )}
-            <div className="flex">
-              <button onClick={(event) => handleDeleteInfoPopup(event, popup.id_info_popup)} className="bg-red-500 text-white px-4 py-2 rounded mr-2 hover:bg-red-600">Supprimer</button>
-              <button onClick={(event) => handleEditInfoPopup(event, popup)} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Modifier</button>
+            </div>
+            <div className="flex items-center mb-5 w-full border-2">
+              <input
+                type="text"
+                placeholder="Recherche par titre"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-2.5 py-2.5 mb-5 border border-gray-300 rounded"
+              />
+              <label className="relative inline-block w-[60px] h-[34px] ml-2.5">
+                <input
+                  type="checkbox"
+                  className="opacity-0 w-0 h-0"
+                  checked={showAllInfospots}
+                  onChange={() => setShowAllInfospots(!showAllInfospots)}
+                />
+                <span className="absolute cursor-pointer inset-0 bg-gray-300 transition-all duration-300 rounded-full before:absolute before:content-[''] before:h-[26px] before:w-[26px] before:left-1 before:bottom-1 before:bg-white before:transition-all before:duration-300 before:rounded-full peer-checked:bg-blue-500 peer-checked:before:translate-x-[26px]"></span>
+              </label>
+              <span className="ml-2">{showAllInfospots ? "Toutes les infobulles" : "Infobulles de l'image affichée"}</span>
             </div>
           </div>
-        ))}
-      </div>
-      <div className="flex justify-between items-center w-full mt-5">
-        <h2 className="text-xl font-semibold">Liens</h2>
-        <button onClick={handleModalLink} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ajouter un lien</button>
-      </div>
-      <div className="flex items-center mb-5 w-full">
-        <input
-          type="text"
-          placeholder="Recherche par ID de destination"
-          value={searchLinkTerm}
-          onChange={(e) => setSearchLinkTerm(e.target.value)}
-          className="w-full px-2.5 py-2.5 mb-5 border border-gray-300 rounded"
-        />
-        <label className="relative inline-block w-[60px] h-[34px] ml-2.5">
-          <input
-            type="checkbox"
-            className="opacity-0 w-0 h-0 peer"
-            checked={showAllLinks}
-            onChange={() => setShowAllLinks(!showAllLinks)}
-          />
-          <span className="absolute cursor-pointer inset-0 bg-gray-300 transition-all duration-300 rounded-full before:absolute before:content-[''] before:h-[26px] before:w-[26px] before:left-1 before:bottom-1 before:bg-white before:transition-all before:duration-300 before:rounded-full peer-checked:bg-blue-500 peer-checked:before:translate-x-[26px]"></span>
-        </label>
-        <span className="ml-2">{showAllLinks ? "Tous les liens" : "Liens de l'image affichée"}</span>
-      </div>
-      <div className="w-full mt-5">
-        {displayedLinks.map((link) => (
-          <div key={link.id_links} className="flex justify-between items-center border border-gray-300 p-2.5 mb-2.5">
-            <div className="flex-1">
-              <h3 className="font-semibold">ID : {link.id_links}</h3>
-              <p>Destination ID : {link.id_pictures_destination}</p>
+
+          {/* Grille d'infospots sous la zone de recherche */}
+          <div className="all-infospots-container w-full">
+            {displayedInfoPopups.map((popup) => (
+              <div key={popup.id_info_popup} className="one-info-spot flex justify-between items-center border border-gray-300 p-2.5 mb-2.5">
+                <div className="flex-1">
+                  <h3 className="font-semibold">Titre : {popup.title}</h3>
+                  <p>Description : {popup.text}</p>
+                  <p>ID du panorama : {popup.id_pictures}</p>
+                </div>
+                {popup.image && (
+                  <div className="flex-1 flex justify-center">
+                    <img src={`data:image/jpeg;base64,${Buffer.from(popup.image).toString('base64')}`} alt={`Aperçu de ${popup.title}`} className="max-w-[100px] max-h-[100px]" />
+                  </div>
+                )}
+                <div className="flex">
+                  <button onClick={(event) => handleDeleteInfoPopup(event, popup.id_info_popup)} className="bg-red-500 text-white px-4 py-2 rounded mr-2 hover:bg-red-600">Supprimer</button>
+                  <button onClick={(event) => handleEditInfoPopup(event, popup)} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Modifier</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Section des liens (1/3 de la largeur) */}
+        <div className="all-links-container mt-5">
+          <div className="links-research-zone">
+            <div className="flex justify-between items-center w-full mb-4">
+              <h2 className="text-xl font-semibold">Liens</h2>
+              <button onClick={handleModalLink} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ajouter un lien</button>
             </div>
-            <div className="flex-1 flex justify-center">
-              <img src={pictures.find(pic => pic.id_pictures === link.id_pictures_destination)?.imageUrl} alt={`Destination ${link.id_pictures_destination}`} className="max-w-[100px] max-h-[100px]" />
-            </div>
-            <div className="flex">
-              <button onClick={(event) => handleDeleteLink(event, link.id_links)} className="bg-red-500 text-white px-4 py-2 rounded mr-2 hover:bg-red-600">Supprimer</button>
-              <button onClick={(event) => handleEditLink(event, link)} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Modifier</button>
+
+            <div className="flex items-center mb-5 w-full">
+              <input
+                type="text"
+                placeholder="Recherche par ID de destination"
+                value={searchLinkTerm}
+                onChange={(e) => setSearchLinkTerm(e.target.value)}
+                className="w-full px-2.5 py-2.5 mb-5 border border-gray-300 rounded"/>
+
+              <label className="relative inline-block w-[60px] h-[34px] ml-2.5">
+                <input
+                  type="checkbox"
+                  className="opacity-0 w-0 h-0 peer"
+                  checked={showAllLinks}
+                  onChange={() => setShowAllLinks(!showAllLinks)}/>
+                  
+                <span className="absolute cursor-pointer inset-0 bg-gray-300 transition-all duration-300 rounded-full before:absolute before:content-[''] before:h-[26px] before:w-[26px] before:left-1 before:bottom-1 before:bg-white before:transition-all before:duration-300 before:rounded-full peer-checked:bg-blue-500 peer-checked:before:translate-x-[26px]"></span>
+              </label>
+              <span className="ml-2">{showAllLinks ? "Tous les liens" : "Liens de l'image affichée"}</span>
             </div>
           </div>
-        ))}
+
+          {displayedLinks.map((link) => (
+            <div key={link.id_links} className="one-link-container flex justify-between items-center border border-gray-300 p-2.5 mb-2.5">
+              <div className="flex-1">
+                <h3 className="font-semibold">ID : {link.id_links}</h3>
+                <p>Destination ID : {link.id_pictures_destination}</p>
+              </div>
+              <div className="flex-1 flex justify-center">
+                <img src={pictures.find(pic => pic.id_pictures === link.id_pictures_destination)?.imageUrl} alt={`Destination ${link.id_pictures_destination}`} className="max-w-[100px] max-h-[100px]" />
+              </div>
+              <div className="flex">
+                <button onClick={(event) => handleDeleteLink(event, link.id_links)} className="bg-red-500 text-white px-4 py-2 rounded mr-2 hover:bg-red-600">Supprimer</button>
+                <button onClick={(event) => handleEditLink(event, link)} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Modifier</button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
       </div>
+
+      {/* modales... */}
       {newInfospotModalOpen && (
         <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-40 z-10">
           <div className="bg-white p-5 border border-gray-400 w-4/5 max-w-6xl">

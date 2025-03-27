@@ -623,10 +623,26 @@ const AdminRoom = () => {
                   <div className="text-junia-orange font-title text-2xl font-semibold"> {room.id_rooms} </div>
                 </div> 
                 
-                <div onClick={(event) => toggleRoomVisibility(event, room)} className={`flex items-center cursor-pointer rounded-full w-24 h-10 p-1 border-2 ml-2 text-xs font-bold text-white  ${room.hidden ? 'bg-gray-500' : 'bg-junia-purple'}`}>
-                  
-                  Etat : {room.hidden ? 'Invisible' : 'Visible'}
-                  
+                <div
+                  className="flex flex-row"
+                  onClick={(event) => {
+                    event.stopPropagation();  // Prevent click from bubbling up to the parent div
+                  }}
+                >
+                  <div className="text-junia-purple font-bold">Visibilité :</div>
+                  <label className="toggle-switch mx-1">
+                    <input
+                      type="checkbox"
+                      checked={!room.hidden}
+                      className="sr-only"
+                      onChange={() => { }} // Required for React controlled components
+                      onClick={(event) => {
+                        event.stopPropagation(); // Still needed for the toggle itself
+                        toggleRoomVisibility(event, room);
+                      }}
+                    />
+                    <span className="toggle-slider"></span>
+                  </label>
                 </div>
               </div>
 
