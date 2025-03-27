@@ -52,7 +52,7 @@ const customSelectStyles = {
   }),
   menu: (provided) => ({
     ...provided,
-    zIndex: 9999, // Ensure dropdown appears above other elements
+    zIndex: 9999,
   }),
   menuPortal: (provided) => ({
     ...provided,

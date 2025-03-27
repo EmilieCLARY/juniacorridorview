@@ -7,6 +7,47 @@ import { Buffer } from 'buffer';
 import { toast } from "sonner";
 import Loader from "./Loader"; // Add this line
 
+const customSelectStyles = {
+  control: (provided, state) => ({
+    ...provided,
+    backgroundColor: 'white',
+    borderColor: state.isFocused ? '#3B82F6' : '#fb8500',
+    borderWidth: '2px',
+    borderRadius: '0.375rem',
+    boxShadow: state.isFocused ? '0 0 0 2px #93C5FD' : 'none',
+    '&:hover': {
+      borderColor: '#3B82F6'
+    },
+    padding: '2px',
+    width: '100%'
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isSelected ? '#fb8500' : state.isFocused ? '#FDE68A' : 'white',
+    color: state.isSelected ? 'white' : '#333',
+    cursor: 'pointer',
+    '&:hover': {
+      backgroundColor: state.isSelected ? '#fb8500' : '#FDE68A',
+    }
+  }),
+  placeholder: (provided) => ({
+    ...provided,
+    color: '#9CA3AF'
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: '#111827'
+  }),
+  menu: (provided) => ({
+    ...provided,
+    zIndex: 9999,
+  }),
+  menuPortal: (provided) => ({
+    ...provided,
+    zIndex: 9999
+  }),
+};
+
 const AdminRoom = () => {
   Buffer.from = Buffer.from || require('buffer').Buffer;
   const [rooms, setRooms] = useState([]);
@@ -477,9 +518,15 @@ const AdminRoom = () => {
           isMulti
           name="building"
           options={getUniqueOptions('building_name')}
-          className="basic-multi-select col-span-2" // s'étend sur deux colonnes
+          className="basic-multi-select col-span-2"
           classNamePrefix="select"
           placeholder="Filtrer par bâtiment"
+          isDisabled={buildings.length === 0}
+          isSearchable
+          menuPlacement="auto"
+          menuPosition="fixed"
+          styles={customSelectStyles}
+          menuPortalTarget={document.body}
           onChange={handleFilterChange}
         />
         <Select
@@ -487,8 +534,13 @@ const AdminRoom = () => {
           name="floor"
           options={floors.map(floor => ({ value: floor.id_floors.toString(), label: floor.name })).sort((a, b) => a.value - b.value)}
           className="basic-multi-select"
+          styles={customSelectStyles}
           classNamePrefix="select"
           placeholder="Filtrer par étage"
+          isSearchable
+          menuPlacement="auto"
+          menuPosition="fixed"
+          menuPortalTarget={document.body}
           onChange={handleFilterChange}
         />
         <Select
@@ -498,6 +550,11 @@ const AdminRoom = () => {
           className="basic-multi-select"
           classNamePrefix="select"
           placeholder="Filtrer par nom"
+          isSearchable
+          styles={customSelectStyles}
+          menuPlacement="auto"
+          menuPosition="fixed"
+          menuPortalTarget={document.body}
           onChange={handleFilterChange}
         />
         <Select
@@ -507,6 +564,11 @@ const AdminRoom = () => {
           className="basic-multi-select"
           classNamePrefix="select"
           placeholder="Filtrer par numéro"
+          isSearchable
+          styles={customSelectStyles}
+          menuPlacement="auto"
+          menuPosition="fixed"
+          menuPortalTarget={document.body}
           onChange={handleFilterChange}
         />
         <Select
@@ -516,6 +578,11 @@ const AdminRoom = () => {
           className="basic-multi-select"
           classNamePrefix="select"
           placeholder="Filtrer par ID"
+          isSearchable
+          styles={customSelectStyles}
+          menuPlacement="auto"
+          menuPosition="fixed"
+          menuPortalTarget={document.body}
           onChange={handleFilterChange}
         />
       </div>
