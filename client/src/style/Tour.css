@@ -3,6 +3,11 @@
   border-color: #3c2c53;;
 }
 
+.orangeborder{
+  border-width: 1px;
+  border-color: #f06b42;
+}
+
 .w-40{
   width: 40%;
 }
