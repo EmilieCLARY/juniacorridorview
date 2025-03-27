@@ -76,3 +76,15 @@ nav{
 .rounded-full{
   border-radius: calc(infinity*1px);
 }
+
+
+.button-type{
+  background-color: #f06b42;
+  border-radius: calc(infinity*1px);
+  box-shadow: var(--shadow-md);
+  color:white
+}
+
+.button-type:hover{
+  background-color: #e85c30;
+}
