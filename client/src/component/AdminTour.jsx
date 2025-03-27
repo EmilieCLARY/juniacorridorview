@@ -8,6 +8,7 @@ import { DndContext, DragOverlay } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import Masonry from 'react-masonry-css';
 import {
     restrictToVerticalAxis,
     restrictToWindowEdges,
@@ -459,6 +460,13 @@ const AdminTour = () => {
     return roomsByFloor;
   }, [rooms, floors]);
 
+  // Define breakpoints for Masonry layout
+  const breakpointColumnsObj = {
+    default: 3,
+    1100: 2,
+    700: 1
+  };
+
   return (
     <>
       <div className="absolute top-0 left-0 w-full h-full bg-junia-salmon -z-10"></div>
@@ -476,17 +484,21 @@ const AdminTour = () => {
             />
             <button 
               onClick={openNewTourModal} 
-              className="text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl p-2 hover:bg-junia-orange-dark rounded-full"
+              className="text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl p-2 rounded-full cursor-pointer bouton-modifier"
             >
               Ajouter un nouveau parcours
             </button>
           </div>
 
         </div>
-        <div className="h-full">
-        <div className="grid grid-cols-3 gap-10 justify-between p-4 items-start">
+        <div className="h-full p-4">
+          <Masonry
+            breakpointCols={breakpointColumnsObj}
+            className="my-masonry-grid"
+            columnClassName="my-masonry-grid_column"
+          >
             {filteredTours.map(tour => (
-              <div key={tour.id_tours} className="purpleborder text-justify bg-white border-5 border-junia-orange p-2 rounded-3xl flex flex-col">
+              <div key={tour.id_tours} className="purpleborder text-justify bg-white border-5 border-junia-orange p-2 rounded-3xl flex flex-col mb-10">
                 <div className="font-title font-bold text-junia-orange text-3xl text-center">Parcours : {tour.title}</div>
                 <div className="font-texts">
                   <p  className="font-texts font-bold text-junia-orange text-2xl">Description</p>
@@ -529,20 +541,20 @@ const AdminTour = () => {
                 <div className="flex flex-col items-center justify-center gap-4 margin-top-8 mb-4">
                   <div 
                     onClick={() => handleEditTour(tour)} 
-                    className="text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl p-2 w-1/3 max-w-max inline-block cursor-pointer"
+                    className="text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl p-2 w-1/3 max-w-max inline-block cursor-pointer bouton-modifier"
                   >
                     Modifier
                   </div>
                   <div 
                     onClick={() => handleDeleteTour(tour.id_tours)} 
-                    className="text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl p-2 w-1/3 max-w-max inline-block cursor-pointer"
+                    className="text-white font-bold shadow-md font-title text-center bg-junia-purple rounded-3xl p-2 w-1/3 max-w-max inline-block cursor-pointer bouton-ajouter"
                   >
                     Supprimer
                   </div>
                 </div>
               </div>
             ))}
-          </div>
+          </Masonry>
         </div>
 
         {newTourModalOpen && (
@@ -593,8 +605,8 @@ const AdminTour = () => {
                     </div>
                   </SortableContext>
                 </DndContext>
-                <button type="button" onClick={handleAddNewTourStep} disabled={rooms.length === 0} className="font-texts shadow-md">Ajouter une étape</button>
-                <button type="submit" disabled={rooms.length === 0 || newTourSteps.length === 0} className="font-texts shadow-md">Confirmer l'ajout du parcours</button>
+                <button type="button" onClick={handleAddNewTourStep} disabled={rooms.length === 0} className="bouton-ajouter font-texts shadow-md ">Ajouter une étape</button>
+                <button type="submit" disabled={rooms.length === 0 || newTourSteps.length === 0} className="bouton-modifier font-texts shadow-md">Confirmer l'ajout du parcours</button>
               </form>
             </div>
           </div>
@@ -683,8 +695,8 @@ const AdminTour = () => {
                       })}
                     </SortableContext>
                   </DndContext>
-                  <button type="button" onClick={handleAddStep} className="font-texts shadow-md">Ajouter une étape</button>
-                  <button type="submit" className="font-texts shadow-md">Modifier le parcours</button>
+                  <button type="button" onClick={handleAddStep} className="bouton-ajouter font-texts shadow-md">Ajouter une étape</button>
+                  <button type="submit" className="bouton-modifier font-texts shadow-md">Modifier le parcours</button>
               </form>
             </div>
           </div>

@@ -52,6 +52,14 @@
   margin-top: 0.5rem;
 }
 
+.bouton-modifier:hover {
+  background-color: var(--color-junia-orange-dark, #e85c30)!important;
+}
+
+.bouton-ajouter:hover {
+  background-color: var(--color-junia-purple-dark, #380283)!important;
+}
+
 .modal-content button[type="button"]:not(:last-child) {
   background-color: var(--color-junia-purple);
 }
@@ -91,14 +99,39 @@
 
 .research-input {
     border-width: 2px;
-    border-color: #f06b42;
+    border-color: var(--color-junia-orange);
     width: 50%;
 }
 
 .research-input::placeholder {
-    color: #f06b42;
+    color: var(--color-junia-orange);
 }
 
 html, body, #root {
   height: 100%;
+}
+
+.my-masonry-grid {
+  display: flex;
+  width: auto;
+  margin-left: -30px;
+}
+
+.my-masonry-grid_column {
+  padding-left: 30px;
+  background-clip: padding-box;
+}
+
+.my-masonry-grid_column > div {
+  margin-bottom: 30px;
+  transition: all 0.3s ease;
+}
+
+.my-masonry-grid_column > div:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 10px var(--color-junia-purple);
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
