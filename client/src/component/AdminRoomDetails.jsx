@@ -159,27 +159,23 @@ const AdminRoomDetails = () => {
         return;
     }
 
-    await api.insertInfoPopUp(formData);
-    
-    const updatedInfoPopups = await getInfoPopup(selectedImageId);
-    setInfoPopups(updatedInfoPopups);
-    
-    const allImageInfoPopups = await Promise.all(
-      pictures.map(async (pic) => await api.getInfoPopup(pic.id_pictures))
-    );
-    setAllInfoPopups(allImageInfoPopups.flat());
-    
-    if (selectedPicture) {
-      const currentImage = selectedPicture;
-      const currentId = selectedImageId;
+    const insertPromise = api.insertInfoPopUp(formData);
+
+    const updatedInfoPopupsPromise = insertPromise.then(async () => {
+      await getInfoPopup(selectedImageId);
+
+      const allImageInfoPopups = await Promise.all(
+          pictures.map(async (pic) => await api.getInfoPopup(pic.id_pictures))
+      );
+      setAllInfoPopups(allImageInfoPopups.flat());
+    });
+
+    Promise.all([insertPromise, updatedInfoPopupsPromise]).then(() => {
       setSelectedPicture('');
-      setIsLoading(true);
-      
-      setTimeout(() => {
-        handlePictureClick(currentImage, currentId);
-      }, 100);
-    }
-    
+    });
+
+    showLoading([insertPromise, updatedInfoPopupsPromise], 'Ajout de l\'infobulle...', 'Infobulle ajoutée avec succès', 'Erreur lors de l\'ajout de l\'infobulle');
+
     setNewInfospotModalOpen(false);
     setDisableBackgroundClick(false);
   };
@@ -187,25 +183,21 @@ const AdminRoomDetails = () => {
   const handleNewLinkSubmit = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
-    await api.insertLink(formData);
-    const updatedLinks = await getLinks(selectedImageId);
-    setLinks(updatedLinks);
+    const insertPromise = api.insertLink(formData);
 
-    const allImageLinks = await Promise.all(
-      pictures.map(async (pic) => await api.getLinks(pic.id_pictures))
-    );
-    setAllLinks(allImageLinks.flat());
+    const updateLinksPromise = insertPromise.then(async () => {
+        await getLinks(selectedImageId);
+        const allImageLinks = await Promise.all(
+            pictures.map(async (pic) => await api.getLinks(pic.id_pictures))
+        );
+        setAllLinks(allImageLinks.flat());
+    });
 
-    if (selectedPicture) {
-      const currentImage = selectedPicture;
-      const currentId = selectedImageId;
-      setSelectedPicture('');
-      setIsLoading(true);
-      
-      setTimeout(() => {
-        handlePictureClick(currentImage, currentId);
-      }, 100);
-    }
+    Promise.all([insertPromise, updateLinksPromise]).then(() => {
+        setSelectedPicture('');
+    });
+
+    showLoading([insertPromise, updateLinksPromise], 'Ajout du lien...', 'Lien ajouté avec succès', 'Erreur lors de l\'ajout du lien');
 
     setNewLinkModalOpen(false);
     setDisableBackgroundClick(false);
@@ -222,24 +214,24 @@ const AdminRoomDetails = () => {
     console.log('Opening new infospot modal');
     setNewInfospotModalOpen(true);
     setDisableBackgroundClick(true);
-    
+
     if (pictures.length > 0) {
       const firstPicture = pictures[0];
       setIsLoadingModal(true);
       setModalSelectedPicture(firstPicture.imageUrl);
       setSelectedImageId(firstPicture.id_pictures);
-      
+
       const infospotsPromise = getInfoPopup(firstPicture.id_pictures);
       const linksPromise = getLinks(firstPicture.id_pictures);
-      
+
       infospotsPromise.then((infospots) => {
         setModalInfoPopups(infospots);
       });
-      
+
       linksPromise.then((links) => {
         setModalLinks(links);
       });
-      
+
       Promise.all([infospotsPromise, linksPromise]).then(() => {
         setIsLoadingModal(false);
       });
@@ -265,18 +257,18 @@ const AdminRoomDetails = () => {
       setIsLoadingModal(true);
       setModalSelectedPicture(firstPicture.imageUrl);
       setSelectedImageId(firstPicture.id_pictures);
-      
+
       const infospotsPromise = getInfoPopup(firstPicture.id_pictures);
       const linksPromise = getLinks(firstPicture.id_pictures);
-      
+
       infospotsPromise.then((infospots) => {
         setModalInfoPopups(infospots);
       });
-      
+
       linksPromise.then((links) => {
         setModalLinks(links);
       });
-      
+
       Promise.all([infospotsPromise, linksPromise]).then(() => {
         setIsLoadingModal(false);
       });
@@ -355,22 +347,23 @@ const AdminRoomDetails = () => {
         formData.delete('pic');
     }
     formData.append('id_info_popup', infospotToEdit.id_info_popup);
-    await api.updateInfospot(formData);
-    const updatedInfoPopups = await getInfoPopup(selectedImageId);
-    setInfoPopups(updatedInfoPopups);
-    const allImageInfoPopups = await Promise.all(
-        pictures.map(async (pic) => await api.getInfoPopup(pic.id_pictures))
-    );
-    setAllInfoPopups(allImageInfoPopups.flat());
-    if (selectedPicture) {
-        const currentImage = selectedPicture;
-        const currentId = selectedImageId;
+
+    const updatePromise = api.updateInfospot(formData);
+
+    const updatedInfoPopupsPromise = updatePromise.then(async () => {
+      await getInfoPopup(selectedImageId);
+      const allImageInfoPopups = await Promise.all(
+          pictures.map(async (pic) => await api.getInfoPopup(pic.id_pictures))
+      );
+      setAllInfoPopups(allImageInfoPopups.flat());
+    });
+
+    Promise.all([updatePromise, updatedInfoPopupsPromise]).then(() => {
         setSelectedPicture('');
-        setIsLoading(true);
-        setTimeout(() => {
-            handlePictureClick(currentImage, currentId);
-        }, 100);
-    }
+    });
+
+    showLoading([updatePromise, updatedInfoPopupsPromise], 'Mise à jour de l\'infobulle...', 'Infobulle mise à jour avec succès', 'Erreur lors de la mise à jour de l\'infobulle');
+
     setNewInfospotModalOpen(false);
     setDisableBackgroundClick(false);
     setEditInfospotMod(false);
@@ -408,22 +401,22 @@ const AdminRoomDetails = () => {
     event.preventDefault();
     const formData = new FormData(event.target);
     formData.append('id_links', linkToEdit.id_links);
-    await api.updateLink(formData);
-    const updatedLinks = await getLinks(selectedImageId);
-    setLinks(updatedLinks);
-    const allImageLinks = await Promise.all(
-      pictures.map(async (pic) => await api.getLinks(pic.id_pictures))
-    );
-    setAllLinks(allImageLinks.flat());
-    if (selectedPicture) {
-      const currentImage = selectedPicture;
-      const currentId = selectedImageId;
+    const insertPromise = api.updateLink(formData);
+
+    const updatedLinksPromise = insertPromise.then(async () => {
+        await getLinks(selectedImageId);
+        const allImageLinks = await Promise.all(
+            pictures.map(async (pic) => await api.getLinks(pic.id_pictures))
+        );
+        setAllLinks(allImageLinks.flat());
+    });
+
+    Promise.all([insertPromise, updatedLinksPromise]).then(() => {
       setSelectedPicture('');
-      setIsLoading(true);
-      setTimeout(() => {
-        handlePictureClick(currentImage, currentId);
-      }, 100);
-    }
+    });
+
+    showLoading([insertPromise, updatedLinksPromise], 'Mise à jour du lien...', 'Lien mis à jour avec succès', 'Erreur lors de la mise à jour du lien');
+
     setNewLinkModalOpen(false);
     setDisableBackgroundClick(false);
     setEditLinkMod(false);
