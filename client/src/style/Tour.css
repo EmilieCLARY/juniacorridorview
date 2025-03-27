@@ -1,6 +1,6 @@
 .purpleborder{
   border-width: 2px;
-  border-color: #3c2c53;;
+  border-color: #3c2c53;
 }
 
 .w-40{
@@ -17,6 +17,38 @@
   margin-top: 3.5rem;
 }
 
+/* Masonry Grid Styles */
+.my-masonry-grid {
+  display: flex;
+  width: auto;
+  margin-left: -30px;
+}
+
+.my-masonry-grid_column {
+  padding-left: 30px;
+  background-clip: padding-box;
+}
+
+.my-masonry-grid_column > div {
+  margin-bottom: 30px;
+  transition: all 0.3s ease;
+}
+
+.my-masonry-grid_column > div:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 10px var(--color-junia-purple);
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Add button hover effect from AdminTour.css */
+.bouton-modifier:hover {
+  background-color: var(--color-junia-orange-dark, #e85c30)!important;
+}
+
+/* Original styles (commented out) */
 /*
 .tours-container {
   display: flex;
@@ -50,3 +82,4 @@
   border: 1px solid #ccc;
   border-radius: 5px;
 }
+*/
