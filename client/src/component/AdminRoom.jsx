@@ -68,26 +68,26 @@ const AdminRoom = () => {
   const fetchBuildings = async () => {
     try {
       const buildingsData = await api.getBuildings();
-        
+
       if (!buildingsData || buildingsData.length === 0) {
         setDebugInfo(prev => ({ ...prev, error: "No building data received" }));
         toast.error('Aucun bâtiment trouvé. Veuillez en créer un.');
         return [];
       }
-      
+
       // Improved check for id_buildings that properly handles value 0
-      if (buildingsData[0].id_buildings === undefined || 
-          buildingsData[0].id_buildings === null || 
-          buildingsData[0].name === undefined) {
-        setDebugInfo(prev => ({ 
-          ...prev, 
-          error: "Building data doesn't have expected fields", 
-          buildingData: buildingsData 
+      if (buildingsData[0].id_buildings === undefined ||
+        buildingsData[0].id_buildings === null ||
+        buildingsData[0].name === undefined) {
+        setDebugInfo(prev => ({
+          ...prev,
+          error: "Building data doesn't have expected fields",
+          buildingData: buildingsData
         }));
         toast.error('Format de données des bâtiments incorrect');
         return [];
       }
-      
+
       setBuildings(buildingsData);
       setDebugInfo(prev => ({ ...prev, buildingData: buildingsData, error: null }));
       return buildingsData;
@@ -111,7 +111,7 @@ const AdminRoom = () => {
       return [];
     }
   }
-  
+
   const fetchRooms = async () => {
     try {
       console.log('Fetching rooms...');
@@ -126,13 +126,13 @@ const AdminRoom = () => {
       if (!floorsData || floorsData.length === 0) {
         floorsData = await fetchFloors();
       }
-      
+
       const roomsWithImages = await Promise.all(
         roomsData.map(async room => {
           // First try to get the preview image
           let previewUrl = null;
           let hasPreview = false;
-          
+
           try {
             previewUrl = await api.getRoomPreview(room.id_rooms);
             // If we got a valid URL back, set hasPreview to true
@@ -141,7 +141,7 @@ const AdminRoom = () => {
             // Just silently continue if preview fetch fails
             console.log(`No preview found for room ${room.id_rooms}`);
           }
-          
+
           // If no preview, fall back to the panoramic image
           let imageUrl = null;
           if (!previewUrl) {
@@ -156,17 +156,17 @@ const AdminRoom = () => {
           } else {
             imageUrl = previewUrl;
           }
-          
+
           // Find the building name that corresponds to the room floors id that contains the id_buildings
           const floor = floorsData.find(f => f.id_floors === room.id_floors);
           const building = buildingsData.find(b => b.id_buildings === floor.id_buildings);
           const building_name = building ? building.name : 'Bâtiment inconnu';
 
-          return { 
-            ...room, 
-            imageUrl, 
+          return {
+            ...room,
+            imageUrl,
             building_name,
-            hasPreview 
+            hasPreview
           };
         })
       );
@@ -179,16 +179,16 @@ const AdminRoom = () => {
 
   useEffect(() => {
     if (!dataFetchedRef.current) {
-        // Modify isLoading sequence to ensure buildings load first, then rooms
-        //const fetchBuildingsPromise = fetchBuildings();
-        //const fetchFloorsPromise = fetchBuildingsPromise.then(() => fetchFloors());
+      // Modify isLoading sequence to ensure buildings load first, then rooms
+      //const fetchBuildingsPromise = fetchBuildings();
+      //const fetchFloorsPromise = fetchBuildingsPromise.then(() => fetchFloors());
 
-        // Then fetch rooms
-        const fetchRoomsPromise = fetchRooms();
+      // Then fetch rooms
+      const fetchRoomsPromise = fetchRooms();
 
-        showLoading([fetchRoomsPromise], 'Chargement des données...', 'Chargement réussi', 'Erreur lors du chargement');
+      showLoading([fetchRoomsPromise], 'Chargement des données...', 'Chargement réussi', 'Erreur lors du chargement');
 
-        dataFetchedRef.current = true;
+      dataFetchedRef.current = true;
     }
   }, []);
 
@@ -249,30 +249,30 @@ const AdminRoom = () => {
     if (!buildings || buildings.length === 0) {
       return [{ value: "manual", label: "Aucun bâtiment disponible" }];
     }
-  
-    return buildings.map(building => ({ 
-      value: building.id_buildings.toString(), 
-      label: building.name 
+
+    return buildings.map(building => ({
+      value: building.id_buildings.toString(),
+      label: building.name
     }));
   };
 
   const handleNewRoomSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!newRoomData.buildingId && newRoomData.buildingId !== "manual" && newRoomData.buildingId !== "0") {
       toast.error('Veuillez sélectionner un bâtiment');
       return;
     }
 
     if (!newRoomData.floorId && newRoomData.floorId !== "manual" && newRoomData.floorId !== "0") {
-        toast.error('Veuillez sélectionner un étage');
-        return;
+      toast.error('Veuillez sélectionner un étage');
+      return;
     }
-    
+
     const formData = new FormData();
     formData.append('number', newRoomData.number);
     formData.append('name', newRoomData.name);
-    
+
     // Handle the case when building selection is "manual"
     if (newRoomData.buildingId === "manual") {
       // If your API supports creating a building on the fly
@@ -280,7 +280,7 @@ const AdminRoom = () => {
         toast.error('Veuillez entrer un nom pour le bâtiment');
         return;
       }
-      
+
       try {
         // Try to create a new building first
         const createBuildingResponse = await api.createBuilding({ name: newRoomData.building });
@@ -297,17 +297,17 @@ const AdminRoom = () => {
       formData.append('floor', newRoomData.floor);
       formData.append('id_floors', newRoomData.floorId);
     }
-    
+
     // Add preview image to form data
     if (newRoomData.previewImage) {
       formData.append('previewImage', newRoomData.previewImage);
     }
-    
+
     // Add images to form data
     newRoomData.images.forEach(image => {
       formData.append('images', image);
     });
-    
+
     try {
       const createRoomPromise = api.createRoom(formData);
       const fetchRoomsPromise = createRoomPromise.then(async () => {
@@ -388,7 +388,7 @@ const AdminRoom = () => {
     formData.append('id_rooms', editRoomData.id_rooms);
     formData.append('number', editRoomData.number);
     formData.append('name', editRoomData.name);
-    
+
     // Find the building and add error handling
     const building = rooms.find(room => room.building_name === editRoomData.building);
     if (!building) {
@@ -396,15 +396,15 @@ const AdminRoom = () => {
       toast.error(`Bâtiment "${editRoomData.building}" introuvable. Veuillez réessayer.`);
       return;
     }
-    
+
     formData.append('id_buildings', building.id_buildings);
     formData.append('id_floors', editRoomData.floorId);
-    
+
     // Add preview image to form data if it exists
     if (editRoomData.previewImage) {
       formData.append('previewImage', editRoomData.previewImage);
     }
-        
+
     try {
       const updatePromise = api.updateRoom(formData);
       const fetchRoomsPromise = updatePromise.then(async () => {
@@ -446,132 +446,130 @@ const AdminRoom = () => {
   };
 
   return (
-    <div className="mx-auto p-4">
+    <div className="mx-auto p-4 bg-junia-salmon">
       <div className="flex  items-start justify-between">
-      <Loader show={isLoading} text={textLoading} />
-      <button 
-        onClick={() => setNewRoomModalOpen(true)}
-        className="px-4 py-2 bg-junia-orange font-title font-bold shadow-md text-white rounded-full">
-        Ajouter une nouvelle salle
+        <Loader show={isLoading} text={textLoading} />
+        <button
+          onClick={() => setNewRoomModalOpen(true)}
+          className="px-4 py-2  font-title font-bold button-type">
+          Ajouter une nouvelle salle
         </button>
-        
+
         <input
           type="text"
           placeholder="Rechercher une salle..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full p-2 mb-4 research-input bg-white rounded-full"/>
+          className="w-full p-2 mb-4 research-input bg-white rounded-full" />
 
-        
-        <button 
-        onClick={() => history.push('/admin/tour')}
-        className="px-4 py-2 bg-junia-orange font-title font-bold shadow-md text-white rounded-full">
-        Page d'administration des parcours
+
+        <button
+          onClick={() => history.push('/admin/tour')}
+          className="px-4 py-2  button-type font-title font-bold">
+          Page d'administration des parcours
         </button>
       </div>
-      
-      
 
-        <div className="grid grid-cols-2 gap-2 py-4">
-          <Select
-            isMulti
-            name="building"
-            options={getUniqueOptions('building_name')}
-            className="basic-multi-select col-span-2" // s'étend sur deux colonnes
-            classNamePrefix="select"
-            placeholder="Filtrer par bâtiment"
-            onChange={handleFilterChange}
-          />
-          <Select
-            isMulti
-            name="floor"
-            options={floors.map(floor => ({ value: floor.id_floors.toString(), label: floor.name })).sort((a, b) => a.value - b.value)}
-            className="ct"
-            classNamePrefix="select"
-            placeholder="Filtrer par étage"
-            onChange={handleFilterChange}
-          />
-          <Select
-            isMulti
-            name="name"
-            options={getUniqueOptions('name')}
-            className="basic-multi-select"
-            classNamePrefix="select"
-            placeholder="Filtrer par nom"
-            onChange={handleFilterChange}
-          />
-          <Select
-            isMulti
-            name="number"
-            options={getUniqueOptions('number')}
-            className="basic-multi-select"
-            classNamePrefix="select"
-            placeholder="Filtrer par numéro"
-            onChange={handleFilterChange}
-          />
-          <Select
-            isMulti
-            name="id"
-            options={rooms.map(room => ({ value: room.id_rooms.toString(), label: room.id_rooms.toString() })).sort((a, b) => a.value - b.value)}
-            className="basic-multi-select"
-            classNamePrefix="select"
-            placeholder="Filtrer par ID"
-            onChange={handleFilterChange}
-          />
-        </div>
+
+
+      <div className="grid grid-cols-2 gap-2 py-4">
+        <Select
+          isMulti
+          name="building"
+          options={getUniqueOptions('building_name')}
+          className="basic-multi-select col-span-2" // s'étend sur deux colonnes
+          classNamePrefix="select"
+          placeholder="Filtrer par bâtiment"
+          onChange={handleFilterChange}
+        />
+        <Select
+          isMulti
+          name="floor"
+          options={floors.map(floor => ({ value: floor.id_floors.toString(), label: floor.name })).sort((a, b) => a.value - b.value)}
+          className="basic-multi-select"
+          classNamePrefix="select"
+          placeholder="Filtrer par étage"
+          onChange={handleFilterChange}
+        />
+        <Select
+          isMulti
+          name="name"
+          options={getUniqueOptions('name')}
+          className="basic-multi-select"
+          classNamePrefix="select"
+          placeholder="Filtrer par nom"
+          onChange={handleFilterChange}
+        />
+        <Select
+          isMulti
+          name="number"
+          options={getUniqueOptions('number')}
+          className="basic-multi-select"
+          classNamePrefix="select"
+          placeholder="Filtrer par numéro"
+          onChange={handleFilterChange}
+        />
+        <Select
+          isMulti
+          name="id"
+          options={rooms.map(room => ({ value: room.id_rooms.toString(), label: room.id_rooms.toString() })).sort((a, b) => a.value - b.value)}
+          className="basic-multi-select"
+          classNamePrefix="select"
+          placeholder="Filtrer par ID"
+          onChange={handleFilterChange}
+        />
+      </div>
       <div className="grid grid-cols-2 gap-4">
         {filteredRooms.map(room => (
-          <div 
-            key={room.id_rooms} 
-            className="p-4 border-2 border-black rounded-3xl shadow hover:shadow-lg transition-shadow duration-300 bg-white flex flex-col"
+          <div
+            key={room.id_rooms}
+            className="px-4 py-2 border-2 purpleborder rounded-3xl shadow hover:shadow-lg transition-shadow duration-300 bg-white flex flex-col justify-between"
             onClick={() => handleRoomClick(room.id_rooms)}>
 
-            <div className="mb-2 flex flex-row">
-              <div className="flex flex-col justify-between my-4">
+            <div className="mb-2 flex justify-between gap-2 py-2">
+              <div className="flex py-2 flex-col justify-between">
                 <div>
-                <div className="font-junia-purple font-bold">Salle : </div>
-                <div className="text-junia-orange font-title text-2xl font-semibold"> {room.name} </div>
-                </div>
-                <div>
-                <div className="font-junia-purple font-bold"> Numéro : </div>
-                <div className="text-junia-orange font-title text-2xl font-semibold"> {room.number} </div>
+                  <div className="text-junia-purple font-bold">Salle : </div>
+                  <div className="text-junia-orange font-title text-2xl font-semibold"> {room.name} </div>
                 </div>
                 <div>
-                <div className="font-junia-purple font-bold">Bâtiment : </div>
-                <div className="text-junia-orange font-title text-2xl font-semibold"> {room.building_name} </div>
+                  <div className="text-junia-purple font-bold"> Numéro : </div>
+                  <div className="text-junia-orange font-title text-2xl font-semibold"> {room.number} </div>
                 </div>
                 <div>
-                <div className="font-junia-purple font-bold">ID Salle: </div>
-                <div className="text-junia-orange font-title text-2xl font-semibold"> {room.id_rooms} </div>
+                  <div className="text-junia-purple font-bold">Bâtiment : </div>
+                  <div className="text-junia-orange font-title text-2xl font-semibold"> {room.building_name} </div>
                 </div>
-                <div 
-                onClick={(event) => toggleRoomVisibility(event, room)}
-                className={`flex items-center cursor-pointer rounded-full w-24 h-10 p-1 ${room.hidden ? 'bg-red-500' : 'bg-green-500'}`}
-              >
-                <div className={`flex items-center justify-center text-xs font-medium h-8 w-8 rounded-full transition-transform duration-300 transform ${room.hidden ? 'bg-white' : 'translate-x-14 bg-white'}`}>
-                  {room.hidden ? 'I' : 'V'}
+                <div>
+                  <div className="text-junia-purple font-bold">Etage : </div>
+                  <div className="text-junia-orange font-title text-2xl font-semibold"> {floors.find(floor => floor.id_floors === room.id_floors).name} </div>
                 </div>
-                <span className={`ml-2 text-xs font-bold text-white ${room.hidden ? 'ml-11' : ''}`}>
-                  {room.hidden ? 'Invisible' : 'Visible'}
-                </span>
+                <div>
+                  <div className="text-junia-purple font-bold">ID Salle: </div>
+                  <div className="text-junia-orange font-title text-2xl font-semibold"> {room.id_rooms} </div>
+                </div> 
+                
+                <div onClick={(event) => toggleRoomVisibility(event, room)} className={`flex items-center cursor-pointer rounded-full w-24 h-10 p-1 border-2 ml-2 text-xs font-bold text-white  ${room.hidden ? 'bg-gray-500' : 'bg-junia-purple'}`}>
+                  
+                  Etat : {room.hidden ? 'Invisible' : 'Visible'}
+                  
+                </div>
               </div>
+
+
               
-              
+              {room.imageUrl && (
+                <div className="overflow-hidden rounded flex items-center">
+                  <img src={room.imageUrl} alt={`Preview of ${room.name}`} className="object-cover h-90% rounded-3xl " />
+                </div>
+              )}
             </div>
-            {room.imageUrl && (
-              <div className="w-full h-48 overflow-hidden rounded relative">
-                <img src={room.imageUrl} alt={`Preview of ${room.name}`} className="object-cover h-20 " />
-                {room.hasPreview && (
-                  <div className=" top-2 right-2 bg-junia-orange text-white text-xs font-bold px-2 py-1 rounded ">
-                    Preview
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-          <div className="flex justify-between py-4"><button onClick={(event) => handleDeleteRoom(event, room.id_rooms)} className="bg-junia-orange shadow-md font-title font-bold text-white px-4 py-2 rounded-full ">Supprimer</button>
-            <button onClick={(event) => handleEditRoom(event, room)} className="bg-junia-orange shadow-md font-title font-bold text-white px-4 py-2 rounded-full ">Modifier</button></div>
-            
+
+            <div className="flex justify-between pb-2">
+              <button onClick={(event) => handleDeleteRoom(event, room.id_rooms)} className="button-type font-title font-bold px-4 py-2 border-red-500 border-green-500">Supprimer</button>
+              <button onClick={(event) => handleEditRoom(event, room)} className="button-type font-title font-bold px-4 py-2">Modifier</button>
+            </div>
+
           </div>
         ))}
       </div>
@@ -581,7 +579,7 @@ const AdminRoom = () => {
           <p className="font-bold">Debugging Information</p>
           <p>Error: {debugInfo.error}</p>
           <p>Building Data: {debugInfo.buildingData ? JSON.stringify(debugInfo.buildingData, null, 2) : 'None'}</p>
-          <button 
+          <button
             onClick={fetchBuildings}
             className="mt-2 p-2 bg-blue-500 text-white rounded"
           >
@@ -596,21 +594,21 @@ const AdminRoom = () => {
             <span className="close" onClick={() => setNewRoomModalOpen(false)}>&times;</span>
             <h2>Ajouter une nouvelle salle</h2>
             <form onSubmit={handleNewRoomSubmit}>
-              <input 
-                type="text" 
-                name="number" 
-                placeholder="Numéro de salle" 
-                value={newRoomData.number} 
-                onChange={handleNewRoomChange} 
-                required 
+              <input
+                type="text"
+                name="number"
+                placeholder="Numéro de salle"
+                value={newRoomData.number}
+                onChange={handleNewRoomChange}
+                required
               />
-              <input 
-                type="text" 
-                name="name" 
-                placeholder="Nom de la salle" 
-                value={newRoomData.name} 
-                onChange={handleNewRoomChange} 
-                required 
+              <input
+                type="text"
+                name="name"
+                placeholder="Nom de la salle"
+                value={newRoomData.name}
+                onChange={handleNewRoomChange}
+                required
               />
               <Select
                 name="building"
@@ -655,35 +653,35 @@ const AdminRoom = () => {
                 onChange={(selectedOption) => setNewRoomData(prevData => ({ ...prevData, floor: selectedOption.label, floorId: selectedOption.value }))}
                 required
               />
-              
+
               {newRoomData.showManualBuildingInput && (
-                <input 
-                  type="text" 
-                  name="manualBuilding" 
-                  placeholder="Nom du nouveau bâtiment" 
-                  value={newRoomData.building} 
+                <input
+                  type="text"
+                  name="manualBuilding"
+                  placeholder="Nom du nouveau bâtiment"
+                  value={newRoomData.building}
                   onChange={(e) => setNewRoomData(prev => ({ ...prev, building: e.target.value }))}
-                  required 
+                  required
                 />
               )}
               <div className="form-group">
                 <label>Images panoramiques (360°)</label>
-                <input 
-                  type="file" 
-                  name="images" 
-                  accept="image/*" 
-                  multiple 
-                  onChange={handleNewRoomImagesChange} 
-                  required 
+                <input
+                  type="file"
+                  name="images"
+                  accept="image/*"
+                  multiple
+                  onChange={handleNewRoomImagesChange}
+                  required
                 />
               </div>
               <div className="form-group">
                 <label>Image de prévisualisation de la salle</label>
-                <input 
-                  type="file" 
-                  name="previewImage" 
-                  accept="image/*" 
-                  onChange={handleNewRoomPreviewChange} 
+                <input
+                  type="file"
+                  name="previewImage"
+                  accept="image/*"
+                  onChange={handleNewRoomPreviewChange}
                 />
               </div>
               <button type="submit">Ajouter une salle</button>

@@ -53,3 +53,29 @@
 .basic-multi-select::placeholder {
   color:rgba(240, 107, 66, 1);
 }
+
+.research-input:focus {
+  outline: none;
+}
+
+.h-90\% {
+  height: 90%;
+}
+
+
+.h-80\%{
+  height: 80%;
+}
+
+.basic-multi-select {
+  display: ;
+  
+}
+
+.bg-gray-500 {
+background-color: var(--color-gray-500);
+}
+
+.bg-junia-salmon{
+  background-color: var(--color-junia-salmon);
+}
