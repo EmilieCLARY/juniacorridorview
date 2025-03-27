@@ -160,25 +160,37 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
           imageWidth = maxImageHeight * aspectRatio;
         }
 
-        // Calculate the dimensions of the canvas
-        canvasWidth = 60 + imageWidth + 60; // Add extra width for the image and padding
+        // Set initial canvas width
+        canvasWidth = 60 + imageWidth + 60;
 
-        // Calculate the height needed for the text
-        const textLines = wrapText(context, popup.text, imageWidth);
-        const textHeight = textLines.length * lineHeight + 200;
-
-        // Adjust canvas height based on text and image height
-        canvasHeight = imageHeight + textHeight + 150; // Add extra height for the title and padding
-
-        // Set the canvas dimensions
+        // Temporarily set canvas width to measure text correctly
         canvas.width = canvasWidth;
+        context.font = 'Bold 70px Arial';
+
+        // Get text dimensions with correct canvas width
+        const titleLines = wrapText(context, popup.title.toUpperCase().slice(0, 40), canvasWidth - 100);
+        context.font = 'Normal 52px Arial';
+        const textLines = wrapText(context, popup.text, imageWidth);
+
+        // Calculate vertical spacing
+        const titleYStart = 110;
+        const titleLineHeight = 70;
+        const titleHeight = titleLines.length * titleLineHeight;
+        const textY = titleYStart + titleHeight + 30;
+        const textHeight = textLines.length * lineHeight;
+        const imgY = textY + textHeight + 20;
+
+        // Set final canvas height
+        canvasHeight = imgY + imageHeight + 50;
         canvas.height = canvasHeight;
 
-        // Background color with rounded border
-        const radius = 20; // Adjust the radius for rounded corners
+        // Reset context properties after canvas resize
         context.fillStyle = '#e85c30';
         context.strokeStyle = '#3c2c53';
         context.lineWidth = 10;
+
+        // Draw background
+        const radius = 20;
         context.beginPath();
         context.moveTo(radius, 0);
         context.lineTo(canvasWidth - radius, 0);
@@ -193,51 +205,27 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
         context.fill();
         context.stroke();
 
-        // Title
+        // Reset font and draw title
         context.font = 'Bold 70px Arial';
         context.fillStyle = 'white';
         context.textAlign = 'center';
-
-
-        // Wrap title text if it exceeds the canvas width
-        const titleLines = wrapText(context, popup.title.toUpperCase().slice(0, 40), canvasWidth - 100); // Add padding
-        const titleYStart = 110; // Starting Y position for the title
-        const titleLineHeight = 70; // Line height for the title
-
         titleLines.forEach((line, i) => {
           context.fillText(line, canvasWidth / 2, titleYStart + i * titleLineHeight);
         });
 
-/*       // 'X' button
-        context.font = 'Bold 70px Arial';
-        context.fillStyle = '#3c2c53';
-        context.textAlign = 'center';
-        context.fillText('X', canvasWidth - 80, 80);
-*/
-
-        // Text
-        context.font = 'Normal 52px Arial';
+        // Reset font and draw text
+        context.font = 'Normal 55px Arial';
         context.fillStyle = 'white';
         context.textAlign = 'left';
-
         const textX = 40;
-        const titleHeight = titleLines.length * titleLineHeight;
-        const textY = titleYStart + titleHeight + 10; // Add padding after title
-
-        let lines = wrapText(context, popup.text, imageWidth);
-        lines.forEach((line, i) => {
-          context.fillText(line, textX, textY + (i + 1) * lineHeight);
+        textLines.forEach((line, i) => {
+          context.fillText(line, textX, textY + i * lineHeight);
         });
 
-        const imgX = (canvasWidth - imageWidth) / 2
-        const imgY = textY + lines.length * lineHeight + 50;
-        
-        // Image (optional)
+        // Draw image if available
+        const imgX = (canvasWidth - imageWidth) / 2;
         if (popup.image) {
-          // Draw image
           context.drawImage(image, imgX, imgY, imageWidth, imageHeight);
-
-          // Draw black border around the image
           context.strokeStyle = '#3c2c53';
           context.lineWidth = 5;
           context.strokeRect(imgX, imgY, imageWidth, imageHeight);
