@@ -981,6 +981,9 @@
   .bg-junia-lavender {
     background-color: var(--color-junia-lavender);
   }
+  .bg-junia-salmon {
+    background-color: var(--color-junia-salmon);
+  }
   .bg-junia-orange {
     background-color: var(--color-junia-orange);
   }
@@ -1007,6 +1010,12 @@
   }
   .bg-white {
     background-color: var(--color-white);
+  }
+  .border-junia-purple {
+    border-color: var(--color-junia-purple);
+  }
+  .border-junia-orange {
+    border-color: var(--color-junia-orange);
   }
   .p-1 {
     padding: calc(var(--spacing) * 1);

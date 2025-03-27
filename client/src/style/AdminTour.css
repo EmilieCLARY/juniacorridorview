@@ -60,10 +60,20 @@
   display: flex;
   align-items: center;
   padding: 1rem;
-  background-color: #f3f4f6;
+  background-color: var(--color-junia-salmon);
   border-radius: 0.5rem;
-  margin-bottom: 0.5rem;
-  gap: 1rem;
+  margin: 0.5rem;
+  gap: 0.5rem;
+  border-color: var(--color-junia-purple);
+}
+
+.draggable-step {
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.draggable-step:hover {
+  background-color: var(--color-junia-orange);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Ombre au survol */
 }
 
 .drag-icon {
@@ -87,4 +97,8 @@
 
 .research-input::placeholder {
     color: #f06b42;
+}
+
+html, body, #root {
+  height: 100%;
 }
