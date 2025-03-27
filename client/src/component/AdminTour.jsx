@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import * as tourApi from '../api/AxiosTour';
 import * as api from '../api/AxiosAdmin';
 import { Buffer } from 'buffer';
@@ -96,6 +96,7 @@ const AdminTour = () => {
   const [panoramaUrls, setPanoramaUrls] = useState({});
   const [previewUrls, setPreviewUrls] = useState({});
   const [currentRoomName, setCurrentRoomName] = useState({});
+  const [floors, setFloors] = useState([]);
   const loading = useRef(false);
   const history = useHistory();
 
@@ -170,10 +171,25 @@ const AdminTour = () => {
   const fetchRooms = async () => {
     try {
       const roomsData = await api.getRooms();
+      console.log("Fetched rooms:", roomsData);
       return roomsData.filter(room => room.hidden !== 1);
     } catch (error) {
       console.error("Error fetching rooms:", error);
       toast.error("Impossible de charger les salles. Certaines fonctionnalités peuvent être limitées.");
+      return [];
+    }
+  };
+
+  // Add a function to fetch floors
+  const fetchFloors = async () => {
+    try {
+      const floorsData = await tourApi.getFloors();
+      console.log('Fetched floors:', floorsData);
+      setFloors(floorsData);
+      return floorsData;
+    } catch (error) {
+      console.error("Error fetching floors:", error);
+      toast.error("Impossible de charger les étages.");
       return [];
     }
   };
@@ -183,6 +199,14 @@ const AdminTour = () => {
     try {
       // Fetch tours and steps
       const { toursData, steps } = await fetchToursInfo();
+      
+      // Fetch floors first
+      let floorsData = [];
+      try {
+        floorsData = await fetchFloors();
+      } catch (error) {
+        console.error("Failed to fetch floors:", error);
+      }
       
       let roomsData = [];
       try {
@@ -199,6 +223,7 @@ const AdminTour = () => {
       setTours(toursData);
       setTourSteps(steps);
       setRooms(roomsData);
+      setFloors(floorsData);
       setPanoramaUrls(allPanoramaUrls);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -407,10 +432,32 @@ const AdminTour = () => {
   );
 
   // Format rooms as options for React Select
-  const roomOptions = rooms.map(room => ({
-    value: room.id_rooms,
-    label: `${room.name} (${room.number})`
-  }));
+  const roomOptions = useMemo(() => {
+    // If no floors available, return simple flat options
+    if (!floors || floors.length === 0) {
+      return rooms.map(room => ({
+        value: room.id_rooms,
+        label: `${room.name} (${room.number})`
+      }));
+    }
+    
+    // Group rooms by floors
+    const roomsByFloor = floors.map(floor => {
+      const floorRooms = rooms
+        .filter(room => room.id_floors === floor.id_floors)
+        .map(room => ({
+          value: room.id_rooms,
+          label: `${room.name} (${room.number})`
+        }));
+      
+      return {
+        label: `${floor.name}`,
+        options: floorRooms,
+      };
+    }).filter(group => group.options.length > 0); // Remove empty floors
+    
+    return roomsByFloor;
+  }, [rooms, floors]);
 
   return (
     <>
@@ -527,7 +574,7 @@ const AdminTour = () => {
                               <Select
                                 options={roomOptions}
                                 onChange={(selectedOption) => handleNewTourStepChange(index, 'id_rooms', selectedOption)}
-                                value={roomOptions.find(option => option.value === step.id_rooms) || null}
+                                value={roomOptions.flatMap(group => group.options || []).find(option => option.value === step.id_rooms) || null}
                                 isDisabled={rooms.length === 0}
                                 placeholder="Sélectionner une salle"
                                 styles={customSelectStyles}
@@ -581,7 +628,7 @@ const AdminTour = () => {
                             <div className="w-full" onPointerDown={(e) => e.stopPropagation()}>
                               <Select
                                 options={roomOptions}
-                                defaultValue={roomOptions.find(option => option.value === step.id_rooms) || null}
+                                defaultValue={roomOptions.flatMap(group => group.options || []).find(option => option.value === step.id_rooms) || null}
                                 onChange={(selectedOption) => {
                                   document.getElementById(`step-room-${index}`).value = selectedOption.value;
                                 }}
