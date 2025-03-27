@@ -74,7 +74,7 @@
 .research-input {
   border-width: 2px;
   border-color: #f06b42;
-  width: 50%;
+  width: 40vw;
 }
 
 .research-input::placeholder {
@@ -112,4 +112,45 @@ background-color: var(--color-gray-500);
 
 .bg-junia-salmon{
   background-color: var(--color-junia-salmon);
+}
+
+/* Toggle switch styling - fixed selectors */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  min-width: 60px;
+  height: 32px;
+}
+
+.toggle-switch .toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 34px;
+}
+
+.toggle-switch .toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 24px;
+  width: 24px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: var(--color-junia-orange, #e85c30);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(26px);
 }

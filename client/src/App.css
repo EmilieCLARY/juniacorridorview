@@ -87,4 +87,6 @@ nav{
 
 .button-type:hover{
   background-color: #e85c30;
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
 }
