@@ -103,11 +103,6 @@ const AdminBuilding = () => {
                         </div>
                     </div>
                 ))}
-                {building.map((building, index) => (
-                    <div key={index} className="px-4 py-2 border-2 purpleborder rounded-3xl shadow hover:shadow-lg transition-shadow duration-300 bg-white flex flex-col justify-between">
-                        <h4>Bâtiment {building.name}</h4>
-                    </div>
-                ))}
             </div>
         </div>
     );
