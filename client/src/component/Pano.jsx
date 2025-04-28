@@ -282,7 +282,7 @@ const PanoramaViewer = ({ location }) => {
   return (
     <div >
       <Loader show={loading} text={textLoading} />
-      <div className="panorama-container">
+      <div className="panorama-container bg-junia-lavender">
         <div className="h-full scrollable-list flex-col w-15" id="style-2">
           <div className="font-title text-center py-2 font-bold text-2xl text-white bg-junia-purple  rounded-xl mx-5 my-2">
             Autres Salles
@@ -307,18 +307,19 @@ const PanoramaViewer = ({ location }) => {
           ))}
           
         </div>
-        <div>
-        </div>
+        
         <div className="panorama-content">
         {/*<h2>Salle actuelle : {currentRoomName} ({currentRoomNumber})</h2>*/}
-        <Panorama360 
-            infoPopups={infoPopups[currentImageId] || []} 
-            selectedPicture={images.find(image => image.id === currentImageId)?.imageBlob ? 
-              URL.createObjectURL(images.find(image => image.id === currentImageId).imageBlob) : null} 
-            links={links[currentImageId] || []}
-            onLinkClick={handleLinkClick}
-            isLoading={(isLoading.current || firstLoad.current || loadingImageBeforeRoomSwitch) }
-          />
+          
+            <Panorama360 
+                infoPopups={infoPopups[currentImageId] || []} 
+                selectedPicture={images.find(image => image.id === currentImageId)?.imageBlob ? 
+                  URL.createObjectURL(images.find(image => image.id === currentImageId).imageBlob) : null} 
+                links={links[currentImageId] || []}
+                onLinkClick={handleLinkClick}
+                isLoading={(isLoading.current || firstLoad.current || loadingImageBeforeRoomSwitch) }
+              />
+          
         </div>
       </div>
     </div>
