@@ -70,7 +70,7 @@ const insertFloor = async (formData) => {
 
 const updateBuilding = async (formData) => {
     try {
-        const response = await api.put('/update-building', formData);
+        const response = await api.post('/update-building', formData);
     } catch (error) {
         console.error('Error updating building', error);
     }
@@ -78,7 +78,7 @@ const updateBuilding = async (formData) => {
 
 const updateFloor = async (formData) => {
     try {
-        const response = await api.put('/update-floor', formData);
+        const response = await api.post('/update-floor', formData);
     } catch (error) {
         console.error('Error updating floor', error);
     }
