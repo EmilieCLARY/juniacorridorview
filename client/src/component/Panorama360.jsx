@@ -1,9 +1,13 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 
 const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositionSelect, isLoading, disableClick}) => {
   const mountRef = useRef(null);
+  const rendererRef = useRef(null);
+  const cameraRef = useRef(null);
+  const initialDimensionsRef = useRef({ width: 0, height: 0 });
+
   const infoTexture = new THREE.TextureLoader().load("/img/info.png");
   infoTexture.colorSpace = THREE.SRGBColorSpace;
   const infoMeshes = [];
@@ -22,8 +26,8 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
         alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
       });
     } else {
-      document.exitFullscreen().then(() => {
-        setIsFullscreen(false);
+      document.exitFullscreen().catch(err => {
+        alert(`Error attempting to exit full-screen mode: ${err.message} (${err.name})`);
       });
     }
   };
@@ -47,7 +51,6 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
       var imageWidth = image.width;
       var imageHeight = image.height;
       const aspectRatio = imageWidth / imageHeight;
-
 
       if (imageWidth < imageHeight) {   // Si l'image est en format portrait
         const maxImageWidth = 600;
@@ -108,13 +111,6 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
         titleLines.forEach((line, i) => {
           context.fillText(line, canvasWidth / 2, titleYStart + i * titleLineHeight);
         });
-
-/*        // 'X' button
-        context.font = 'Bold 70px Arial';
-        context.fillStyle = '#3c2c53';
-        context.textAlign = 'center';
-        context.fillText('X', canvasWidth - 80, 80);
-*/
 
         // Text
         context.font = 'Normal 52px Arial';
@@ -277,35 +273,36 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
   const originalScale = new THREE.Vector3(1.2, 1.2, 1.2);
   const hoverScale = new THREE.Vector3(1.5, 1.5, 1.5);
 
-  useEffect(() => {
-    if (!mountRef.current) return;
-    if(isLoading) return;
+  const handleResize = useCallback(() => {
+    if (!mountRef.current || !rendererRef.current || !cameraRef.current) return;
 
-    // Nettoyer les anciennes ressources
-    if (scene) {
-      // Supprimer les anciens infospots et liens
-      infoMeshes.forEach(mesh => scene.remove(mesh));
-      linksMeshes.forEach(mesh => scene.remove(mesh));
-      displayedPopups.forEach(popup => scene.remove(popup));
-      
-      // Vider les tableaux
-      infoMeshes.length = 0;
-      linksMeshes.length = 0;
-      displayedPopups.length = 0;
-    }
+    const width = isFullscreen ? window.innerWidth : mountRef.current.clientWidth;
+    const height = isFullscreen ? window.innerHeight : mountRef.current.clientHeight;
+
+    cameraRef.current.aspect = width / height;
+    cameraRef.current.updateProjectionMatrix();
+    rendererRef.current.setSize(width, height);
+  }, [isFullscreen]);
+
+  useEffect(() => {
+    if (!mountRef.current || isLoading) return;
+
+    // Store initial dimensions
+    initialDimensionsRef.current = {
+      width: mountRef.current.clientWidth,
+      height: mountRef.current.clientHeight
+    };
 
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera(75, mountRef.current.clientWidth / mountRef.current.clientHeight, 0.1, 1000);
+    cameraRef.current = camera;
+
     const renderer = new THREE.WebGLRenderer({ 
       antialias: true,
-      preserveDrawingBuffer: true // Ajouter cette option
+      preserveDrawingBuffer: true
     });
-    const width = mountRef.current.clientWidth;
-    const height = mountRef.current.clientHeight;
+    rendererRef.current = renderer;
 
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
-    renderer.setSize(width, height);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1;
@@ -333,13 +330,7 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
     scene.add(sphere);
 
     const onWindowResize = () => {
-      if (!mountRef.current) return;
-      const width = mountRef.current.clientWidth;
-      const height = mountRef.current.clientHeight;
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
-      renderer.outputEncoding = THREE.sRGBEncoding;
+      handleResize();
     };
     
     window.addEventListener("resize", onWindowResize);
@@ -407,6 +398,14 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
     };
 
     document.addEventListener('mousemove', onMouseMove);
+
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+      handleResize();
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    handleResize();
     
     const animate = () => {
       requestAnimationFrame(animate);
@@ -425,13 +424,14 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
       window.removeEventListener("resize", onWindowResize);
       document.removeEventListener("click", onClick);
       document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
       
       // Nettoyer les ressources Three.js
       infoMeshes.length = 0;
       linksMeshes.length = 0;
       displayedPopups.length = 0;
     };
-  }, [infoPopups, selectedPicture, links, isLoading]);
+  }, [infoPopups, selectedPicture, links, isLoading, handleResize]);
 
   const onClick = (event) => {
     if (!mountRef.current) return;
@@ -456,14 +456,6 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
       if (intersects.length > 0 && infoPopups[index]) {
         console.log("Info spot clicked"); // Debug log
         const existingPopup = displayedPopups.find(popup => popup.name === `popup_${index}`);
-        /*if (existingPopup) {
-          // Supprimer le popup si déjà affiché
-          scene.remove(existingPopup);
-          displayedPopups.splice(displayedPopups.indexOf(existingPopup), 1);
-          console.log("Popup fermé");
-        } else {*/
-        // Créer un nouveau popup
-        console.log("Info clicked");
         const popupGroup = createInfoPopup(infoPopups[index]);
         popupGroup.name = `popup_${index}`;
         const pos = new THREE.Vector3(infoPopups[index].position_x, infoPopups[index].position_y, infoPopups[index].position_z)
@@ -474,7 +466,6 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
         popupGroup.lookAt(camera.position);
         displayedPopups.push(popupGroup);
         console.log("Popup ajouté à la scène");
-        //}
       }
     });
 
