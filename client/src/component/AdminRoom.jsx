@@ -729,14 +729,14 @@ const AdminRoom = () => {
 
               
               {room.imageUrl && (
-                <div className="overflow-hidden rounded flex items-center">
+                <div className="overflow-hidden w-80 rounded flex items-center justify-center">
                   <img src={room.imageUrl} alt={`Preview of ${room.name}`} className="object-cover h-90% rounded-3xl " />
                 </div>
               )}
             </div>
 
             <div className="flex justify-between pb-2">
-              <button onClick={(event) => handleDeleteRoom(event, room.id_rooms)} className="button-type font-title font-bold px-4 py-2 border-red-500 border-green-500">Supprimer</button>
+              <button onClick={(event) => handleDeleteRoom(event, room.id_rooms)} className="button-type2 font-title font-bold px-4 py-2 border-red-500 border-green-500">Supprimer</button>
               <button onClick={(event) => handleEditRoom(event, room)} className="button-type font-title font-bold px-4 py-2">Modifier</button>
             </div>
 

@@ -151,6 +151,7 @@
   border-width: 1px;
   border-radius: 10px;
   border-color: #3c2c53;
+  cursor: pointer; /* Change le curseur au survol */
 }
 
 .room-container img {
