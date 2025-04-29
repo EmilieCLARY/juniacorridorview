@@ -488,39 +488,17 @@ const AdminRoom = () => {
 
   return (
     <div className="mx-auto p-4 bg-junia-salmon">
-      <div className="flex  items-start justify-between">
+      <div className="flex justify-center">
         <Loader show={isLoading} text={textLoading} />
-        <button
-          onClick={() => setNewRoomModalOpen(true)}
-          className="px-4 py-2  font-title font-bold button-type">
-          Ajouter une nouvelle salle
-        </button>
 
-        <input
-          type="text"
-          placeholder="Rechercher une salle..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full p-2 mb-4 research-input bg-white rounded-full" />
-
-        <div className={"flex flex-col gap-4"}>
-          <button
-            onClick={() => history.push('/admin/tour')}
-            className="px-4 py-2  button-type font-title font-bold">
-            Page d'administration des parcours
-          </button>
-
-          <button
-            onClick={() => history.push('/admin/building')}
-            className="px-4 py-2  button-type font-title font-bold">
-            Page d'administration des bâtiments
-          </button>
-        </div>
+        
+        
+        
       </div>
 
 
 
-      <div className="grid grid-cols-2 gap-2 py-4">
+      {/* <div className="grid grid-cols-2 gap-2 py-4">
         <Select
           isMulti
           name="building"
@@ -592,6 +570,108 @@ const AdminRoom = () => {
           menuPortalTarget={document.body}
           onChange={handleFilterChange}
         />
+      </div> */}
+      <div className="flex gap-3 py-1 justify-between mb-4">
+        <div className="flex gap-4 ">
+          <input
+          type="text"
+          placeholder="Rechercher une salle..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full p-2  research-input bg-white rounded-full" />
+
+        <Select
+          isMulti
+          name="building"
+          options={getUniqueOptions('building_name')}
+          className="basic-multi-select"
+          classNamePrefix="select"
+          placeholder="Bâtiment"
+          isDisabled={buildings.length === 0}
+          isSearchable
+          menuPlacement="auto"
+          menuPosition="fixed"
+          styles={customSelectStyles}
+          menuPortalTarget={document.body}
+          onChange={handleFilterChange}
+        />
+        <Select
+          isMulti
+          name="floor"
+          options={floors.map(floor => ({ value: floor.id_floors.toString(), label: floor.name })).sort((a, b) => a.value - b.value)}
+          className="basic-multi-select"
+          styles={customSelectStyles}
+          classNamePrefix="select"
+          placeholder="Étage"
+          isSearchable
+          menuPlacement="auto"
+          menuPosition="fixed"
+          menuPortalTarget={document.body}
+          onChange={handleFilterChange}
+        />
+        <Select
+          isMulti
+          name="name"
+          options={getUniqueOptions('name')}
+          className="basic-multi-select"
+          classNamePrefix="select"
+          placeholder="Nom"
+          isSearchable
+          styles={customSelectStyles}
+          menuPlacement="auto"
+          menuPosition="fixed"
+          menuPortalTarget={document.body}
+          onChange={handleFilterChange}
+        />
+        <Select
+          isMulti
+          name="number"
+          options={getUniqueOptions('number')}
+          className="basic-multi-select"
+          classNamePrefix="select"
+          placeholder="Numéro"
+          isSearchable
+          styles={customSelectStyles}
+          menuPlacement="auto"
+          menuPosition="fixed"
+          menuPortalTarget={document.body}
+          onChange={handleFilterChange}
+        />
+        <Select
+          isMulti
+          name="id"
+          options={rooms.map(room => ({ value: room.id_rooms.toString(), label: room.id_rooms.toString() })).sort((a, b) => a.value - b.value)}
+          className="basic-multi-select"
+          classNamePrefix="select"
+          placeholder="ID"
+          isSearchable
+          styles={customSelectStyles}
+          menuPlacement="auto"
+          menuPosition="fixed"
+          menuPortalTarget={document.body}
+          onChange={handleFilterChange}
+        />
+        
+        </div>
+        <div class="flex gap-4">
+          <button
+              onClick={() => setNewRoomModalOpen(true)}
+              className="px-4 py-2  font-title font-bold button-type">
+              Ajouter une salle
+          </button>
+          
+          <button
+              onClick={() => history.push('/admin/tour')}
+              className="px-4 py-2  button-type font-title font-bold">
+              Parcours
+          </button>
+          
+          <button
+              onClick={() => history.push('/admin/building')}
+              className="px-4 py-2  button-type font-title font-bold">
+              Bâtiments
+          </button>
+        </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         {filteredRooms.map(room => (
