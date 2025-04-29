@@ -10,9 +10,11 @@ nav a:hover {
   text-decoration: none; /* Remove underline */
 }
 
-.height-40 {
-  max-height: 40px;
+.height-60 {
+  max-height: 60px;
 }
+
+
 
 /* Fixe la navbar en haut de la page */
 nav {
@@ -25,12 +27,13 @@ nav {
   align-items: center;
   justify-content: space-between;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-height: 65px; /* par défaut la nav bar fait 90 px */
 }
 
 /* Ajoutez un espace pour le contenu principal */
 .main-content {
   margin-top: 60px; /* Correspond à la hauteur de la navbar */
-  height: calc(100vh - 60px); /* Prend tout l'espace restant sous la navbar */
+  height: calc(100vh - 65px); /* Prend tout l'espace restant sous la navbar */
   display: flex;
   flex-direction: column;
 }
