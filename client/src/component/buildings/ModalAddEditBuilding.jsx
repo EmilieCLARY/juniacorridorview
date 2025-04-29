@@ -9,6 +9,7 @@ const ModalAddEditBuilding = ({
     reload
 }) => {
     const [showAddEditBuilding, setShowAddEditBuilding] = useState(false);
+    const [editMode, setEditMode] = useState(false);
 
     const [buildingName, setBuildingName] = useState("");
 
@@ -21,9 +22,11 @@ const ModalAddEditBuilding = ({
     }, [isOpen]);
 
     useEffect(() => {
-        if (building) {
+        if (building && building.id_buildings) {
+            setEditMode(true);
             setBuildingName(building.name);
         } else {
+            setEditMode(false);
             setBuildingName("");
         }
     }, [building]);
@@ -36,7 +39,7 @@ const ModalAddEditBuilding = ({
         }
         const formData = new FormData();
         formData.append('name', buildingName);
-        if(building && building.id_buildings) {
+        if(editMode) {
             formData.append('id_buildings', building.id_buildings);
             api.updateBuilding(formData)
                 .then(() => {
@@ -69,7 +72,7 @@ const ModalAddEditBuilding = ({
                 <div className="modal">
                     <div className="modal-content">
                         <div className="flex justify-between items-center pb-4">
-                            <div className="text-3xl font-bold font-title text-center">{building && building.id_buildings ? "Modifier le bâtiment" : "Ajouter un nouveau bâtiment"}</div>
+                            <div className="text-3xl font-bold font-title text-center">{editMode ? "Modifier le bâtiment" : "Ajouter un nouveau bâtiment"}</div>
                             <span className="close items-center" onClick={toggle}>&times;</span>
                         </div>
                         <form onSubmit={handleNewBuildingSubmit}>
@@ -89,7 +92,7 @@ const ModalAddEditBuilding = ({
                                 type="submit"
                                 className="mt-4 p-2 bg-junia-orange hover:bg-junia-orange-dark rounded-3xl text-white font-bold shadow-md font-title text-center transition"
                             >
-                                {building && building.id_buildings ? "Modifier le bâtiment" : "Ajouter le bâtiment"}
+                                {editMode ? "Modifier le bâtiment" : "Ajouter le bâtiment"}
                             </button>
                         </form>
                     </div>

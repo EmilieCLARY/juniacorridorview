@@ -6,6 +6,7 @@ import {FaChevronDown, FaChevronUp, FaPen, FaPlus, FaPlusCircle, FaTrash} from "
 import '../style/AdminBuilding.css'
 import {Buffer} from "buffer";
 import ModalAddEditBuilding from "./buildings/ModalAddEditBuilding";
+import ModalAddEditFloors from "./buildings/ModalAddEditFloors";
 
 const AdminBuilding = () => {
     const dataFetchedRef = useRef(false);
@@ -14,8 +15,11 @@ const AdminBuilding = () => {
     const [floors, setFloors] = useState([]);
 
     const [showAddEditBuilding, setShowAddEditBuilding] = useState(false);
+    const [showAddEditFloor, setShowAddEditFloor] = useState(false);
 
     const [buildingToEdit, setBuildingToEdit] = useState({});
+    const [floorToEdit, setFloorToEdit] = useState({});
+    const [idBuildingFloor, setIdBuildingFloor] = useState(null);
 
     const [indexesToShow, setIndexesToShow] = useState([]);
 
@@ -68,6 +72,10 @@ const AdminBuilding = () => {
         setShowAddEditBuilding(!showAddEditBuilding);
     }
 
+    const toggleAddEditFloor = () => {
+        setShowAddEditFloor(!showAddEditFloor);
+    }
+
     const handleAddBuilding = () => {
         setBuildingToEdit({});
         setShowAddEditBuilding(true);
@@ -76,6 +84,18 @@ const AdminBuilding = () => {
     const handleEditBuilding = (building) => {
         setBuildingToEdit(building);
         setShowAddEditBuilding(true);
+    }
+
+    const handleAddFloor = (id_buildings) => {
+        setFloorToEdit({});
+        setIdBuildingFloor(id_buildings);
+        setShowAddEditFloor(true);
+    }
+
+    const handleEditFloor = (floor, id_buildings) => {
+        setFloorToEdit(floor);
+        setIdBuildingFloor(id_buildings);
+        setShowAddEditFloor(true);
     }
 
     const handleDeleteBuilding = (id_building) => {
@@ -92,8 +112,26 @@ const AdminBuilding = () => {
         }
     }
 
+    const handleDeleteFloor = (id_floor) => {
+        if (window.confirm("Êtes-vous sûr de vouloir supprimer ce niveau ?")) {
+            api.deleteFloor(id_floor)
+                .then(() => {
+                    toast.success("Niveau supprimé avec succès");
+                    reloadFloor();
+                })
+                .catch((error) => {
+                    console.error('Error deleting niveau:', error);
+                    toast.error("Erreur lors de la suppression du niveau !");
+                });
+        }
+    }
+
     const reloadBuilding = () => {
         showLoading([fetchBuildings()], "Chargement des bâtiments...", "Bâtiments chargées avec succès", "Erreur lors du chargement des bâtiments");
+    }
+
+    const reloadFloor = () => {
+        showLoading([fetchFloors()], "Chargement des niveaux...", "Niveaux chargées avec succès", "Erreur lors du chargement des niveaux");
     }
 
     useEffect(() => {
@@ -121,16 +159,16 @@ const AdminBuilding = () => {
                         </div>
                         <div className="px-3 flex flex-col gap-2 scrollable-floor" id="style-2">
                             {getFloorsByBuilding(building.id_buildings).map((floor, index) => (
-                                <div key={index} className="px-4 py-2 orangeborder rounded-xl shadow hover:shadow-lg hover:cursor-pointer transition-shadow duration-300 bg-white select-none flex flex-col gap-2" onClick={toggleIndexToShow(index)}>
+                                <div key={index} className="px-4 py-2 orangeborder rounded-xl shadow hover:shadow-lg hover:cursor-pointer transition-shadow duration-300 bg-white select-none flex flex-col gap-2" onClick={toggleIndexToShow(floor.id_floors)}>
                                     <div  className="flex flex-row justify-between items-center">
                                         <h5 className="font-title">Niveau {floor.name}</h5>
                                         <div className="flex flex-row gap-2 items-center">
-                                            <button className="px-3 py-1 button-type2 font-title flex flex-row gap-2 items-center hover:cursor-pointer"><FaPen /> Modifier</button>
-                                            <button className="px-3 py-1 button-type font-title flex flex-row gap-2 items-center hover:cursor-pointer"><FaTrash /> Supprimer</button>
-                                            {indexesToShow.includes(index) ? <FaChevronUp className="ml-3" /> : <FaChevronDown className="ml-3" />}
+                                            <button className="px-3 py-1 button-type2 font-title flex flex-row gap-2 items-center hover:cursor-pointer" onClick={() => handleEditFloor(floor, building.id_buildings)}><FaPen /> Modifier</button>
+                                            <button className="px-3 py-1 button-type font-title flex flex-row gap-2 items-center hover:cursor-pointer" onClick={() => handleDeleteFloor(floor.id_floors)}><FaTrash /> Supprimer</button>
+                                            {indexesToShow.includes(floor.id_floors) ? <FaChevronUp className="ml-3" /> : <FaChevronDown className="ml-3" />}
                                         </div>
                                     </div>
-                                    {indexesToShow.includes(index) && (
+                                    {indexesToShow.includes(floor.id_floors) && (
                                         <div className="flex flex-col items-center justify-center pt-2 border-t">
                                             <h6 className="font-title">Plan de l'étage</h6>
                                             <div className="overflow-hidden flex items-center">
@@ -140,7 +178,9 @@ const AdminBuilding = () => {
                                     )}
                                 </div>
                             ))}
-                            <div className="px-4 mb-4 py-2 orangeborder rounded-xl shadow hover:shadow-lg hover:cursor-pointer transition-shadow duration-300 bg-white select-none flex flex-col items-center gap-2">
+                            <div className="px-4 mb-4 py-2 orangeborder rounded-xl shadow hover:shadow-lg hover:cursor-pointer transition-shadow duration-300 bg-white select-none flex flex-col items-center gap-2"
+                                 onClick={() => {handleAddFloor(building.id_buildings)}}
+                            >
                                 <FaPlus className="text-3xl text-junia-orange" />
                             </div>
                         </div>
@@ -148,6 +188,7 @@ const AdminBuilding = () => {
                 ))}
             </div>
             <ModalAddEditBuilding isOpen={showAddEditBuilding} toggle={toggleAddEditBuilding} building={buildingToEdit} reload={reloadBuilding} />
+            <ModalAddEditFloors isOpen={showAddEditFloor} toggle={toggleAddEditFloor} floor={floorToEdit} id_buildings={idBuildingFloor} reload={reloadFloor} />
         </div>
     );
 }
