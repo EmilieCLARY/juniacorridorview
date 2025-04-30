@@ -464,7 +464,7 @@ const AdminRoomDetails = () => {
       
 
 
-    <div className="admin-room-details-container flex flex-col items-center bg-junia-salmon">
+    <div className="admin-room-details-container flex flex-col items-center bg-junia-salmon p-3">
       
       <div className="image-panorama-container bg-white w-80 rounded-2xl mt-4 flex">
 
@@ -539,20 +539,35 @@ const AdminRoomDetails = () => {
           {/* Grille d'infospots sous la zone de recherche */}
           <div className="all-infospots-container w-full">
             {displayedInfoPopups.map((popup) => (
-              <div key={popup.id_info_popup} className="one-info-spot flex justify-between items-center border border-gray-300 p-2.5 mb-2.5">
+              <div key={popup.id_info_popup} className="one-info-spot flex justify-between items-center p-2.5 mb-2.5">
                 <div className="flex-1">
-                  <h3 className="font-semibold">Titre : {popup.title}</h3>
-                  <p>Description : {popup.text}</p>
-                  <p>ID du panorama : {popup.id_pictures}</p>
+
+
+                  <div className="IS-title flex gap-1 mb-4">
+                    <div className="font-bold font-title text-2xl text-junia-purple">Titre : </div>
+                    <div className="font-semibold font-title text-2xl text-junia-orange"> {popup.title}</div>
+                  </div>
+
+                  <div className="IS-Description mb-4">
+                    <div className="font-bold font-title text-2xl text-junia-purple">Description :</div>
+                    <div className="font-texts text-md text-junia-orange text-justify">{popup.text}</div>
+                  </div>
+
+                  <div className="IS-id_pano mb-4 gap-1 gap-3">
+                    <div className="font-bold font-title text-2xl text-junia-purple">ID du panorama :</div>
+                    <div className="font-title font-bold text-2xl text-junia-orange  ">{popup.id_pictures}</div>
+                  </div>
+                
                 </div>
+
                 {popup.image && (
-                  <div className="flex-1 flex justify-center">
+                  <div className="flex-1 flex justify-center max-h-30 mb-4">
                     <img src={`data:image/jpeg;base64,${Buffer.from(popup.image).toString('base64')}`} alt={`Aperçu de ${popup.title}`} className="max-w-[100px] max-h-[100px]" />
                   </div>
                 )}
-                <div className="flex">
-                  <button onClick={(event) => handleDeleteInfoPopup(event, popup.id_info_popup)} className="bg-red-500 text-white px-4 py-2 rounded mr-2 hover:bg-red-600">Supprimer</button>
-                  <button onClick={(event) => handleEditInfoPopup(event, popup)} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Modifier</button>
+                <div className="flex w-full justify-between ">
+                  <button onClick={(event) => handleDeleteInfoPopup(event, popup.id_info_popup)} className="button-type p-2 font-title font-bold ">Supprimer</button>
+                  <button onClick={(event) => handleEditInfoPopup(event, popup)} className="button-type2 p-2 font-title font-bold ">Modifier</button>
                 </div>
               </div>
             ))}
@@ -560,7 +575,7 @@ const AdminRoomDetails = () => {
         </div>
 
         {/* Section des liens (1/3 de la largeur) */}
-        <div className=" flex flex-column gap-2 w-1/3">
+        <div className=" flex flex-col gap-2 w-1/3">
           <div className="links-research-zone w-full mb-4">
             <div className="flex gap-4 items-center w-full mb-4">
               <div className="text-white text-4xl bg-junia-purple px-4 py-1 font-title font-bold rounded-full">Liens</div>
@@ -569,7 +584,7 @@ const AdminRoomDetails = () => {
               </div>
             </div>
 
-            <div className="flex gap-4 justify-between items-center mb-3 w-full">
+            <div className="flex gap-4 items-center mb-2 w-full ">
               <div className="flex gap-4">
                 <input
                   type="text"
@@ -590,12 +605,13 @@ const AdminRoomDetails = () => {
           </div>
 
           {displayedLinks.map((link) => (
-            <div key={link.id_links} className="one-link-container flex justify-between items-center border border-gray-300 p-2.5 mb-2.5">
-              <div className="flex-1">
-                <h3 className="font-semibold">ID : {link.id_links}</h3>
-                <p>Destination ID : {link.id_pictures_destination}</p>
+            <div key={link.id_links} className="one-link-container flex flex-col justify-between items-center bg-white p-2.5 mb-2.5">
+              
+              <div className="flex-1 pt-1">
+                <div className="text-center font-bold font-title text-2xl text-junia-purple">ID : {link.id_links}</div>
+                <div className="text-center font-title text-xl text-junia-purple">Destination ID : {link.id_pictures_destination}</div>
               </div>
-              <div className="flex-1 flex justify-center">
+              <div className="flex-1 flex justify-center p-3">
                 <img src={pictures.find(pic => pic.id_pictures === link.id_pictures_destination)?.imageUrl} alt={`Destination ${link.id_pictures_destination}`} className="max-w-[100px] max-h-[100px]" />
               </div>
               <div className="flex">
