@@ -34,7 +34,7 @@ const Navbar = () => {
       case '/admin/tour':
         setRouteName('Parcours');
         break;
-      case '/admin/room':
+      case '/admin/plan':
         setRouteName('Salles');
         break;
       case location.pathname.match(/\/admin\room\/[0-9]{1,9}/)?.input + '/edit':

@@ -17,7 +17,7 @@ const Admin = () => {
   const [selectedInfospot, setSelectedInfospot] = useState(null);
   const [selectedLink, setSelectedLink] = useState(null);
   const [newRoomModalOpen, setNewRoomModalOpen] = useState(false);
-  const [view, setView] = useState('room');
+  const [view, setView] = useState('plan');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
   const [newInfospotModalOpen, setNewInfospotModalOpen] = useState(false);
   const [newLinkModalOpen, setNewLinkModalOpen] = useState(false);
@@ -204,8 +204,8 @@ const Admin = () => {
     let roomId;
     const addRoomPromise = api.addRoom(formData).then(id => {
       if (!id) {
-        console.error('Failed to add room');
-        return Promise.reject('Failed to add room');
+        console.error('Failed to add plan');
+        return Promise.reject('Failed to add plan');
       }
       roomId = id;
 
@@ -225,7 +225,7 @@ const Admin = () => {
     addRoomPromise.then(() => {
       if (nextStep) {
         setFromNewRoom(true); // Set the flag to true
-        setNewRoomModalOpen(false); // Close the new room modal
+        setNewRoomModalOpen(false); // Close the new plan modal
         handleNewLink(roomId);
       } else {
         setNewRoomModalOpen(false);
@@ -421,10 +421,10 @@ const handleSelectPositionClick = () => {
     <div>
       <div className="header">
         <h1>Admin Panel</h1>
-        <button onClick={() => setView('room')}>Room Information</button>
+        <button onClick={() => setView('plan')}>Room Information</button>
         <button onClick={() => history.push('/admin/tour')}>Admin Tour</button> {/* Add this line */}
       </div>
-      {view === 'room' ? (
+      {view === 'plan' ? (
         <div>
           <button onClick={() => setNewRoomModalOpen(true)}>Add New Room</button>
           <table>

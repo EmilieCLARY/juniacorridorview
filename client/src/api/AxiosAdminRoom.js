@@ -20,7 +20,7 @@ const getPicturesByRoomId = async (id_rooms) => {
     const response = await api.get(`/pictures-by-room/${id_rooms}`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching pictures by room ID', error);
+    console.error('Error fetching pictures by plan ID', error);
     return [];
   }
 };
@@ -77,7 +77,7 @@ const getRoomDetails = async (id_rooms) => {
         const response = await api.get(`/room/${id_rooms}`);
         return response.data;
     } catch (error) {
-        console.error('Error fetching room details', error);
+        console.error('Error fetching plan details', error);
         return {};
     }
 };
@@ -98,7 +98,7 @@ const createRoom = async (formData) => {
 
     return id_rooms;
   } catch (error) {
-    console.error('Error creating room:', error);
+    console.error('Error creating plan:', error);
     if (error.response) {
       console.error('Server response:', error.response.data);
     }
@@ -144,7 +144,7 @@ const updateRoom = async (formData) => {
 
         return id_rooms;
     } catch (error) {
-        console.error('Error updating room:', error);
+        console.error('Error updating plan:', error);
         return null;
     }
 }
@@ -153,7 +153,7 @@ const deleteRoom = async (id_rooms) => {
     try {
         await api.delete(`/delete-room/${id_rooms}`);
     } catch (error) {
-        console.error('Error deleting room:', error);
+        console.error('Error deleting plan:', error);
     }
 }
 
@@ -178,7 +178,7 @@ const updateRoomVisibility = async (id_rooms, hidden) => {
   try {
     await api.post('/update-room-visibility', { id_rooms, hidden });
   } catch (error) {
-    console.error('Error updating room visibility:', error);
+    console.error('Error updating plan visibility:', error);
   }
 };
 
@@ -203,7 +203,7 @@ const getRoomPreview = async (id_rooms) => {
   } catch (error) {
     // Only log errors that aren't 404s
     if (error.response && error.response.status !== 404) {
-      console.error('Error fetching room preview image:', error);
+      console.error('Error fetching plan preview image:', error);
     }
     return null;
   }

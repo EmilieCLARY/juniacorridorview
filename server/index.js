@@ -276,7 +276,7 @@ app.get('/room/:id', (req, res) => {
     const id_rooms = req.params.id;
     getRoomNameById(id_rooms, (err, room) => {
         if (err) {
-            console.error('Error fetching room name', err);
+            console.error('Error fetching plan name', err);
             res.sendStatus(500);
         } else {
             res.json(room);
@@ -288,7 +288,7 @@ app.get('/room-id/:id', (req, res) => {
     const id_pictures = req.params.id;
     getRoomIdByPictureId(id_pictures, (err, roomId) => {
         if (err) {
-            console.error('Error fetching room ID by picture ID', err);
+            console.error('Error fetching plan ID by picture ID', err);
             res.sendStatus(500);
         } else {
             res.json({ id_rooms: roomId });
@@ -311,7 +311,7 @@ app.get('/room-details/:id', (req, res) => {
     const id_rooms = req.params.id;
     getRoomNameById(id_rooms, (err, room) => {
         if (err) {
-            console.error('Error fetching room details', err);
+            console.error('Error fetching plan details', err);
             res.sendStatus(500);
         } else {
             res.json(room);
@@ -323,7 +323,7 @@ app.get('/pictures-by-room/:id', (req, res) => {
     const id_rooms = req.params.id;
     getPicturesByRoomId(id_rooms, (err, pictures) => {
         if (err) {
-            console.error('Error fetching pictures by room ID', err);
+            console.error('Error fetching pictures by plan ID', err);
             res.sendStatus(500);
         } else {
             res.json(pictures);
@@ -335,7 +335,7 @@ app.get('/first-picture-by-room/:id', (req, res) => {
   const id_rooms = req.params.id;
   getFirstPictureByRoomId(id_rooms, (err, picture) => {
     if (err) {
-      console.error('Error fetching first picture by room ID', err);
+      console.error('Error fetching first picture by plan ID', err);
       res.sendStatus(500);
     } else {
       res.json(picture);
@@ -432,19 +432,19 @@ app.delete('/delete-link/:id', (req, res) => {
 });
 
 app.post('/add-room', (req, res) => {
-    const { name, number, id_floors } = req.body;
+    const { name, number, id_floors, plan_x, plan_y } = req.body;
     const previewImage = req.files && req.files.previewImage ? req.files.previewImage : null;
     
-    addRoom(name, number, id_floors, (err, roomId) => {
+    addRoom(name, number, id_floors, plan_x, plan_y, (err, roomId) => {
         if (err) {
-            console.error('Error adding room:', err);
+            console.error('Error adding plan:', err);
             res.sendStatus(500);
         } else {
             // If a preview image was provided, save it
             if (previewImage) {
                 insertRoomPreview(roomId, previewImage.data, (err) => {
                     if (err) {
-                        console.error('Error saving room preview image:', err);
+                        console.error('Error saving plan preview image:', err);
                         // Continue even if preview save fails
                     }
                 });
@@ -455,19 +455,19 @@ app.post('/add-room', (req, res) => {
 });
 
 app.post('/update-room', (req, res) => {
-    const { id_rooms, name, number, id_floors } = req.body;
+    const { id_rooms, name, number, id_floors, plan_x, plan_y } = req.body;
     const previewImage = req.files && req.files.previewImage ? req.files.previewImage : null;
     
-    updateRoom(id_rooms, name, number, id_floors, (err) => {
+    updateRoom(id_rooms, name, number, id_floors, plan_x, plan_y, (err) => {
         if (err) {
-            console.error('Error updating room:', err);
+            console.error('Error updating plan:', err);
             res.sendStatus(500);
         } else {
             // If a preview image was provided, update it
             if (previewImage) {
                 insertRoomPreview(id_rooms, previewImage.data, (err) => {
                     if (err) {
-                        console.error('Error updating room preview image:', err);
+                        console.error('Error updating plan preview image:', err);
                         // Continue even if preview update fails
                     }
                 });
@@ -481,7 +481,7 @@ app.post('/update-room-visibility', (req, res) => {
   const { id_rooms, hidden } = req.body;
   updateRoomVisibility(id_rooms, hidden, (err) => {
     if (err) {
-      console.error('Error updating room visibility:', err);
+      console.error('Error updating plan visibility:', err);
       res.sendStatus(500);
     } else {
       res.sendStatus(200);
@@ -491,10 +491,10 @@ app.post('/update-room-visibility', (req, res) => {
 
 app.delete('/delete-room/:id', (req, res) => {
     const id_rooms = req.params.id;
-    // Then delete the room
+    // Then delete the plan
     deleteRoom(id_rooms, (err) => {
         if (err) {
-            console.error('Error deleting room:', err);
+            console.error('Error deleting plan:', err);
             res.sendStatus(500);
         } else {
             res.sendStatus(200);
@@ -506,7 +506,7 @@ app.get('/room-preview/:id', (req, res) => {
     const id_rooms = req.params.id;
     getRoomPreview(id_rooms, async (err, previewData) => {
         if (err) {
-            console.error('Error fetching room preview', err);
+            console.error('Error fetching plan preview', err);
             res.sendStatus(500);
         } else if (previewData) {
             try {

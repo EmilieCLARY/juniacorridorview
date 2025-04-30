@@ -47,12 +47,7 @@
   cursor: pointer;
   font-weight: bold;
   font-family: var(--font-title);
-  margin-top: 0.5rem;
   transition: background-color 0.3s ease;
-}
-
-.modal-content button:hover {
-  background-color: var(--color-junia-orange-dark);
 }
 
 .modal-content button:disabled {

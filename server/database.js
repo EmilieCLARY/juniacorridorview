@@ -163,7 +163,7 @@ const getBuildings = (callback) => {
 };
 
 function insertImage(id_rooms, data, callback) {
-    console.log('Inserting picture for room', id_rooms);
+    console.log('Inserting picture for plan', id_rooms);
     const sql = `INSERT INTO Pictures (id_rooms, picture) VALUES (?, ?)`;
     db.query(sql, [id_rooms, data], (err) => {
         callback(err);
@@ -243,10 +243,10 @@ function deleteLink(id_links, callback) {
     });
 }
 
-function addRoom(name, number, id_floors, callback) {
-    console.log('Adding room', name, number, 'to floor', id_floors);
-    const sql = `INSERT INTO Rooms (name, number, id_floors) VALUES (?, ?, ?)`;
-    db.query(sql, [name, number, id_floors], (err, result) => {
+function addRoom(name, number, id_floors, plan_x, plan_y, callback) {
+    console.log('Adding plan', name, number, 'to floor', id_floors);
+    const sql = `INSERT INTO Rooms (name, number, id_floors, plan_x, plan_y) VALUES (?, ?, ?, ?, ?)`;
+    db.query(sql, [name, number, id_floors, plan_x, plan_y], (err, result) => {
         if (err) {
             callback(err, null);
         } else {
@@ -255,16 +255,16 @@ function addRoom(name, number, id_floors, callback) {
     });
 }
 
-function updateRoom(id_rooms, name, number, id_floors, callback) {
-    console.log('Updating room', id_rooms);
-    const sql = `UPDATE Rooms SET name = ?, number = ?, id_floors = ? WHERE id_rooms = ?`;
-    db.query(sql, [name, number, id_floors, id_rooms], (err) => {
+function updateRoom(id_rooms, name, number, id_floors, plan_x, plan_y, callback) {
+    console.log('Updating plan', id_rooms);
+    const sql = `UPDATE Rooms SET name = ?, number = ?, id_floors = ?, plan_x = ?, plan_y = ? WHERE id_rooms = ?`;
+    db.query(sql, [name, number, id_floors, plan_x, plan_y, id_rooms], (err) => {
         callback(err);
     });
 }
 
 function deleteRoom(id_rooms, callback) {
-    console.log('Deleting room', id_rooms);
+    console.log('Deleting plan', id_rooms);
     const sql = `DELETE FROM Rooms WHERE id_rooms = ?`;
     db.query(sql, [id_rooms], (err) => {
         callback(err);
@@ -272,7 +272,7 @@ function deleteRoom(id_rooms, callback) {
 }
 
 function updateRoomVisibility(id_rooms, hidden, callback) {
-    console.log('Updating room visibility', id_rooms, hidden);
+    console.log('Updating plan visibility', id_rooms, hidden);
     const sql = `UPDATE Rooms SET hidden = ? WHERE id_rooms = ?`;
     db.query(sql, [hidden, id_rooms], (err) => {
         callback(err);
@@ -348,7 +348,7 @@ const getRoomNameById = (id_rooms, callback) => {
     const sql = `SELECT name, number FROM Rooms WHERE id_rooms = ?`;
     db.query(sql, [id_rooms], (err, rows) => {
         if (err) {
-            console.error('Error fetching room details', err);
+            console.error('Error fetching plan details', err);
             callback(err, null);
         } else {
             callback(null, rows[0]);
@@ -360,7 +360,7 @@ const getRoomIdByPictureId = (id_pictures, callback) => {
     const sql = `SELECT id_rooms FROM Pictures WHERE id_pictures = ?`;
     db.query(sql, [id_pictures], (err, rows) => {
         if (err) {
-            console.error('Error fetching room ID by picture ID', err);
+            console.error('Error fetching plan ID by picture ID', err);
             callback(err, null);
         } else {
             callback(null, rows[0].id_rooms);
@@ -372,24 +372,24 @@ const getPicturesByRoomId = (id_rooms, callback) => {
     const sql = `SELECT id_pictures FROM Pictures WHERE id_rooms = ?`;
     db.query(sql, [id_rooms], (err, rows) => {
         if (err) {
-            console.error('Error fetching pictures by room ID', err);
+            console.error('Error fetching pictures by plan ID', err);
             callback(err, null);
         } else {
             const pictures = rows.map(row => ({
                 id_pictures: row.id_pictures
             }));
-            console.log('Fetched', pictures.length, 'pictures for room', id_rooms);
+            console.log('Fetched', pictures.length, 'pictures for plan', id_rooms);
             callback(null, pictures);
         }
     });
 };
 
 const getFirstPictureByRoomId = (id_rooms, callback) => {
-    console.log('Fetching first picture for room', id_rooms);
+    console.log('Fetching first picture for plan', id_rooms);
     const sql = `SELECT id_pictures FROM Pictures WHERE id_rooms = ? LIMIT 1`;
     db.query(sql, [id_rooms], (err, rows) => {
         if (err) {
-            console.error('Error fetching first picture by room ID', err);
+            console.error('Error fetching first picture by plan ID', err);
             callback(err, null);
         } else {
             callback(null, rows[0]);
@@ -494,7 +494,7 @@ const getRoomPreview = (id_rooms, callback) => {
     const sql = `SELECT preview FROM Room_Previews WHERE id_rooms = ? LIMIT 1`;
     db.query(sql, [id_rooms], (err, rows) => {
         if (err) {
-            console.error('Error fetching room preview', err);
+            console.error('Error fetching plan preview', err);
             callback(err, null);
         } else {
             if (rows.length > 0) {
@@ -507,11 +507,11 @@ const getRoomPreview = (id_rooms, callback) => {
 };
 
 const insertRoomPreview = (id_rooms, previewData, callback) => {
-    console.log('Inserting room preview for room', id_rooms);
+    console.log('Inserting plan preview for plan', id_rooms);
     const checkSql = `SELECT id_room_previews FROM Room_Previews WHERE id_rooms = ?`;
     db.query(checkSql, [id_rooms], (err, rows) => {
         if (err) {
-            console.error('Error checking for existing room preview', err);
+            console.error('Error checking for existing plan preview', err);
             callback(err);
             return;
         }
@@ -521,7 +521,7 @@ const insertRoomPreview = (id_rooms, previewData, callback) => {
             const updateSql = `UPDATE Room_Previews SET preview = ? WHERE id_rooms = ?`;
             db.query(updateSql, [previewData, id_rooms], (err) => {
                 if (err) {
-                    console.error('Error updating room preview', err);
+                    console.error('Error updating plan preview', err);
                 }
                 callback(err);
             });
@@ -530,7 +530,7 @@ const insertRoomPreview = (id_rooms, previewData, callback) => {
             const insertSql = `INSERT INTO Room_Previews (id_rooms, preview) VALUES (?, ?)`;
             db.query(insertSql, [id_rooms, previewData], (err) => {
                 if (err) {
-                    console.error('Error inserting room preview', err);
+                    console.error('Error inserting plan preview', err);
                 }
                 callback(err);
             });
@@ -539,11 +539,11 @@ const insertRoomPreview = (id_rooms, previewData, callback) => {
 };
 
 const deleteRoomPreview = (id_rooms, callback) => {
-    console.log('Deleting room preview for room', id_rooms);
+    console.log('Deleting plan preview for plan', id_rooms);
     const sql = `DELETE FROM Room_Previews WHERE id_rooms = ?`;
     db.query(sql, [id_rooms], (err) => {
         if (err) {
-            console.error('Error deleting room preview', err);
+            console.error('Error deleting plan preview', err);
         }
         callback(err);
     });

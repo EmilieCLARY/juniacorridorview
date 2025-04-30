@@ -5,7 +5,9 @@ import Select from 'react-select';
 import { toast } from "sonner";
 import * as api from '../api/AxiosAdminRoom';
 import '../style/AdminRoom.css';
-import Loader from "./Loader"; // Add this line
+import Loader from "./Loader";
+import {TbMapPinPlus} from "react-icons/tb";
+import ModalPlanPlacement from "./plan/ModalPlanPlacement"; // Add this line
 
 const customSelectStyles = {
   control: (provided, state) => ({
@@ -71,7 +73,9 @@ const AdminRoom = () => {
     floor: '',
     floorId: '',
     images: [],
-    previewImage: null
+    previewImage: null,
+    plan_x: '',
+    plan_y: ''
   });
   const [debugInfo, setDebugInfo] = useState({ error: null, buildingData: null });
   const [editRoomData, setEditRoomData] = useState({
@@ -82,10 +86,15 @@ const AdminRoom = () => {
     floor: '',
     floorId: '',
     images: [],
-    previewImage: null
+    previewImage: null,
+    plan_x: '',
+    plan_y: ''
   });
   const history = useHistory();
   const dataFetchedRef = useRef(false);
+  const [showPlanPlacement, setShowPlanPlacement] = useState(false);
+  const [planPlacementEditMode, setPlanPlacementEditMode] = useState(false);
+  const [floorPlan, setFloorPlan] = useState(null);
 
   const [isLoading, setIsLoading] = useState(true);
   const [textLoading, setTextLoading] = useState("Chargement des données...");
@@ -198,7 +207,7 @@ const AdminRoom = () => {
             imageUrl = previewUrl;
           }
 
-          // Find the building name that corresponds to the room floors id that contains the id_buildings
+          // Find the building name that corresponds to the plan floors id that contains the id_buildings
           const floor = floorsData.find(f => f.id_floors === room.id_floors);
           const building = buildingsData.find(b => b.id_buildings === floor.id_buildings);
           const building_name = building ? building.name : 'Bâtiment inconnu';
@@ -310,6 +319,11 @@ const AdminRoom = () => {
       return;
     }
 
+    if (newRoomData.plan_x === '' || newRoomData.plan_y === '') {
+        toast.error('Veuillez placer la salle sur le plan');
+        return;
+    }
+
     const formData = new FormData();
     formData.append('number', newRoomData.number);
     formData.append('name', newRoomData.name);
@@ -337,6 +351,8 @@ const AdminRoom = () => {
       formData.append('building_name', newRoomData.building);
       formData.append('floor', newRoomData.floor);
       formData.append('id_floors', newRoomData.floorId);
+      formData.append('plan_x', newRoomData.plan_x);
+      formData.append('plan_y', newRoomData.plan_y);
     //}
     
     // Add preview image to form data
@@ -362,12 +378,14 @@ const AdminRoom = () => {
           floor: '',
           floorId: '',
           images: [],
-          previewImage: null
+          previewImage: null,
+          plan_x: '',
+          plan_y: ''
         });
       });
       showLoading([createRoomPromise, fetchRoomsPromise], 'Ajout de la salle...', 'Salle ajoutée avec succès', 'Erreur lors de l\'ajout de la salle');
     } catch (error) {
-      console.error('Error creating room:', error);
+      console.error('Error creating plan:', error);
       toast.error('Erreur lors de la création de la salle');
     }
   };
@@ -380,7 +398,7 @@ const AdminRoom = () => {
       await api.deleteRoom(id);
       showLoading([fetchRooms()], 'Suppression de la salle...', 'Salle supprimée avec succès', 'Erreur lors de la suppression de la salle');
     } catch (error) {
-      console.error('Error deleting room:', error);
+      console.error('Error deleting plan:', error);
     }
   }
 
@@ -394,9 +412,13 @@ const AdminRoom = () => {
       building: room.building_name,
       floor: floors.find(floor => floor.id_floors === room.id_floors).name,
       floorId: room.id_floors,
-      images: []
+      images: [],
+      plan_x: room.plan_x,
+      plan_y: room.plan_y,
     });
     setEditRoomModalOpen(true);
+    setPlanPlacementEditMode(true);
+    setFloorPlan(floors.find(floor => floor.id_floors === room.id_floors));
   };
 
   const handleEditRoomChange = (e) => {
@@ -429,6 +451,8 @@ const AdminRoom = () => {
     formData.append('id_rooms', editRoomData.id_rooms);
     formData.append('number', editRoomData.number);
     formData.append('name', editRoomData.name);
+    formData.append('plan_x', editRoomData.plan_x);
+    formData.append('plan_y', editRoomData.plan_y);
 
     // Find the building and add error handling
     const building = rooms.find(room => room.building_name === editRoomData.building);
@@ -459,17 +483,19 @@ const AdminRoom = () => {
           floor: '',
           floorId: '',
           images: [],
-          previewImage: null
+          previewImage: null,
+          plan_x: '',
+          plan_y: ''
         });
       });
       showLoading([updatePromise, fetchRoomsPromise], 'Modification de la salle...', 'Salle modifiée avec succès', 'Erreur lors de la modification de la salle');
     } catch (error) {
-      console.error('Error updating room:', error);
+      console.error('Error updating plan:', error);
       toast.error('Erreur lors de la modification de la salle');
     }
 
     // Remove the try-catch block that's causing the error
-    // The room data will be refreshed by the fetchRooms call above
+    // The plan data will be refreshed by the fetchRooms call above
   };
 
   const toggleRoomVisibility = async (event, room) => {
@@ -481,10 +507,16 @@ const AdminRoom = () => {
       setRooms(prevRooms => prevRooms.map(r => r.id_rooms === room.id_rooms ? updatedRoom : r));
       toast.success(`La salle a été ${updatedRoom.hidden ? 'désactivée' : 'activée'}`);
     } catch (error) {
-      console.error('Error toggling room visibility:', error);
+      console.error('Error toggling plan visibility:', error);
       toast.error('Erreur lors du changement de visibilité de la salle');
     }
   };
+
+  const togglePlanPlacement = () => {
+    setShowPlanPlacement(!showPlanPlacement);
+    setPlanPlacementEditMode(false);
+    setFloorPlan(null);
+  }
 
   return (
     <div className="mx-auto p-4 bg-junia-salmon">
@@ -559,7 +591,7 @@ const AdminRoom = () => {
         <Select
           isMulti
           name="id"
-          options={rooms.map(room => ({ value: room.id_rooms.toString(), label: room.id_rooms.toString() })).sort((a, b) => a.value - b.value)}
+          options={rooms.map(plan => ({ value: plan.id_rooms.toString(), label: plan.id_rooms.toString() })).sort((a, b) => a.value - b.value)}
           className="basic-multi-select"
           classNamePrefix="select"
           placeholder="Filtrer par ID"
@@ -655,7 +687,10 @@ const AdminRoom = () => {
         </div>
         <div class="flex gap-4">
           <button
-              onClick={() => setNewRoomModalOpen(true)}
+              onClick={() => {
+                setNewRoomModalOpen(true)
+                setPlanPlacementEditMode(false);
+              }}
               className="px-4 py-2  font-title font-bold button-type">
               Ajouter une salle
           </button>
@@ -852,7 +887,7 @@ const AdminRoom = () => {
               
               <div className="flex items-center gap-4">
                 <div className="fonts-title text-junia-purple font-bold w-1/3">Etage :</div>
-                <div className="w-2/3">
+                <div className="w-2/3 flex flex-row gap-4 items-center">
                   <Select
                     name="floor"
                     options={floors.filter(floor => floor.id_buildings === parseInt(newRoomData.buildingId)).map(floor => ({ value: floor.id_floors.toString(), label: floor.name })).sort((a, b) => a.value - b.value)}
@@ -866,6 +901,20 @@ const AdminRoom = () => {
                     onChange={(selectedOption) => setNewRoomData(prevData => ({ ...prevData, floor: selectedOption.label, floorId: selectedOption.value }))}
                     required
                   />
+                  {newRoomData.floorId && newRoomData.floor && (
+                    <button
+                      type="button"
+                      className="px-4 py-2 button-type flex flex-row gap-2 items-center"
+                      onClick={(e) => {
+                        setShowPlanPlacement(true);
+                        setPlanPlacementEditMode(false);
+                        setFloorPlan(floors.find(floor => floor.id_floors === parseInt(newRoomData.floorId)));
+                      }}
+                    >
+                      <TbMapPinPlus /> Placer sur le plan
+                    </button>
+                    )}
+
                 </div>
               </div>
               
@@ -903,7 +952,7 @@ const AdminRoom = () => {
               
               <button 
                 type="submit" 
-                className="mt-4 p-2 bg-junia-orange hover:bg-junia-orange-dark rounded-3xl text-white font-bold shadow-md font-title text-center transition"
+                className="mt-4 p-2 button-type"
               >
                 Ajouter une salle
               </button>
@@ -971,7 +1020,7 @@ const AdminRoom = () => {
               
               <div className="flex items-center gap-4">
                 <div className="fonts-title text-junia-purple font-bold w-1/3">Etage :</div>
-                <div className="w-2/3">
+                <div className="w-2/3 flex flex-row gap-4 items-center">
                   <Select
                     name="floor"
                     options={floors.map(floor => ({ value: floor.id_floors.toString(), label: floor.name })).sort((a, b) => a.value - b.value)}
@@ -986,6 +1035,19 @@ const AdminRoom = () => {
                     onChange={(selectedOption) => setEditRoomData(prevData => ({ ...prevData, floor: selectedOption.label, floorId: selectedOption.value }))}
                     required
                   />
+                  {editRoomData.floorId && editRoomData.floor && (
+                      <button
+                          type="button"
+                          className="px-4 py-2 button-type flex flex-row gap-2 items-center"
+                          onClick={(e) => {
+                            setShowPlanPlacement(true);
+                            setPlanPlacementEditMode(true);
+                            setFloorPlan(floors.find(floor => floor.id_floors === parseInt(editRoomData.floorId)));
+                          }}
+                      >
+                        <TbMapPinPlus /> Placer sur le plan
+                      </button>
+                  )}
                 </div>
               </div>
               
@@ -1014,6 +1076,7 @@ const AdminRoom = () => {
           </div>
         </div>
       )}
+      <ModalPlanPlacement isOpen={showPlanPlacement} toggle={togglePlanPlacement} setNewRoomData={setNewRoomData} setEditRoomData={setEditRoomData} newRoomData={newRoomData} editRoomData={editRoomData} editMode={planPlacementEditMode} floor={floorPlan}/>
     </div>
   );
 };
