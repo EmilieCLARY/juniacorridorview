@@ -11,6 +11,11 @@
 .w-60{
     width: 60%;
 }
+
+.max-h-30{
+    height: 30vh;
+
+}
 .research-input-IS {
     border-width: 2px;
     border-color: #f06b42;
@@ -58,8 +63,7 @@
     /* Styles pour chaque infospot dans la grille */
     display: flex;
     flex-direction: column; /* Empile les éléments verticalement */
-    border: 1px solid #ccc;
-    border-radius: 0.5rem;
+    border-radius: 2vh;
     padding: 1rem;
     background-color: white;
     transition: transform 0.2s, box-shadow 0.2s;
@@ -92,3 +96,12 @@
     }
 }
 
+.justify-end{
+    justify-content: end;
+}
+
+
+
+.one-link-container{
+    border-radius: 1vh;
+}

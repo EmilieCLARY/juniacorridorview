@@ -487,7 +487,7 @@ const AdminRoom = () => {
   };
 
   return (
-    <div className="mx-auto p-4 bg-junia-salmon">
+    <div className="mx-auto p-3 bg-junia-salmon">
       <div className="flex justify-center">
         <Loader show={isLoading} text={textLoading} />
 
@@ -571,8 +571,8 @@ const AdminRoom = () => {
           onChange={handleFilterChange}
         />
       </div> */}
-      <div className="flex gap-3 py-1 justify-between mb-4">
-        <div className="flex gap-4 ">
+      <div className="flex gap-3 justify-between mb-4">
+        <div className="flex gap-4 items-center ">
           <input
           type="text"
           placeholder="Rechercher une salle..."
@@ -627,7 +627,7 @@ const AdminRoom = () => {
           isMulti
           name="number"
           options={getUniqueOptions('number')}
-          className="basic-multi-select"
+          className="basic-multi-select flex"
           classNamePrefix="select"
           placeholder="Numéro"
           isSearchable
