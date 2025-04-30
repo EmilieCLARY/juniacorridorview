@@ -577,10 +577,10 @@ const deleteBuilding = (id_buildings, callback) => {
     });
 }
 
-const addFloor = (name, id_buildings, callback) => {
+const addFloor = (name, id_buildings, plan, callback) => {
     console.log('Inserting floor', name, 'for building', id_buildings);
-    const sql = `INSERT INTO Floors (name, id_buildings) VALUES (?, ?)`;
-    db.query(sql, [name, id_buildings], (err, result) => {
+    const sql = `INSERT INTO Floors (name, id_buildings, plan) VALUES (?, ?, ?)`;
+    db.query(sql, [name, id_buildings, plan], (err, result) => {
         if (err) {
             callback(err, null);
         } else {
@@ -589,12 +589,19 @@ const addFloor = (name, id_buildings, callback) => {
     });
 }
 
-const updateFloor = (id_floors, name, id_buildings, callback) => {
+const updateFloor = (id_floors, name, id_buildings, plan, callback) => {
     console.log('Updating floor', id_floors);
-    const sql = `UPDATE Floors SET name = ?, id_buildings = ? WHERE id_floors = ?`;
-    db.query(sql, [name, id_buildings, id_floors], (err) => {
-        callback(err);
-    });
+    if (plan) {
+        const sql = `UPDATE Floors SET name = ?, id_buildings = ?, plan = ? WHERE id_floors = ?`;
+        db.query(sql, [name, id_buildings, plan, id_floors], (err) => {
+            callback(err);
+        });
+    } else {
+        const sql = `UPDATE Floors SET name = ?, id_buildings = ? WHERE id_floors = ?`;
+        db.query(sql, [name, id_buildings, id_floors], (err) => {
+            callback(err);
+        });
+    }
 }
 
 const deleteFloor = (id_floors, callback) => {

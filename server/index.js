@@ -589,7 +589,8 @@ app.get('/floors', (req, res) => {
 
 app.post('/add-floor', (req, res) => {
     const { name, id_buildings } = req.body;
-    addFloor(name, id_buildings, (err) => {
+    const plan = req.files ? req.files.plan : null;
+    addFloor(name, id_buildings, plan.data, (err) => {
         if (err) {
             console.error('Error adding floor:', err);
             res.sendStatus(500);
@@ -613,7 +614,8 @@ app.delete('/floor/:id', (req, res) => {
 
 app.post('/update-floor', (req, res) => {
     const { id_floors, name, id_buildings } = req.body;
-    updateFloor(id_floors, name, id_buildings, (err) => {
+    const plan = req.files ? req.files.plan : null;
+    updateFloor(id_floors, name, id_buildings, plan ? plan.data : null, (err) => {
         if (err) {
             console.error('Error updating floor:', err);
             res.sendStatus(500);
