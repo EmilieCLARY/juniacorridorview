@@ -150,8 +150,11 @@ background-color: var(--color-gray-500);
   transform: translateX(20px);
 }
 
+.room-card {
+  transition: transform 0.6s ease; /* Add transition for non-hover state */
+}
+
 .room-card:hover {
   transform: translateY(-5px);
-  transition: 0.6s ease;
-
+  transition: 0.3s ease;
 }

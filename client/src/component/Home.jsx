@@ -10,7 +10,7 @@ const Home = () => {
       <main className='h-full'>
             <div className="flex flex-row h-full pr-5 gap-30">
               <div className="flex flex-col gap-8 basis-1/3 h-grow justify-center">
-                <NavLink to="/tour?type=guided" className="flex justify-center items-center bouton-orange text-white h-28 rounded-r-3xl text-3xl font-bold hover:border-2 hover:border-junia-orange hover:no-underline">
+                <NavLink to="/tour?type=guided" className=" flex justify-center items-center bouton-orange text-white h-28 rounded-r-3xl text-3xl font-bold ">
                   Visite Guidée
                 </NavLink>
                 <NavLink to="/pano?type=free" className="flex justify-center items-center bouton-orange text-white h-28 rounded-r-3xl text-3xl font-bold">

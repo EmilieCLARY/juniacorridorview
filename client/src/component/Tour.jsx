@@ -191,7 +191,7 @@ const TourViewer = () => {
           columnClassName="my-masonry-grid_column"
         >
           {tours.map(tour => (
-            <div key={tour.id_tours} className="purpleborder text-justify bg-white border-5 border-junia-orange p-2 rounded-3xl flex-col">
+            <div key={tour.id_tours} className=" text-justify bg-white p-2 rounded-3xl flex-col">
               <div className="font-title font-bold text-junia-orange text-3xl text-center">{tour.title}</div>
               <div className="font-texts">{tour.description}</div>
               {getPanoramaImagesForTour(tour.id_tours).length > 0 && (

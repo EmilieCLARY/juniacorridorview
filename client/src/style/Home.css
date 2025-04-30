@@ -1,8 +1,11 @@
 .bouton-orange {
   background-color: #f06b42;
+  transition: transform 0.3s ease;
 }
 
 .bouton-orange:hover {
   text-decoration-line: none;
   background-color: #e85c30;
+  transform: scale(1.05) ;
 }
+
