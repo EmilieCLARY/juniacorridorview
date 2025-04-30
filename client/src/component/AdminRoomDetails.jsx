@@ -509,30 +509,30 @@ const AdminRoomDetails = () => {
         <div className="infospots-section" style={{width: '66%'}}>
           {/* Zone de recherche d'infospots en haut des 2/3 gauche */}
           <div className="info-spot-research-zone w-full mb-4">
-            <div className="flex justify-between items-center w-full mb-4">
+            <div className="flex gap-4 items-center w-full mb-4">
               <div className="text-white text-4xl bg-junia-purple px-4 py-1 font-title font-bold rounded-full">Infobulles</div>
               <div className="button-type font-bold font-title text-xl px-4 py-2">
                 <button onClick={handleModalInfopopup}>Nouvelle info-bulle</button>
               </div>
+              
             </div>
-            <div className="flex items-center mb-5 w-full border-2">
-              <input
-                type="text"
-                placeholder="Recherche par titre"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-2.5 py-2.5 mb-5 border border-gray-300 rounded"
-              />
-              <label className="relative inline-block w-[60px] h-[34px] ml-2.5">
-                <input
-                  type="checkbox"
-                  className="opacity-0 w-0 h-0"
-                  checked={showAllInfospots}
-                  onChange={() => setShowAllInfospots(!showAllInfospots)}
-                />
-                <span className="absolute cursor-pointer inset-0 bg-gray-300 transition-all duration-300 rounded-full before:absolute before:content-[''] before:h-[26px] before:w-[26px] before:left-1 before:bottom-1 before:bg-white before:transition-all before:duration-300 before:rounded-full peer-checked:bg-blue-500 peer-checked:before:translate-x-[26px]"></span>
-              </label>
-              <span className="ml-2">{showAllInfospots ? "Toutes les infobulles" : "Infobulles de l'image affichée"}</span>
+            <div className="flex gap-4 justify-between items-center mb-3 w-full">
+              <div className="flex gap-4">
+                  <input
+                    type="text"
+                    placeholder="Rechercher par titre ..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full p-2 bg-white research-input-IS rounded-full" />
+                
+                  <button 
+                    onClick={() => setShowAllInfospots(!showAllInfospots)} 
+                    className="button-type all-IS-button font-title font-bold px-4 py-2 ">
+                    {showAllInfospots ? "Toutes les infobulles" : "Infobulles de l'image affichée"}
+                  </button>
+              </div>
+
+              
             </div>
           </div>
 
@@ -560,31 +560,32 @@ const AdminRoomDetails = () => {
         </div>
 
         {/* Section des liens (1/3 de la largeur) */}
-        <div className="all-links-container mt-5">
-          <div className="links-research-zone">
-            <div className="flex justify-between items-center w-full mb-4">
-              <h2 className="text-xl font-semibold">Liens</h2>
-              <button onClick={handleModalLink} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ajouter un lien</button>
+        <div className=" flex flex-column gap-2 w-1/3">
+          <div className="links-research-zone w-full mb-4">
+            <div className="flex gap-4 items-center w-full mb-4">
+              <div className="text-white text-4xl bg-junia-purple px-4 py-1 font-title font-bold rounded-full">Liens</div>
+              <div className="button-type font-bold font-title text-xl px-4 py-2">
+                <button onClick={handleModalLink}>Nouveau lien</button>
+              </div>
             </div>
 
-            <div className="flex items-center mb-5 w-full">
-              <input
-                type="text"
-                placeholder="Recherche par ID de destination"
-                value={searchLinkTerm}
-                onChange={(e) => setSearchLinkTerm(e.target.value)}
-                className="w-full px-2.5 py-2.5 mb-5 border border-gray-300 rounded"/>
-
-              <label className="relative inline-block w-[60px] h-[34px] ml-2.5">
+            <div className="flex gap-4 justify-between items-center mb-3 w-full">
+              <div className="flex gap-4">
                 <input
-                  type="checkbox"
-                  className="opacity-0 w-0 h-0 peer"
-                  checked={showAllLinks}
-                  onChange={() => setShowAllLinks(!showAllLinks)}/>
-                  
-                <span className="absolute cursor-pointer inset-0 bg-gray-300 transition-all duration-300 rounded-full before:absolute before:content-[''] before:h-[26px] before:w-[26px] before:left-1 before:bottom-1 before:bg-white before:transition-all before:duration-300 before:rounded-full peer-checked:bg-blue-500 peer-checked:before:translate-x-[26px]"></span>
-              </label>
-              <span className="ml-2">{showAllLinks ? "Tous les liens" : "Liens de l'image affichée"}</span>
+                  type="text"
+                  placeholder="Recherche par ID de destination"
+                  value={searchLinkTerm}
+                  onChange={(e) => setSearchLinkTerm(e.target.value)}
+                  className="w-full p-2 bg-white research-input-L rounded-full"/>
+                
+                <button 
+                  onClick={() => setShowAllLinks(!showAllLinks)}
+                  className="button-type all-IS-button font-title font-bold px-4 py-2">
+                  {showAllLinks ? "Tous les liens" : "Liens de l'image affichée"}
+                </button>
+              </div>
+
+              
             </div>
           </div>
 
