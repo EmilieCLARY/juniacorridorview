@@ -13,7 +13,7 @@
 }
 
 .max-h-30{
-    height: 30vh;
+    width: 10vw;
 
 }
 .research-input-IS {
@@ -104,4 +104,15 @@
 
 .one-link-container{
     border-radius: 1vh;
+    
 }
+
+.one-link-container:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+
+.research-input-orange-text::placeholder {
+    color:rgba(240, 107, 66, 0.5)
+  }

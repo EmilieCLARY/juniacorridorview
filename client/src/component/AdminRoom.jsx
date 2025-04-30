@@ -8,6 +8,7 @@ import '../style/AdminRoom.css';
 import Loader from "./Loader";
 import {TbMapPinPlus} from "react-icons/tb";
 import ModalPlanPlacement from "./plan/ModalPlanPlacement"; // Add this line
+import { FaPen, FaTrash, FaPlusCircle } from "react-icons/fa"; // Add FaPlus import
 
 const customSelectStyles = {
   control: (provided, state) => ({
@@ -528,81 +529,6 @@ const AdminRoom = () => {
         
       </div>
 
-
-
-      {/* <div className="grid grid-cols-2 gap-2 py-4">
-        <Select
-          isMulti
-          name="building"
-          options={getUniqueOptions('building_name')}
-          className="basic-multi-select col-span-2"
-          classNamePrefix="select"
-          placeholder="Filtrer par bâtiment"
-          isDisabled={buildings.length === 0}
-          isSearchable
-          menuPlacement="auto"
-          menuPosition="fixed"
-          styles={customSelectStyles}
-          menuPortalTarget={document.body}
-          onChange={handleFilterChange}
-        />
-        <Select
-          isMulti
-          name="floor"
-          options={floors.map(floor => ({ value: floor.id_floors.toString(), label: floor.name })).sort((a, b) => a.value - b.value)}
-          className="basic-multi-select"
-          styles={customSelectStyles}
-          classNamePrefix="select"
-          placeholder="Filtrer par étage"
-          isSearchable
-          menuPlacement="auto"
-          menuPosition="fixed"
-          menuPortalTarget={document.body}
-          onChange={handleFilterChange}
-        />
-        <Select
-          isMulti
-          name="name"
-          options={getUniqueOptions('name')}
-          className="basic-multi-select"
-          classNamePrefix="select"
-          placeholder="Filtrer par nom"
-          isSearchable
-          styles={customSelectStyles}
-          menuPlacement="auto"
-          menuPosition="fixed"
-          menuPortalTarget={document.body}
-          onChange={handleFilterChange}
-        />
-        <Select
-          isMulti
-          name="number"
-          options={getUniqueOptions('number')}
-          className="basic-multi-select"
-          classNamePrefix="select"
-          placeholder="Filtrer par numéro"
-          isSearchable
-          styles={customSelectStyles}
-          menuPlacement="auto"
-          menuPosition="fixed"
-          menuPortalTarget={document.body}
-          onChange={handleFilterChange}
-        />
-        <Select
-          isMulti
-          name="id"
-          options={rooms.map(plan => ({ value: plan.id_rooms.toString(), label: plan.id_rooms.toString() })).sort((a, b) => a.value - b.value)}
-          className="basic-multi-select"
-          classNamePrefix="select"
-          placeholder="Filtrer par ID"
-          isSearchable
-          styles={customSelectStyles}
-          menuPlacement="auto"
-          menuPosition="fixed"
-          menuPortalTarget={document.body}
-          onChange={handleFilterChange}
-        />
-      </div> */}
       <div className="flex gap-3 justify-between mb-4">
         <div className="flex gap-4 items-center ">
           <input
@@ -688,11 +614,12 @@ const AdminRoom = () => {
         <div class="flex gap-4">
           <button
               onClick={() => {
-                setNewRoomModalOpen(true)
+                setNewRoomModalOpen(true);
                 setPlanPlacementEditMode(false);
               }}
-              className="px-4 py-2  font-title font-bold button-type">
-              Ajouter une salle
+              className="px-3 py-2 font-title font-bold button-type flex items-center gap-2"
+          >
+            <FaPlusCircle /> Ajouter une salle
           </button>
           
           <button
@@ -712,7 +639,7 @@ const AdminRoom = () => {
         {filteredRooms.map(room => (
           <div
             key={room.id_rooms}
-            className="px-4 py-2 border-2 purpleborder rounded-3xl shadow hover:shadow-lg transition-shadow duration-300 bg-white flex flex-col justify-between"
+            className="room-card px-4 py-2 rounded-3xl shadow hover:shadow-lg transition-shadow duration-300 bg-white flex flex-col justify-between"
             onClick={() => handleRoomClick(room.id_rooms)}>
 
             <div className="mb-2 flex justify-between gap-2 py-2">
@@ -739,17 +666,17 @@ const AdminRoom = () => {
                 </div> 
                 
                 <div
-                  className="flex flex-row"
+                  className="flex flex-row align-center"
                   onClick={(event) => {
                     event.stopPropagation();  // Prevent click from bubbling up to the parent div
                   }}
                 >
-                  <div className="text-junia-purple font-bold">Visibilité :</div>
-                  <label className="toggle-switch mx-1">
+                  <div className="text-junia-purple font-bold">Visibilité : </div>
+                  <label className="toggle-switch mx-2">
                     <input
                       type="checkbox"
                       checked={!room.hidden}
-                      className="sr-only"
+                      className="sr-only "
                       onChange={() => { }} // Required for React controlled components
                       onClick={(event) => {
                         event.stopPropagation(); // Still needed for the toggle itself
@@ -771,8 +698,12 @@ const AdminRoom = () => {
             </div>
 
             <div className="flex justify-between pb-2">
-              <button onClick={(event) => handleDeleteRoom(event, room.id_rooms)} className="button-type2 font-title font-bold px-4 py-2 border-red-500 border-green-500">Supprimer</button>
-              <button onClick={(event) => handleEditRoom(event, room)} className="button-type font-title font-bold px-4 py-2">Modifier</button>
+              <button onClick={(event) => handleEditRoom(event, room)} className="button-type font-title font-bold px-3 py-2 flex items-center gap-2">
+                <FaPen /> Modifier
+              </button>
+              <button onClick={(event) => handleDeleteRoom(event, room.id_rooms)} className="button-type2 font-title font-bold px-3 py-2 flex items-center gap-2">
+                <FaTrash /> Supprimer
+              </button>
             </div>
 
           </div>

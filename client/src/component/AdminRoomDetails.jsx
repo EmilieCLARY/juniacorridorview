@@ -523,7 +523,7 @@ const AdminRoomDetails = () => {
                     placeholder="Rechercher par titre ..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full p-2 bg-white research-input-IS rounded-full" />
+                    className="w-full p-2 bg-white research-input-IS research-input-orange-text rounded-full" />
                 
                   <button 
                     onClick={() => setShowAllInfospots(!showAllInfospots)} 
@@ -539,12 +539,12 @@ const AdminRoomDetails = () => {
           {/* Grille d'infospots sous la zone de recherche */}
           <div className="all-infospots-container w-full">
             {displayedInfoPopups.map((popup) => (
-              <div key={popup.id_info_popup} className="one-info-spot flex justify-between items-center p-2.5 mb-2.5">
-                <div className="flex-1">
+              <div key={popup.id_info_popup} className="one-info-spot flex justify-between items-center ">
+                <div className="flex-col">
 
 
-                  <div className="IS-title flex gap-1 mb-4">
-                    <div className="font-bold font-title text-2xl text-junia-purple">Titre : </div>
+                  <div className="IS-title gap-1 mb-4">
+                    <div className="font-bold font-title text-2xl text-junia-purple">Titre :</div>
                     <div className="font-semibold font-title text-2xl text-junia-orange"> {popup.title}</div>
                   </div>
 
@@ -566,8 +566,8 @@ const AdminRoomDetails = () => {
                   </div>
                 )}
                 <div className="flex w-full justify-between ">
-                  <button onClick={(event) => handleDeleteInfoPopup(event, popup.id_info_popup)} className="button-type p-2 font-title font-bold ">Supprimer</button>
-                  <button onClick={(event) => handleEditInfoPopup(event, popup)} className="button-type2 p-2 font-title font-bold ">Modifier</button>
+                  <button onClick={(event) => handleEditInfoPopup(event, popup)} className="button-type p-2 font-title font-bold ">Modifier</button>
+                  <button onClick={(event) => handleDeleteInfoPopup(event, popup.id_info_popup)} className="button-type2 p-2 font-title font-bold ">Supprimer</button>
                 </div>
               </div>
             ))}
@@ -591,7 +591,7 @@ const AdminRoomDetails = () => {
                   placeholder="Recherche par ID de destination"
                   value={searchLinkTerm}
                   onChange={(e) => setSearchLinkTerm(e.target.value)}
-                  className="w-full p-2 bg-white research-input-L rounded-full"/>
+                  className="w-full p-2 bg-white research-input-L research-input-orange-text rounded-full"/>
                 
                 <button 
                   onClick={() => setShowAllLinks(!showAllLinks)}
@@ -605,18 +605,24 @@ const AdminRoomDetails = () => {
           </div>
 
           {displayedLinks.map((link) => (
-            <div key={link.id_links} className="one-link-container flex flex-col justify-between items-center bg-white p-2.5 mb-2.5">
+            <div key={link.id_links} className="one-link-container flex flex-col justify-between items-center bg-white p-2 mb-2.5">
               
-              <div className="flex-1 pt-1">
-                <div className="text-center font-bold font-title text-2xl text-junia-purple">ID : {link.id_links}</div>
-                <div className="text-center font-title text-xl text-junia-purple">Destination ID : {link.id_pictures_destination}</div>
+              <div className="flex justify-around w-full">
+                <div className="flex">
+                  <div className="font-bold font-title text-2xl text-junia-purple">ID : </div>
+                  <div className="font-bold font-title text-2xl text-junia-orange pl-2"> {link.id_links}</div>
+                </div>
+                <div className="flex">
+                  <div className="font-title text-2xl text-junia-purple">Destination ID : </div>
+                  <div className="font-title text-2xl text-junia-orange pl-2">{link.id_pictures_destination}</div>
+                </div>
               </div>
-              <div className="flex-1 flex justify-center p-3">
+              <div className="flex-1 flex justify-center p-2">
                 <img src={pictures.find(pic => pic.id_pictures === link.id_pictures_destination)?.imageUrl} alt={`Destination ${link.id_pictures_destination}`} className="max-w-[100px] max-h-[100px]" />
               </div>
-              <div className="flex">
-                <button onClick={(event) => handleDeleteLink(event, link.id_links)} className="bg-red-500 text-white px-4 py-2 rounded mr-2 hover:bg-red-600">Supprimer</button>
-                <button onClick={(event) => handleEditLink(event, link)} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Modifier</button>
+              <div className="flex w-full justify-between px-2">
+                <button onClick={(event) => handleEditLink(event, link)} className="button-type p-2 font-title font-bold">Modifier</button>
+                <button onClick={(event) => handleDeleteLink(event, link.id_links)} className="button-type2 p-2 font-title font-bold">Supprimer</button>
               </div>
             </div>
           ))}
