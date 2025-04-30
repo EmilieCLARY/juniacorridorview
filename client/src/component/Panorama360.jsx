@@ -541,14 +541,12 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
       <img
         src={"/img/logojunia.png"}
         alt="floor_plan"
-        onClick={toggleFullscreen}
         style={{
           position: "absolute",
           top: "0px",
           right: "0px",
           width: "15vw",
-          height: "15vh",
-          cursor: "pointer"
+          height: "15vh"
         }}
       />
 

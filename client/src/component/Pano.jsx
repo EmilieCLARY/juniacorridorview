@@ -80,10 +80,10 @@ const PanoramaViewer = ({ location }) => {
   
       setRooms(roomsData);
 
-      // Fetch room previews first, then fall back to panoramas if needed
+      // Fetch plan previews first, then fall back to panoramas if needed
       const previewPromises = roomsData.map(async room => {
         try {
-          // Try to get room preview first
+          // Try to get plan preview first
           const previewUrl = await api.getRoomPreview(room.id_rooms);
           
           if (previewUrl) {
@@ -105,7 +105,7 @@ const PanoramaViewer = ({ location }) => {
       
       const roomPreviewsData = await Promise.all(previewPromises);
       
-      // Set room previews
+      // Set plan previews
       const roomPreviewsObj = {};
       
       roomPreviewsData.forEach(preview => {
@@ -128,7 +128,7 @@ const PanoramaViewer = ({ location }) => {
         ]))
       );
   
-      // Continue with loading all room images for panoramas
+      // Continue with loading all plan images for panoramas
       const roomImagesPromises = roomsData.map(async room => {
         const pictures = await api.getPicturesByRoomId(room.id_rooms);
         const images = await Promise.all(

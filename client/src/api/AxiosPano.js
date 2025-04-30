@@ -84,7 +84,7 @@ const getRoomName = async (id_rooms) => {
     const response = await api.get(`/room/${id_rooms}`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching room name', error);
+    console.error('Error fetching plan name', error);
     return {};
   }
 };
@@ -94,7 +94,7 @@ const getRoomIdByPictureId = async (id_pictures) => {
     const response = await api.get(`/room-id/${id_pictures}`);
     return response.data.id_rooms;
   } catch (error) {
-    console.error('Error fetching room ID by picture ID', error);
+    console.error('Error fetching plan ID by picture ID', error);
     return null;
   }
 };
@@ -104,7 +104,7 @@ const getRoomDetails = async (id_rooms) => {
     const response = await api.get(`/room/${id_rooms}`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching room details', error);
+    console.error('Error fetching plan details', error);
     return {};
   }
 };
@@ -124,7 +124,7 @@ const getPicturesByRoomId = async (id_rooms) => {
     const response = await api.get(`/pictures-by-room/${id_rooms}`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching pictures by room ID', error);
+    console.error('Error fetching pictures by plan ID', error);
     return [];
   }
 };
@@ -134,7 +134,7 @@ const getFirstPictureByRoomId = async (id_rooms) => {
     const response = await api.get(`/first-picture-by-room/${id_rooms}`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching first picture by room ID', error);
+    console.error('Error fetching first picture by plan ID', error);
     return null;
   }
 };
@@ -160,7 +160,7 @@ const getRoomPreview = async (id_rooms) => {
   } catch (error) {
     // Only log errors that aren't 404s
     if (error.response && error.response.status !== 404) {
-      console.error('Error fetching room preview image:', error);
+      console.error('Error fetching plan preview image:', error);
     }
     return null;
   }

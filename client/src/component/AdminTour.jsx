@@ -124,7 +124,7 @@ const AdminTour = () => {
       const panoramaUrlsData = await Promise.all(
         steps.map(async step => {
           try {
-            // First try to get room preview
+            // First try to get plan preview
             const previewUrl = await tourApi.getRoomPreview(step.id_rooms);
             
             if (previewUrl) {

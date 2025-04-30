@@ -62,10 +62,10 @@ const TourViewer = () => {
         [tourId]: stepsData
       }));
 
-      // Fetch room details and one panorama URL for each step
+      // Fetch plan details and one panorama URL for each step
       const roomDetails = await Promise.all(
         stepsData.map(step => api.getRoomDetails(step.id_rooms)
-          .then(room => ({ ...room, id_rooms: step.id_rooms })) // Add id_rooms to the room object
+          .then(room => ({ ...room, id_rooms: step.id_rooms })) // Add id_rooms to the plan object
         )
       );
       setRooms(prevRooms => ({
@@ -76,7 +76,7 @@ const TourViewer = () => {
       // Try to get previews first, fall back to panorama images
       const imageUrlsData = await Promise.all(
         stepsData.map(async step => {
-          // First try to get room preview
+          // First try to get plan preview
           const previewUrl = await api.getRoomPreview(step.id_rooms);
 
           if (previewUrl) {

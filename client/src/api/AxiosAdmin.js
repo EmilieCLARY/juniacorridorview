@@ -21,7 +21,7 @@ const getPicturesByRoomId = async (id_rooms) => {
     const response = await api.get(`/pictures-by-room/${id_rooms}`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching pictures by room ID', error);
+    console.error('Error fetching pictures by plan ID', error);
     return [];
   }
 };
@@ -86,7 +86,7 @@ const addRoom = async (formData) => {
     const response = await api.post('/add-room', data);
     return response.data.id_rooms; // Ensure roomId is returned from the API
   } catch (error) {
-    console.error('Error adding room:', error);
+    console.error('Error adding plan:', error);
     return null;
   }
 };
@@ -130,7 +130,7 @@ const getFirstPictureByRoomId = async (id_rooms) => {
     const response = await api.get(`/first-picture-by-room/${id_rooms}`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching first picture by room ID', error);
+    console.error('Error fetching first picture by plan ID', error);
     return null;
   }
 };
