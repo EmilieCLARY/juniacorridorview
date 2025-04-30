@@ -712,7 +712,7 @@ const AdminRoom = () => {
         {filteredRooms.map(room => (
           <div
             key={room.id_rooms}
-            className="px-4 py-2 border-2 purpleborder rounded-3xl shadow hover:shadow-lg transition-shadow duration-300 bg-white flex flex-col justify-between"
+            className="room-card px-4 py-2 rounded-3xl shadow hover:shadow-lg transition-shadow duration-300 bg-white flex flex-col justify-between"
             onClick={() => handleRoomClick(room.id_rooms)}>
 
             <div className="mb-2 flex justify-between gap-2 py-2">
@@ -739,13 +739,13 @@ const AdminRoom = () => {
                 </div> 
                 
                 <div
-                  className="flex flex-row"
+                  className="flex flex-row align-center"
                   onClick={(event) => {
                     event.stopPropagation();  // Prevent click from bubbling up to the parent div
                   }}
                 >
-                  <div className="text-junia-purple font-bold">Visibilité :</div>
-                  <label className="toggle-switch mx-1">
+                  <div className="text-junia-purple font-bold">Visibilité : </div>
+                  <label className="toggle-switch mx-2">
                     <input
                       type="checkbox"
                       checked={!room.hidden}
@@ -771,8 +771,8 @@ const AdminRoom = () => {
             </div>
 
             <div className="flex justify-between pb-2">
-              <button onClick={(event) => handleDeleteRoom(event, room.id_rooms)} className="button-type2 font-title font-bold px-4 py-2 border-red-500 border-green-500">Supprimer</button>
               <button onClick={(event) => handleEditRoom(event, room)} className="button-type font-title font-bold px-4 py-2">Modifier</button>
+              <button onClick={(event) => handleDeleteRoom(event, room.id_rooms)} className="button-type2 font-title font-bold px-4 py-2 border-red-500 border-green-500">Supprimer</button>
             </div>
 
           </div>

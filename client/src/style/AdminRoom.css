@@ -149,3 +149,9 @@ background-color: var(--color-gray-500);
 .toggle-switch input:checked + .toggle-slider:before {
   transform: translateX(20px);
 }
+
+.room-card:hover {
+  transform: translateY(-5px);
+  transition: 0.6s ease;
+
+}
