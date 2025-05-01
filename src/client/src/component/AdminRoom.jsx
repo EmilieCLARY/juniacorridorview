@@ -167,6 +167,7 @@ const AdminRoom = () => {
     try {
       console.log('Fetching rooms...');
       const roomsData = await api.getRooms();
+
       // Ensure we have building data before processing rooms
       let buildingsData = buildings;
       if (!buildingsData || buildingsData.length === 0) {
@@ -186,6 +187,7 @@ const AdminRoom = () => {
 
           try {
             previewUrl = await api.getRoomPreview(room.id_rooms);
+            console.log(`Preview URL for room ${room.id_rooms}:`, previewUrl);
             // If we got a valid URL back, set hasPreview to true
             hasPreview = !!previewUrl;
           } catch (error) {

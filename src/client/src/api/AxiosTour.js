@@ -1,14 +1,9 @@
 import axios from "axios";
 
-const api = axios.create({
-  baseURL: process.env.BASE_URL, // Use the environment variable
-  timeout: 180000, // Increase the timeout to 180 seconds
-
-});
 
 const getTables = async () => {
     try {
-        const response = await api.get('/tables');
+        const response = await axios.get('/api/tables');
         return response.data;
     } catch (error) {
         console.error('Error fetching tables', error);
@@ -18,7 +13,7 @@ const getTables = async () => {
 
 const getTours = async () => {
     try {
-        const response = await api.get('/tours');
+        const response = await axios.get('/api/tours');
         return response.data;
     } catch (error) {
         console.error('Error fetching tours', error);
@@ -28,7 +23,7 @@ const getTours = async () => {
 
 const getTourSteps = async (tourId) => {
     try {
-        const response = await api.get(`/tour-steps/${tourId}`);
+        const response = await axios.get(`/api/tour-steps/${tourId}`);
         return response.data;
     } catch (error) {
         console.error('Error fetching tour steps', error);
@@ -42,7 +37,7 @@ const updateTourSteps = async (data) => {
             ...step,
             step_number: index + 1
         }));
-        await api.post('/update-tour-steps', { id_tours: data.id_tours, steps: stepsWithNumbers, title: data.title, description: data.description });
+        await axios.post('/api/update-tour-steps', { id_tours: data.id_tours, steps: stepsWithNumbers, title: data.title, description: data.description });
     } catch (error) {
         console.error('Error updating tour steps:', error);
     }
@@ -50,7 +45,7 @@ const updateTourSteps = async (data) => {
 
 const addTourStep = async (data) => {
     try {
-        await api.post('/add-tour-step', data);
+        await axios.post('/api/add-tour-step', data);
     } catch (error) {
         console.error('Error adding tour step:', error);
     }
@@ -62,7 +57,7 @@ const createTour = async (data) => {
             ...step,
             step_number: index + 1
         }));
-        await api.post('/create-tour', { ...data, steps: stepsWithNumbers });
+        await axios.post('/api/create-tour', { ...data, steps: stepsWithNumbers });
     } catch (error) {
         console.error('Error creating tour:', error);
     }
@@ -70,7 +65,7 @@ const createTour = async (data) => {
 
 const deleteTour = async (id_tours) => {
     try {
-        await api.delete(`/delete-tour/${id_tours}`);
+        await axios.delete(`/api/delete-tour/${id_tours}`);
     } catch (error) {
         console.error('Error deleting tour:', error);
     }
@@ -78,7 +73,7 @@ const deleteTour = async (id_tours) => {
 
 const getRoomDetails = async (id_rooms) => {
     try {
-        const response = await api.get(`/room/${id_rooms}`);
+        const response = await axios.get(`/api/room/${id_rooms}`);
         return response.data;
     } catch (error) {
         console.error('Error fetching plan details', error);
@@ -88,7 +83,7 @@ const getRoomDetails = async (id_rooms) => {
 
 const getPicturesByRoomId = async (id_rooms) => {
   try {
-    const response = await api.get(`/pictures-by-room/${id_rooms}`);
+    const response = await axios.get(`/api/pictures-by-room/${id_rooms}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching pictures by plan ID', error);
@@ -98,7 +93,7 @@ const getPicturesByRoomId = async (id_rooms) => {
 
 const getFirstPictureByRoomId = async (id_rooms) => {
   try {
-    const response = await api.get(`/first-picture-by-room/${id_rooms}`);
+    const response = await axios.get(`/api/first-picture-by-room/${id_rooms}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching first picture by plan ID', error);
@@ -108,7 +103,7 @@ const getFirstPictureByRoomId = async (id_rooms) => {
 
 const getImage = async (id) => {
   try {
-    const response = await api.get(`/fetch/${id}`, { responseType: 'blob' });
+    const response = await axios.get(`/api/fetch/${id}`, { responseType: 'blob' });
     const imageUrl = URL.createObjectURL(response.data);
     return imageUrl;
   } catch (error) {
@@ -118,7 +113,7 @@ const getImage = async (id) => {
 
 const getRooms = async () => {
     try {
-        const response = await api.get('/rooms');
+        const response = await axios.get('/api/rooms');
         return response.data;
     } catch (error) {
         console.error('Error fetching rooms', error);
@@ -128,7 +123,7 @@ const getRooms = async () => {
 
 const getRoomPreview = async (id_rooms) => {
   try {
-    const response = await api.get(`/room-preview/${id_rooms}`, { 
+    const response = await axios.get(`/api/room-preview/${id_rooms}`, { 
       responseType: 'blob',
       validateStatus: status => {
         // Consider both 200 and 404 as valid responses
@@ -155,7 +150,7 @@ const getRoomPreview = async (id_rooms) => {
 
 const getFloors = async () => {
   try {
-    const response = await api.get('/floors');
+    const response = await axios.get('/api/floors');
     return response.data;
   } catch (error) {
     console.error('Error fetching floors:', error);

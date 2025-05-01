@@ -1,24 +1,35 @@
 {
-  "name": "client",
-  "version": "0.1.0",
-  "private": true,
+  "name": "juniacorridorview",
+  "version": "1.0.0",
+  "description": "Unified project for server and client",
+  "main": "src/server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "nodemon src/server/index.js",
+    "dev:client": "vite --config vite.config.js",
+    "build": "cd src/client && vite build",
+    "preview": "npm run build && npm run start"
+  },
   "dependencies": {
     "@babel/runtime": "^7.27.0",
     "@babel/runtime-corejs3": "^7.27.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/modifiers": "^9.0.0",
     "@dnd-kit/sortable": "^10.0.0",
-    "@react-three/drei": "^9.121.4",
-    "@react-three/fiber": "^8.17.14",
-    "@tailwindcss/cli": "^4.0.0",
-    "@tailwindcss/vite": "^4.0.6",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.3.0",
-    "@testing-library/user-event": "^14.6.1",
     "axios": "^1.7.9",
+    "bcrypt": "^5.0.1",
+    "body-parser": "^2.2.0",
     "buffer": "^6.0.3",
-    "esbuild": "^0.25.0",
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "express-fileupload": "^1.5.1",
+    "express-session": "^1.17.2",
+    "file-type": "^20.5.0",
     "framer-motion": "^12.9.2",
+    "multer": "^1.4.5-lts.1",
+    "mysql": "^2.18.1",
     "nth-check": "^2.1.1",
     "panolens": "^0.12.1",
     "react": "^18.3.1",
@@ -27,40 +38,19 @@
     "react-masonry-css": "^1.0.16",
     "react-router-dom": "^5.2.0",
     "react-select": "^5.10.1",
+    "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "sonner": "^2.0.3",
     "three": "^0.176.0",
-    "three-mesh-bvh": "^0.9.0",
-    "web-vitals": "^4.2.4"
-  },
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "three-mesh-bvh": "^0.9.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.27.0",
     "@babel/core": "^7.26.10",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
+    "concurrently": "^8.2.0",
+    "nodemon": "^3.1.7",
     "postcss": "^8.5.2",
     "tailwindcss": "^4.0.6",
     "vite": "^6.3.4"

@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 const bodyParser = require("body-parser");
 const cookieparser = require("cookie-parser")
 const session = require("express-session");
-const fileUpload = require('express-fileupload'); // Add this line
+const fileUpload = require('express-fileupload');
 const mysql = require('mysql');
 const saltRounds = 10;
 const { db,
@@ -57,24 +57,22 @@ const app = express();
 
 // Configure CORS
 app.use(cors({
-  origin: 'http://localhost:5174', // Update to Vite's default port
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Autoriser les méthodes HTTP nécessaires
-  credentials: true // Si vous utilisez des cookies ou des sessions
+  origin: ['http://localhost:5173'], // Ensure this matches the frontend's origin
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  credentials: true
 }));
 
 app.use(express.json());
 app.use(cookieparser());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));
 app.use(session({
     key: "userId",
     secret: "atanu",
     resave: false,
     saveUninitialized: false,
 }));
-app.use(fileUpload()); // Add this line
-
-// Enable CORS for all routes
-app.use(cors());
+app.use(fileUpload());
 
 app.get("/", (req, res) => {
     res.send("hi");
@@ -297,6 +295,7 @@ app.get('/room-id/:id', (req, res) => {
 });
 
 app.get('/rooms', (req, res) => {
+    console.log('GET /rooms called'); // Add logging
     getRooms((err, rooms) => {
         if (err) {
             console.error('Error fetching rooms', err);
@@ -529,15 +528,22 @@ app.get('/room-preview/:id', (req, res) => {
     });
 });
 
+app.use((req, res, next) => {
+    console.log(`[BACKEND] ${req.method} ${req.url}`);
+    next();
+  });
+  
+
 app.get('/buildings', (req, res) => {
-    getBuildings((err, buildings) => {
-        if (err) {
-            console.error('Error fetching buildings', err);
-            res.sendStatus(500);
-        } else {
-            res.json(buildings);
-        }
-    });
+  console.log('GET /buildings called'); // Add logging
+  getBuildings((err, buildings) => {
+    if (err) {
+      console.error('Error fetching buildings', err);
+      res.sendStatus(500);
+    } else {
+      res.json(buildings); // Ensure JSON response
+    }
+  });
 });
 
 app.post('/add-building', (req, res) => {
@@ -576,7 +582,13 @@ app.post('/update-building', (req, res) => {
     });
 });
 
+app.get('/ping', (req, res) => {
+    console.log('💥 Received /ping');
+    res.send('pong');
+});
+
 app.get('/floors', (req, res) => {
+    console.log('GET /floors called'); // Add logging
     getFloors((err, floors) => {
         if (err) {
             console.error('Error fetching floors', err);
