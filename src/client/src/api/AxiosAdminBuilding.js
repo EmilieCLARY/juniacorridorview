@@ -1,10 +1,5 @@
 import axios from "axios";
 
-const api = axios.create({
-    baseURL: process.env.BASE_URL, // Use the environment variable
-    timeout: 180000, // Increase the timeout to 180 seconds
-});
-
 /*
    _____ ______ _______
   / ____|  ____|__   __|
@@ -16,7 +11,7 @@ const api = axios.create({
 
 const getBuildings = async () => {
     try {
-        const response = await api.get('/buildings');
+        const response = await axios.get('/api/buildings');
         return response.data;
     } catch (error) {
         console.error('Error fetching buildings', error);
@@ -26,7 +21,7 @@ const getBuildings = async () => {
 
 const getFloors = async () => {
     try {
-        const response = await api.get('/floors');
+        const response = await axios.get('/api/floors');
         return response.data;
     } catch (error) {
         console.error('Error fetching floors', error);
@@ -45,7 +40,7 @@ const getFloors = async () => {
 
 const insertBuilding = async (formData) => {
     try {
-        const response = await api.post('/add-building', formData);
+        const response = await axios.post('/api/add-building', formData);
     } catch (error) {
         console.error('Error inserting building', error);
     }
@@ -53,7 +48,7 @@ const insertBuilding = async (formData) => {
 
 const insertFloor = async (formData) => {
     try {
-        const response = await api.post('/add-floor', formData);
+        const response = await axios.post('/api/add-floor', formData);
     } catch (error) {
         console.error('Error inserting floor', error);
     }
@@ -70,7 +65,7 @@ const insertFloor = async (formData) => {
 
 const updateBuilding = async (formData) => {
     try {
-        const response = await api.post('/update-building', formData);
+        const response = await axios.post('/api/update-building', formData);
     } catch (error) {
         console.error('Error updating building', error);
     }
@@ -78,7 +73,7 @@ const updateBuilding = async (formData) => {
 
 const updateFloor = async (formData) => {
     try {
-        const response = await api.post('/update-floor', formData);
+        const response = await axios.post('/api/update-floor', formData);
     } catch (error) {
         console.error('Error updating floor', error);
     }
@@ -95,7 +90,7 @@ const updateFloor = async (formData) => {
 
 const deleteBuilding = async (id_buildings) => {
     try {
-        const response = await api.delete(`/building/${id_buildings}`);
+        const response = await axios.delete(`/api/building/${id_buildings}`);
     } catch (error) {
         console.error('Error deleting building', error);
     }
@@ -103,7 +98,7 @@ const deleteBuilding = async (id_buildings) => {
 
 const deleteFloor = async (id_floors) => {
     try {
-        const response = await api.delete(`/floor/${id_floors}`);
+        const response = await axios.delete(`/api/floor/${id_floors}`);
     } catch (error) {
         console.error('Error deleting floor', error);
     }

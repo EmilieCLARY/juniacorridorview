@@ -1,13 +1,12 @@
 import axios from "axios";
 
-const api = axios.create({
-  baseURL: process.env.BASE_URL, // Use the environment variable
-  timeout: 180000, // Increase the timeout to 180 seconds
-});
-
 const getRooms = async () => {
   try {
-    const response = await api.get('/rooms');
+    const response = await axios.get('/api/rooms'); // Add '/api' prefix
+    if (!Array.isArray(response.data)) {
+      console.error('Unexpected rooms data format:', response.data);
+      return [];
+    }
     return response.data;
   } catch (error) {
     console.error('Error fetching rooms', error);
@@ -17,7 +16,7 @@ const getRooms = async () => {
 
 const getPicturesByRoomId = async (id_rooms) => {
   try {
-    const response = await api.get(`/pictures-by-room/${id_rooms}`);
+    const response = await axios.get(`/api/pictures-by-room/${id_rooms}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching pictures by plan ID', error);
@@ -27,7 +26,7 @@ const getPicturesByRoomId = async (id_rooms) => {
 
 const getImage = async (id) => {
   try {
-    const response = await api.get(`/fetch/${id}`, { responseType: 'blob' });
+    const response = await axios.get(`/api/fetch/${id}`, { responseType: 'blob' });
     const imageUrl = URL.createObjectURL(response.data);
     return imageUrl;
   } catch (error) {
@@ -37,7 +36,7 @@ const getImage = async (id) => {
 
 const getInfoPopup = async (id_pictures) => {
   try {
-    const response = await api.post('/retrieveInfoPopUpByIdPicture', { id_pictures });
+    const response = await axios.post('/api/retrieveInfoPopUpByIdPicture', { id_pictures });
     return response.data;
   } catch (error) {
     console.error('Error fetching info popups', error);
@@ -47,7 +46,7 @@ const getInfoPopup = async (id_pictures) => {
 
 const getLinks = async (id_pictures) => {
   try {
-    const response = await api.post('/retrieveLinkByIdPicture', { id_pictures });
+    const response = await axios.post('/api/retrieveLinkByIdPicture', { id_pictures });
     return response.data;
   } catch (error) {
     console.error('Error fetching links', error);
@@ -58,7 +57,7 @@ const getLinks = async (id_pictures) => {
 
 const insertInfoPopUp = async (formData) => {
   try {
-      await api.post('/insertInfoPopUp', formData);
+      await axios.post('/api/insertInfoPopUp', formData);
   } catch (error) {
       console.error('Error inserting info popup:', error);
   }
@@ -66,7 +65,7 @@ const insertInfoPopUp = async (formData) => {
 
 const insertLink = async (data) => {
   try {
-      await api.post('/insertLink', data);
+      await axios.post('/api/insertLink', data);
   } catch (error) {
       console.error('Error inserting link:', error);
   }
@@ -74,7 +73,7 @@ const insertLink = async (data) => {
 
 const getRoomDetails = async (id_rooms) => {
     try {
-        const response = await api.get(`/room/${id_rooms}`);
+        const response = await axios.get(`/api/room/${id_rooms}`);
         return response.data;
     } catch (error) {
         console.error('Error fetching plan details', error);
@@ -84,14 +83,14 @@ const getRoomDetails = async (id_rooms) => {
 
 const createRoom = async (formData) => {
   try {
-    const response = await api.post('/add-room', formData);
+    const response = await axios.post('/api/add-room', formData);
     const id_rooms = response.data.id_rooms;
 
     const imageUploadPromises = formData.getAll('images').map((image) => {
       const imageFormData = new FormData();
       imageFormData.append('id_rooms', id_rooms);
       imageFormData.append('pic', image);
-      return api.post('/upload', imageFormData);
+      return axios.post('/api/upload', imageFormData);
     });
 
     await Promise.all(imageUploadPromises);
@@ -108,18 +107,23 @@ const createRoom = async (formData) => {
 
 const getBuildings = async () => {
   try {
-    console.log('Fetching buildings from API...');
-    const response = await api.get('/buildings');
+    console.log('Sending GET request to /buildings'); // Log request
+    const response = await axios.get('/api/buildings');
+    console.log('Response from /buildings:', response); // Log response
+    if (!Array.isArray(response.data)) {
+      console.error('Unexpected buildings data format:', response.data);
+      return [];
+    }
     return response.data;
   } catch (error) {
-    console.error('Error fetching buildings:', error);
+    console.error('Error fetching buildings:', error.response || error.message); // Log error
     throw error;
   }
 };
 
 const createBuilding = async (buildingData) => {
   try {
-    const response = await api.post('/buildings', buildingData);
+    const response = await axios.post('/api/buildings', buildingData);
     return response.data;
   } catch (error) {
     console.error('Error creating building:', error);
@@ -129,7 +133,7 @@ const createBuilding = async (buildingData) => {
 
 const updateRoom = async (formData) => {
     try {
-        const response = await api.post('/update-room', formData);
+        const response = await axios.post('/api/update-room', formData);
         const id_rooms = formData.get('id_rooms');
 
         // Create a picture for each uploaded image
@@ -137,7 +141,7 @@ const updateRoom = async (formData) => {
             const imageFormData = new FormData();
             imageFormData.append('id_rooms', id_rooms);
             imageFormData.append('pic', image);
-            return api.post('/upload', imageFormData);
+            return axios.post('/api/upload', imageFormData);
         });
 
         await Promise.all(imageUploadPromises);
@@ -151,7 +155,7 @@ const updateRoom = async (formData) => {
 
 const deleteRoom = async (id_rooms) => {
     try {
-        await api.delete(`/delete-room/${id_rooms}`);
+        await axios.delete(`/api/delete-room/${id_rooms}`);
     } catch (error) {
         console.error('Error deleting plan:', error);
     }
@@ -159,7 +163,7 @@ const deleteRoom = async (id_rooms) => {
 
 const updateImage = async (formData) => {
   try {
-    await api.post('/update-image', formData);
+    await axios.post('/api/update-image', formData);
   } catch (error) {
     console.error('Error updating image:', error);
   }
@@ -167,7 +171,7 @@ const updateImage = async (formData) => {
 
 const deleteImage = async (id_pictures) => {
     try {
-        await api.delete(`/delete-image/${id_pictures}`);
+        await axios.delete(`/api/delete-image/${id_pictures}`);
     } catch (error) {
         console.error('Error deleting image:', error);
     }
@@ -176,7 +180,7 @@ const deleteImage = async (id_pictures) => {
 
 const updateRoomVisibility = async (id_rooms, hidden) => {
   try {
-    await api.post('/update-room-visibility', { id_rooms, hidden });
+    await axios.post('/api/update-room-visibility', { id_rooms, hidden });
   } catch (error) {
     console.error('Error updating plan visibility:', error);
   }
@@ -184,7 +188,7 @@ const updateRoomVisibility = async (id_rooms, hidden) => {
 
 const getRoomPreview = async (id_rooms) => {
   try {
-    const response = await api.get(`/room-preview/${id_rooms}`, { 
+    const response = await axios.get(`/api/room-preview/${id_rooms}`, { 
       responseType: 'blob',
       validateStatus: status => {
         // Consider both 200 and 404 as valid responses
@@ -211,7 +215,7 @@ const getRoomPreview = async (id_rooms) => {
 
 const updateInfospot = async (formData) => {
     try {
-        await api.post('/update-infospot', formData);
+        await axios.post('/api/update-infospot', formData);
     } catch (error) {
         console.error('Error updating infospot:', error);
     }
@@ -219,7 +223,7 @@ const updateInfospot = async (formData) => {
 
 const updateLink = async (formData) => {
     try {
-        await api.post('/update-link', formData);
+        await axios.post('/api/update-link', formData);
     } catch (error) {
         console.error('Error updating link:', error);
     }
@@ -227,7 +231,7 @@ const updateLink = async (formData) => {
 
 const deleteLink = async (id_links) => {
     try {
-        await api.delete(`/delete-link/${id_links}`);
+        await axios.delete(`/api/delete-link/${id_links}`);
     } catch (error) {
         console.error('Error deleting link:', error);
     }
@@ -235,7 +239,7 @@ const deleteLink = async (id_links) => {
 
 const deleteInfospot = async (id_infospots) => {
     try {
-        await api.delete(`/delete-infospot/${id_infospots}`);
+        await axios.delete(`/api/delete-infospot/${id_infospots}`);
     } catch (error) {
         console.error('Error deleting infospot:', error);
     }
@@ -244,7 +248,11 @@ const deleteInfospot = async (id_infospots) => {
 
 const getFloors = async () => {
     try {
-        const response = await api.get('/floors');
+        const response = await axios.get('/api/floors'); // Add '/api' prefix
+        if (!Array.isArray(response.data)) {
+          console.error('Unexpected floors data format:', response.data);
+          return [];
+        }
         return response.data;
     } catch (error) {
         console.error('Error fetching floors:', error);
@@ -254,7 +262,7 @@ const getFloors = async () => {
 
 const uploadFile = async (formData) => {
   try {
-    await api.post('/upload', formData);
+    await axios.post('/api/upload', formData);
   } catch (error) {
     console.error('Error uploading file:', error);
   }
@@ -283,5 +291,5 @@ export {
   deleteLink,
   deleteInfospot,
   getFloors,
-  uploadFile  // Add this to the exports
+  uploadFile
 };

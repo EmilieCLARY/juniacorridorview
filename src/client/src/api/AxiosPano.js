@@ -1,18 +1,12 @@
 import axios from 'axios';
 import {toast} from "sonner";
 
-const api = axios.create({
-  baseURL: process.env.BASE_URL, // Use the environment variable
-  timeout: 180000, // Increase the timeout to 180 seconds
-
-});
-
 /**
  * GET
  */
 const getPictures = async () => {
     try {
-        const response = await api.get('/pictures');
+        const response = await axios.get('/api/pictures');
         return response.data;
     } catch (error) {
         console.error('Error fetching pictures', error);
@@ -22,7 +16,7 @@ const getPictures = async () => {
 
 const getTables = async () => {
     try {
-        const response = await api.get('/tables');
+        const response = await axios.get('/api/tables');
         return response.data;
     } catch (error) {
         console.error('Error fetching tables', error);
@@ -32,7 +26,7 @@ const getTables = async () => {
 
 const getInfoPopup = async (imageId) => {
     try {
-        const response = await api.post('/retrieveInfoPopUpByIdPicture', { id_pictures: imageId });
+        const response = await axios.post('/api/retrieveInfoPopUpByIdPicture', { id_pictures: imageId });
         return response.data;
     } catch (error) {
         if (axios.isCancel(error)) {
@@ -47,7 +41,7 @@ const getInfoPopup = async (imageId) => {
 
 const getLinks = async (imageId) => {
     try {
-        const response = await api.post('/retrieveLinkByIdPicture', { id_pictures: imageId });
+        const response = await axios.post('/api/retrieveLinkByIdPicture', { id_pictures: imageId });
         return response.data;
     } catch (error) {
         if (axios.isCancel(error)) {
@@ -62,7 +56,7 @@ const getLinks = async (imageId) => {
 
 export const getImage = async (id, retries = 3, delay = 1000) => {
   try {
-    const response = await api.get(`/fetch/${id}`, { responseType: 'blob' });
+    const response = await axios.get(`/api/fetch/${id}`, { responseType: 'blob' });
     return response.data;
   } catch (error) {
     if (error.code === 'ECONNABORTED') {
@@ -81,7 +75,7 @@ export const getImage = async (id, retries = 3, delay = 1000) => {
 
 const getRoomName = async (id_rooms) => {
   try {
-    const response = await api.get(`/room/${id_rooms}`);
+    const response = await axios.get(`/api/room/${id_rooms}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching plan name', error);
@@ -91,7 +85,7 @@ const getRoomName = async (id_rooms) => {
 
 const getRoomIdByPictureId = async (id_pictures) => {
   try {
-    const response = await api.get(`/room-id/${id_pictures}`);
+    const response = await axios.get(`/api/room-id/${id_pictures}`);
     return response.data.id_rooms;
   } catch (error) {
     console.error('Error fetching plan ID by picture ID', error);
@@ -101,7 +95,7 @@ const getRoomIdByPictureId = async (id_pictures) => {
 
 const getRoomDetails = async (id_rooms) => {
   try {
-    const response = await api.get(`/room/${id_rooms}`);
+    const response = await axios.get(`/api/room/${id_rooms}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching plan details', error);
@@ -111,7 +105,7 @@ const getRoomDetails = async (id_rooms) => {
 
 const getRooms = async () => {
   try {
-    const response = await api.get('/rooms');
+    const response = await axios.get('/api/rooms');
     return response.data;
   } catch (error) {
     console.error('Error fetching rooms', error);
@@ -121,7 +115,7 @@ const getRooms = async () => {
 
 const getPicturesByRoomId = async (id_rooms) => {
   try {
-    const response = await api.get(`/pictures-by-room/${id_rooms}`);
+    const response = await axios.get(`/api/pictures-by-room/${id_rooms}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching pictures by plan ID', error);
@@ -131,7 +125,7 @@ const getPicturesByRoomId = async (id_rooms) => {
 
 const getFirstPictureByRoomId = async (id_rooms) => {
   try {
-    const response = await api.get(`/first-picture-by-room/${id_rooms}`);
+    const response = await axios.get(`/api/first-picture-by-room/${id_rooms}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching first picture by plan ID', error);
@@ -141,7 +135,7 @@ const getFirstPictureByRoomId = async (id_rooms) => {
 
 const getRoomPreview = async (id_rooms) => {
   try {
-    const response = await api.get(`/room-preview/${id_rooms}`, { 
+    const response = await axios.get(`/api/room-preview/${id_rooms}`, { 
       responseType: 'blob',
       validateStatus: status => {
         // Consider both 200 and 404 as valid responses
@@ -171,7 +165,7 @@ const getRoomPreview = async (id_rooms) => {
  */
 const uploadFile = async (formData) => {
     try {
-        await api.post('/upload', formData);
+        await axios.post('/api/upload', formData);
         toast.success('Fichier téléversé avec succès');
     } catch (error) {
         console.error('Error uploading file:', error);
@@ -181,7 +175,7 @@ const uploadFile = async (formData) => {
 
 const insertInfoPopUp = async (formData) => {
     try {
-        await api.post('/insertInfoPopUp', formData);
+        await axios.post('/api/insertInfoPopUp', formData);
         toast.success('Bulle d\'information ajoutée avec succès');
     } catch (error) {
         console.error('Error inserting info popup:', error);
@@ -191,7 +185,7 @@ const insertInfoPopUp = async (formData) => {
 
 const insertLink = async (data) => {
     try {
-        await api.post('/insertLink', data);
+        await axios.post('/api/insertLink', data);
         toast.success('Lien ajouté avec succès');
     } catch (error) {
         console.error('Error inserting link:', error);
