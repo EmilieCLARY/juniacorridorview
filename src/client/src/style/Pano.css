@@ -207,3 +207,33 @@ html, body {
    border-radius: 6px;
    background-color: #f06b42; /* Couleur de la barre de défilement */;
  }
+
+/* Classe pour le titre "Autres Salles" */
+.other-rooms-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: bold;
+  font-size: 1.5rem; /* équivalent à text-2xl */
+  color: white;
+  background-color: #3c2c53; /* bg-junia-purple */
+  border-radius: 0.75rem; /* rounded-xl */
+  margin: 0.5rem 1.25rem; /* mx-5 my-2 */
+  padding: 0.5rem 0; /* py-2 */
+  text-align: center;
+}
+
+/* Media queries pour la responsivité */
+@media (max-width: 768px) {
+  .other-rooms-title {
+    font-size: 1.25rem;
+    margin: 0.5rem 0.75rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .other-rooms-title {
+    font-size: 1rem;
+    margin: 0.5rem 0.5rem;
+  }
+}

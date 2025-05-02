@@ -284,7 +284,7 @@ const PanoramaViewer = ({ location }) => {
       <Loader show={loading} text={textLoading} />
       <div className="panorama-container bg-junia-lavender">
         <div className="h-full scrollable-list flex-col w-15" id="style-2">
-          <div className="font-title text-center py-2 font-bold text-2xl text-white bg-junia-purple  rounded-xl mx-5 my-2">
+          <div className="other-rooms-title">
             Autres Salles
           </div>
           
