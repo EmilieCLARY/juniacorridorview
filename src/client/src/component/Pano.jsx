@@ -27,6 +27,7 @@ const PanoramaViewer = ({ location }) => {
   const [tourSteps, setTourSteps] = useState([]);
   const dataFetched = useRef(false);
   const [allRoomImages, setAllRoomImages] = useState({});
+  const [currentFloor, setCurrentFloor] = useState(null);
   
   const loadingImage = useRef(false);
   const [loadingImageBeforeRoomSwitch, setLoadingImageBeforeRoomSwitch] = useState(false);
@@ -203,6 +204,19 @@ const PanoramaViewer = ({ location }) => {
     setSelectedImageName(room.name); // Use room.name directly here
   };
 
+  const fetchFloor = async (id_rooms) => {
+    const room = rooms.find(room => room.id_rooms === id_rooms);
+    const id_floor = room ? room.id_floors : null;
+    console.log(room);
+    console.log(id_floor);
+    if (id_floor) {
+      const floor = await api.getFloorById(id_floor);
+      floor.plan_x = room.plan_x;
+      floor.plan_y = room.plan_y;
+      setCurrentFloor(floor);
+    }
+  }
+
   const displayImage = async (imageBlob, id) => {
     cleanUrlParams();
     if (currentImageId !== id) setCurrentImageId(id);
@@ -211,15 +225,14 @@ const PanoramaViewer = ({ location }) => {
     const retrievedLinksPromise = handleRetrieveLinks(id);
   
     const roomIdPromise = api.getRoomIdByPictureId(id);
-    const roomDetailsPromise = roomIdPromise.then(fetchRoomDetails);
-  
-    if (!isLoading.current || firstLoad) {
-      showLoading(
-        [retrievedPopupsPromise, retrievedLinksPromise, roomIdPromise, roomDetailsPromise],
-        'Chargement des données...',
-        'Chargement des données réussi',
-        'Erreur lors du chargement des données'
-      );
+
+    const roomDetailsPromise = roomIdPromise.then((roomId) => {
+      fetchRoomDetails(roomId);
+      fetchFloor(roomId);
+    });
+
+    if(!isLoading.current || firstLoad) {
+      showLoading([retrievedPopupsPromise, retrievedLinksPromise, roomIdPromise, roomDetailsPromise], 'Chargement des données...', 'Chargement des données réussi', 'Erreur lors du chargement des données');
     }
   
     retrievedPopupsPromise.then((retrievedPopups) => {
@@ -330,6 +343,7 @@ const PanoramaViewer = ({ location }) => {
                 links={links[currentImageId] || []}
                 onLinkClick={handleLinkClick}
                 isLoading={(isLoading.current || firstLoad.current || loadingImageBeforeRoomSwitch) }
+                floor={currentFloor}
               />
           
         </div>

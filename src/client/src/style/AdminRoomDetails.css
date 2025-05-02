@@ -116,3 +116,12 @@
 .research-input-orange-text::placeholder {
     color:rgba(240, 107, 66, 0.5)
   }
+
+.image-card {
+    transition: transform 0.6s ease; /* Add transition for non-hover state */
+}
+
+.image-card:hover {
+    scale: 1.02;
+    transition: 0.3s ease;
+}

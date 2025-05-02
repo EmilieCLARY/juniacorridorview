@@ -1,5 +1,4 @@
 # Junia Corridor View
-# Junia Corridor View
 
 Junia Corridor View is a web application designed to manage and visualize room and building information, including panoramic (360°) images, across various floors and buildings. It provides an intuitive interface for administrators to organize and interact with spatial data effectively.
 
