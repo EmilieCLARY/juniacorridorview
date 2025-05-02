@@ -5,6 +5,7 @@ import Panorama360 from './Panorama360';
 import { Buffer } from 'buffer';
 import { toast } from "sonner";
 import Loader from "./Loader";
+import Masonry from 'react-masonry-css';
 import '../style/AdminRoomDetails.css';
 import {FaPen, FaTrash} from "react-icons/fa";
 import ModalAddEditImage from "./room_details/ModalAddEditImage";
@@ -454,6 +455,12 @@ const AdminRoomDetails = () => {
     }
   }
 
+  const breakpointColumnsObj = {
+    default: 2,
+    1100: 2,
+    700: 1,
+  };
+
   return (
     <div className="">
       <Loader show={loading} text={textLoading} />
@@ -479,7 +486,7 @@ const AdminRoomDetails = () => {
                         </button>
             </div>
           {pictures.map(picture => (
-            <div key={picture.id_pictures} className="w-40vw p-1 relative">
+            <div key={picture.id_pictures} className="w-40vw p-1">
               <img
                 src={picture.imageUrl}
                 alt={`Aperçu de ${picture.id_pictures}`}
@@ -555,41 +562,37 @@ const AdminRoomDetails = () => {
           </div>
 
           {/* Grille d'infospots sous la zone de recherche */}
-          <div className="all-infospots-container w-full">
+          <Masonry
+            breakpointCols={breakpointColumnsObj}
+            className="my-masonry-grid"
+            columnClassName="my-masonry-grid_column"
+          >
             {displayedInfoPopups.map((popup) => (
-              <div key={popup.id_info_popup} className="one-info-spot flex justify-between items-center ">
-                <div className="flex-col">
-
-
-                  <div className="IS-title gap-1 mb-4">
-                    <div className="font-bold font-title text-2xl text-junia-purple">Titre :</div>
-                    <div className="font-semibold font-title text-2xl text-junia-orange"> {popup.title}</div>
-                  </div>
-
-                  <div className="IS-Description mb-4">
-                    <div className="font-bold font-title text-2xl text-junia-purple">Description :</div>
-                    <div className="font-texts text-md text-junia-orange text-justify">{popup.text}</div>
-                  </div>
-
-                  <div className="IS-id_pano mb-4 gap-1 gap-3">
-                    <div className="font-bold font-title text-2xl text-junia-purple">ID du panorama :</div>
-                    <div className="font-title font-bold text-2xl text-junia-orange  ">{popup.id_pictures}</div>
-                  </div>
-                
+              <div key={popup.id_info_popup} className="one-info-spot flex flex-col gap-2">
+                <div className="font-bold font-title text-2xl"> 
+                  <span className="text-junia-purple"> Titre : </span>
+                  <span className="text-junia-orange">{popup.title}</span>
                 </div>
-
-                {popup.image && (
-                  <div className="flex-1 flex justify-center max-h-30 mb-4">
-                    <img src={`data:image/jpeg;base64,${Buffer.from(popup.image).toString('base64')}`} alt={`Aperçu de ${popup.title}`} className="max-w-[100px] max-h-[100px]" />
-                  </div>
-                )}
+                <div className="font-bold font-title text-2xl text-junia-purple">Description :</div>
+                <div className="font-texts text-md text-junia-orange text-justify">{popup.text}</div>
+                <div className="font-bold font-title text-2xl text-junia-purple">
+                  <span className="text-junia-purple"> ID du panorama : </span>
+                  <span className="text-junia-orange">{popup.id_pictures}</span>
+                </div>
+                <div className="flex justify-center ">
+                  {popup.image && (
+                    <div className="max-h-30">
+                      <img src={`data:image/jpeg;base64,${Buffer.from(popup.image).toString('base64')}`} alt={`Aperçu de ${popup.title}`}/>
+                    </div>
+                  )}
+                </div>
                 <div className="flex w-full justify-between ">
                   <button onClick={(event) => handleEditInfoPopup(event, popup)} className="button-type p-2 font-title font-bold ">Modifier</button>
                   <button onClick={(event) => handleDeleteInfoPopup(event, popup.id_info_popup)} className="button-type2 p-2 font-title font-bold ">Supprimer</button>
                 </div>
               </div>
             ))}
-          </div>
+          </Masonry>
         </div>
 
         {/* Section des liens (1/3 de la largeur) */}
