@@ -193,6 +193,16 @@ const insertLink = async (data) => {
     }
 };
 
+const getFloorById = async (id_rooms) => {
+    try {
+        const response = await axios.get(`/api/floors/${id_rooms}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching floor by room ID', error);
+        return null;
+    }
+}
+
 export { 
   getInfoPopup, 
   getLinks, 
@@ -207,6 +217,7 @@ export {
   getRooms, 
   getPicturesByRoomId, 
   getFirstPictureByRoomId,
-  getRoomPreview
+  getRoomPreview,
+  getFloorById,
 };
 
