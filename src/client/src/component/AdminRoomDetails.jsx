@@ -6,6 +6,8 @@ import { Buffer } from 'buffer';
 import { toast } from "sonner";
 import Loader from "./Loader";
 import '../style/AdminRoomDetails.css';
+import {FaPen, FaTrash} from "react-icons/fa";
+import ModalAddEditImage from "./room_details/ModalAddEditImage";
 
 const AdminRoomDetails = () => {
   const { id } = useParams();
@@ -34,13 +36,13 @@ const AdminRoomDetails = () => {
   const [infospotToEdit, setInfospotToEdit] = useState(null);
   const [editInfospotMod, setEditInfospotMod] = useState(false);
   const [addImageModalOpen, setAddImageModalOpen] = useState(false);
-  const [newImage, setNewImage] = useState(null);
   const [modalSelectedPicture, setModalSelectedPicture] = useState('');
   const [modalInfoPopups, setModalInfoPopups] = useState([]);
   const [modalLinks, setModalLinks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingModal, setIsLoadingModal] = useState(true);
   const [disableBackgroundClick, setDisableBackgroundClick] = useState(false);
+  const [imageToUpdate, setImageToUpdate] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [textLoading, setTextLoading] = useState("Chargement des données...");
@@ -424,34 +426,33 @@ const AdminRoomDetails = () => {
     setEditLinkMod(false);
   }
 
-  const handleImageChange = (e) => {
-    setNewImage(e.target.files[0]);
-  };
+  const handleEditPicture = async (id) => {
+    console.log('Editing picture', id);
+    setImageToUpdate(pictures.find(pic => pic.id_pictures === id));
+    setAddImageModalOpen(true);
+  }
 
-  const handleImageUpload = async (event) => {
-    event.preventDefault();
-    if (!newImage) {
-      toast.error('Veuillez sélectionner une image');
-      return;
+  const handleDeletePicture = async (id) => {
+    if (!window.confirm('Etes-vous sûr de vouloir supprimer l\'image ?')) return;
+    const deletePromise = api.deleteImage(id);
+    const updatedPicturesPromise = deletePromise.then(async () => {
+      await fetchAllData();
+    });
+    showLoading([deletePromise, updatedPicturesPromise], 'Suppression de l\'image...', 'Image supprimée avec succès', 'Erreur lors de la suppression de l\'image');
+  }
+
+  const reloadAfterAddEditImage = async (type) => {
+    if (type === 'add') {
+      const reloadPromise = fetchAllData();
+      setAddImageModalOpen(false);
+      showLoading([reloadPromise], 'Ajout de l\'image...', 'Image ajoutée avec succès', 'Erreur lors de l\'ajout de l\'image');
+    } else if (type === 'edit') {
+      const reloadPromise =  fetchAllData();
+      setImageToUpdate(null);
+      setAddImageModalOpen(false);
+      showLoading([reloadPromise], 'Mise à jour de l\'image...', 'Image mise à jour avec succès', 'Erreur lors de la mise à jour de l\'image');
     }
-
-    const formData = new FormData();
-    formData.append('id_rooms', id);
-    formData.append('pic', newImage);
-
-    try {
-      const uploadPromise = api.uploadFile(formData);
-      const fetchDataPromise = uploadPromise.then(async () => {
-        await fetchAllData();
-        setAddImageModalOpen(false);
-        setNewImage(null);
-      });
-
-      showLoading([uploadPromise, fetchDataPromise], 'Chargement de l\'image...', 'Image ajoutée avec succès', 'Erreur lors du chargement de l\'image');
-    } catch (error) {
-      console.error('Error uploading image:', error);
-    }
-  };
+  }
 
   return (
     <div className="">
@@ -461,7 +462,7 @@ const AdminRoomDetails = () => {
       {/*<div className="text-2xl text-junia-purple font-title font-bold mt-4">{roomName}</div>*/}
 
 
-      
+
 
 
     <div className="admin-room-details-container flex flex-col items-center bg-junia-salmon p-3">
@@ -470,18 +471,35 @@ const AdminRoomDetails = () => {
 
         <div className="image-list flex flex-col p-2 justify-between">
             <div className="button-add-360 flex justify-center ">
-                        <button onClick={() => setAddImageModalOpen(true)} className="button-type font-title font-bold text-2xl p-2">
+                        <button onClick={() => {
+                          setAddImageModalOpen(true);
+                          setImageToUpdate(null);
+                        }} className="button-type font-title font-bold text-2xl p-2">
                           Ajouter une image 360°
                         </button>
             </div>
           {pictures.map(picture => (
-            <div key={picture.id_pictures} className="w-40vw p-1 ">
+            <div key={picture.id_pictures} className="w-40vw p-1 relative">
               <img
                 src={picture.imageUrl}
                 alt={`Aperçu de ${picture.id_pictures}`}
                 onClick={() => handlePictureClick(picture.imageUrl, picture.id_pictures)}
-                className="rounded-lg"
+                className="image-card rounded-lg cursor-pointer shadow hover:shadow-lg transition-shadow duration-300"
               />
+              <div className="absolute flex gap-2" style={{ bottom: '10px', right: '10px' }}>
+                <button
+                    onClick={() => handleEditPicture(picture.id_pictures)}
+                    className="px-2 py-2 button-type"
+                >
+                  <FaPen />
+                </button>
+                <button
+                    onClick={() => handleDeletePicture(picture.id_pictures)}
+                    className="px-2 py-2 button-type2"
+                >
+                  <FaTrash />
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -664,7 +682,7 @@ const AdminRoomDetails = () => {
                   <input type="text" name="posY" placeholder="Position Y" value={parseFloat(posY).toFixed(4) || ''} onChange={(e) => setPosY(e.target.value)} required readOnly className="p-2 border border-gray-300 rounded" />
                   <input type="text" name="posZ" placeholder="Position Z" value={parseFloat(posZ).toFixed(4) || ''} onChange={(e) => setPosZ(e.target.value)} required readOnly className="p-2 border border-gray-300 rounded" />
                   <input type="text" name="text" placeholder="Texte" required defaultValue={editInfospotMod ? infospotToEdit.text : ''} maxLength="300" className="p-2 border border-gray-300 rounded" />
-                  <input type="text" name="title" placeholder="Titre" required defaultValue={editInfospotMod ? infospotToEdit.title : ''} maxLength="40" className="p-2 border border-gray-300 rounded" />
+                  <input type="text" name="title" placeholder="Titre" required defaultValue={editInfospotMod ? infospotToEdit.title : ''} maxLength="45" className="p-2 border border-gray-300 rounded" />
                   <input type="file" name="pic" className="p-2 border border-gray-300 rounded" />
                   <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">{editInfospotMod ? "Modifier" : "Ajouter"}</button>
                 </form>
@@ -714,30 +732,9 @@ const AdminRoomDetails = () => {
         </div>
       )}
 
-      {addImageModalOpen && (
-        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-40 z-10">
-          <div className="bg-white p-5 border border-gray-400 w-4/5 max-w-lg">
-            <span className="float-right text-2xl font-bold cursor-pointer text-gray-500 hover:text-black" onClick={() => setAddImageModalOpen(false)}>&times;</span>
-            <h2 className="text-xl mb-4">Ajouter une nouvelle image 360°</h2>
-            <div>
-              <form onSubmit={handleImageUpload} className="flex flex-col gap-2">
-                <div className="mb-4">
-                  <label className="block mb-2">Image panoramique (360°)</label>
-                  <input 
-                    type="file" 
-                    name="pic" 
-                    accept="image/*" 
-                    onChange={handleImageChange} 
-                    required 
-                    className="w-full p-2 border border-gray-300 rounded"
-                  />
-                </div>
-                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Ajouter l'image</button>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+      <ModalAddEditImage isOpen={addImageModalOpen} toggle={
+        () => setAddImageModalOpen(!addImageModalOpen)
+      } id_rooms={id} imageToUpdate={imageToUpdate} reload={reloadAfterAddEditImage} />
     </div>
   );
 };

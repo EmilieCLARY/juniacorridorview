@@ -543,7 +543,7 @@ const AdminRoom = () => {
         <Select
           isMulti
           name="building"
-          options={getUniqueOptions('building_name')}
+          options={ buildings.map(building => ({ value: building.name, label: building.name })).sort((a, b) => a.value.localeCompare(b.value))}
           className="basic-multi-select"
           classNamePrefix="select"
           placeholder="Bâtiment"
@@ -933,7 +933,7 @@ const AdminRoom = () => {
                 <div className="w-2/3">
                   <Select
                     name="building"
-                    options={getUniqueOptions('building_name')}
+                    options={getBuildingOptions()}
                     className="basic-single-select"
                     classNamePrefix="select"
                     placeholder="Sélectionner un bâtiment"
@@ -942,10 +942,16 @@ const AdminRoom = () => {
                     menuPlacement="auto"
                     menuPosition="fixed"
                     menuPortalTarget={document.body}
-                    onChange={(selectedOption) => setEditRoomData(prevData => ({
-                      ...prevData,
-                      building: selectedOption.value
-                    }))}
+                    onChange={(selectedOption) => {
+                        setEditRoomData(prevData => ({
+                          ...prevData,
+                          building: selectedOption.value,
+                          floor: '',
+                          floorId: '',
+                          plan_x: '',
+                          plan_y: ''
+                        }))
+                    }}
                     required
                   />
                 </div>
@@ -956,11 +962,12 @@ const AdminRoom = () => {
                 <div className="w-2/3 flex flex-row gap-4 items-center">
                   <Select
                     name="floor"
-                    options={floors.map(floor => ({ value: floor.id_floors.toString(), label: floor.name })).sort((a, b) => a.value - b.value)}
+                    //options={floors.map(floor => ({ value: floor.id_floors.toString(), label: floor.name })).sort((a, b) => a.value - b.value)}
+                    options={floors.filter(floor => floor.id_buildings === parseInt(editRoomData.building)).map(floor => ({ value: floor.id_floors.toString(), label: floor.name })).sort((a, b) => a.value - b.value)}
                     className="basic-single-select"
                     classNamePrefix="select"
                     placeholder="Sélectionner un étage"
-                    defaultValue={{ value: editRoomData.floor, label: editRoomData.floor }}
+                    value={{ value: editRoomData.floor, label: editRoomData.floor }}
                     styles={customSelectStyles}
                     menuPlacement="auto"
                     menuPosition="fixed"
