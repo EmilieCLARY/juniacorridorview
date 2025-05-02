@@ -93,9 +93,6 @@ const ModalPlanPlacement = ({
                         >
                             Fermer
                         </button>
-                        <div style={{maxHeight: "15vh", maxWidth: "15vw"}}>
-                            <PlanImage image={floor.plan} altText={"plan"} pinX={pinPosition ? pinPosition.x : null} pinY={pinPosition ? pinPosition.y : null} />
-                        </div>
                     </div>
                 </div>
             )}

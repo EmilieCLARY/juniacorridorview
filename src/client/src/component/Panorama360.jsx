@@ -1,8 +1,9 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import React, { useEffect, useRef, useState, useCallback } from "react";
+import PlanImage from "./plan/PlanImage";
 
-const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositionSelect, isLoading, disableClick}) => {
+const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositionSelect, isLoading, disableClick, floor}) => {
   const mountRef = useRef(null);
   const rendererRef = useRef(null);
   const cameraRef = useRef(null);
@@ -104,7 +105,7 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
         context.textAlign = 'center';
 
         // Wrap title text if it exceeds the canvas width
-        const titleLines = wrapText(context, popup.title.toUpperCase().slice(0, 40), canvasWidth - 80); // Add padding
+        const titleLines = wrapText(context, popup.title.toUpperCase().slice(0, 45), canvasWidth - 80); // Add padding
         const titleYStart = 110; // Starting Y position for the title
         const titleLineHeight = 70; // Line height for the title
 
@@ -164,7 +165,7 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
         context.font = 'Bold 70px Arial';
 
         // Get text dimensions with correct canvas width
-        const titleLines = wrapText(context, popup.title.toUpperCase().slice(0, 40), canvasWidth - 100);
+        const titleLines = wrapText(context, popup.title.toUpperCase().slice(0, 45), canvasWidth - 100);
         context.font = 'Normal 52px Arial';
         const textLines = wrapText(context, popup.text, imageWidth);
 
@@ -524,7 +525,7 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
   };
 
   return (
-    <div ref={mountRef} className="w-full h-full relative">
+    <div ref={mountRef} className="w-full h-full relative" style={{border: "2px solid #3c2c53"}} >
       <img
         src={isFullscreen ? "/img/fullscreen-exit.svg" : "/img/fullscreen.png"}
         alt="Fullscreen"
@@ -538,7 +539,18 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
           cursor: "pointer"
         }}
       />
-      <img
+      {floor && (
+          <div style={{
+            position: "absolute",
+            top: "0px",
+            right: "0px",
+            maxHeight: "15vh",
+            maxWidth: "15vw"
+          }}>
+            <PlanImage image={floor.plan} altText={"plan"} pinX={floor.plan_x} pinY={floor.plan_y} />
+          </div>
+      )}
+      {/*<img
         src={"/img/logojunia.png"}
         alt="floor_plan"
         style={{
@@ -548,7 +560,7 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
           width: "15vw",
           height: "15vh"
         }}
-      />
+      />*/}
 
     </div>
   );

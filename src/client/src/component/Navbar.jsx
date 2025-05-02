@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import * as api from '../api/AxiosLogin';
 import '../style/Navbar.css';
-import {FaHome} from "react-icons/fa";
+import { FaHome } from "react-icons/fa";
+import { AppContext } from '../App';
 
 const Navbar = () => {
+  const { selectedImageName, currentRoomNumber } = useContext(AppContext);
   const [login, setLogin] = useState(false);
   const location = useLocation();
   const [routeName, setRouteName] = useState('');
@@ -23,7 +25,12 @@ const Navbar = () => {
         setRouteName('Accueil');
         break;
       case '/pano':
-        setRouteName('Immersion');
+        if(selectedImageName === '' || currentRoomNumber === '') {
+          setRouteName('Immersion');
+        }
+        else {
+          setRouteName(currentRoomNumber + ' - ' + selectedImageName);
+        }
         break;
       case '/tour':
         setRouteName('Visite Guidée');
@@ -44,7 +51,7 @@ const Navbar = () => {
       default:
         setRouteName('Menu Principal');
     }
-  }, [location]);
+  }, [location, selectedImageName, currentRoomNumber]);
 
   return (
     <>
