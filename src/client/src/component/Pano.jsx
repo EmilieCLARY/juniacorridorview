@@ -251,6 +251,7 @@ const PanoramaViewer = ({ location }) => {
         displayImage(firstImage.imageBlob, firstImage.id);
       }
     }
+    setCurrentRoomNumber(id_rooms); // Set the selected room ID
   };
   
   const handleLinkClick = (id_pictures_destination) => {
@@ -302,7 +303,7 @@ const PanoramaViewer = ({ location }) => {
           {filteredRooms.map(room => (
             <div
               key={room.id_rooms}
-              className="room-container"
+              className={`room-container ${currentRoomName === room.name ? 'selected-room' : ''}`}
               onClick={() => handleRoomClick(room.id_rooms)}
             >
               {roomPreviews[room.id_rooms] && (

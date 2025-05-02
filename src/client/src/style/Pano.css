@@ -69,7 +69,7 @@
 }
 
 .rooms-list::-webkit-scrollbar-thumb {
-  background-color: rgba(232, 92, 48, 0.5); /* Semi-transparent JUNIA orange */
+  background-color: rgba(232, 92, 48, 0.5);
   border-radius: 3px;
 }
 
@@ -154,6 +154,11 @@
   cursor: pointer; /* Change le curseur au survol */
 }
 
+.room-container:hover {
+  border: 3px solid #3c2c53 !important; /* Bordure visible */
+  transition: background-color 0.3s ease !important;
+}
+
 .room-container img {
   flex: 1; /* L'image prend tout l'espace disponible */
   object-fit: cover; /* Ajuste l'image pour remplir le conteneur */
@@ -207,3 +212,7 @@ html, body {
    border-radius: 6px;
    background-color: #f06b42; /* Couleur de la barre de défilement */;
  }
+
+.selected-room {
+  border: 3px solid #f06b42;
+}
