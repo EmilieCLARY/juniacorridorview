@@ -47,7 +47,7 @@ const { db,
     getFloors,
     addFloor,
     deleteFloor,
-    updateFloor
+    updateFloor, getFloorById
 } = require('./database');
 
 
@@ -592,6 +592,18 @@ app.get('/floors', (req, res) => {
     getFloors((err, floors) => {
         if (err) {
             console.error('Error fetching floors', err);
+            res.sendStatus(500);
+        } else {
+            res.json(floors);
+        }
+    });
+});
+
+app.get('/floors/:id', (req, res) => {
+    const id_floors = req.params.id;
+    getFloorById(id_floors, (err, floors) => {
+        if (err) {
+            console.error('Error fetching floors for building:', err);
             res.sendStatus(500);
         } else {
             res.json(floors);
