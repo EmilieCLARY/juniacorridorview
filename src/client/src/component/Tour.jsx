@@ -193,10 +193,10 @@ const TourViewer = () => {
           {tours.map(tour => (
             <div key={tour.id_tours} className=" text-justify bg-white p-2 rounded-3xl flex-col">
               <div className="font-title font-bold text-junia-orange text-3xl text-center">{tour.title}</div>
-              <div className="font-texts">{tour.description}</div>
+              <div className="font-texts text-junia-purple">{tour.description}</div>
               {getPanoramaImagesForTour(tour.id_tours).length > 0 && (
                 <div className="mt-4" style={{ height: "500px" }}>
-                    <p className="font-texts font-bold text-center text-junia-violet">Salle : {currentRoomName[tour.id_tours] || getPanoramaImagesForTour(tour.id_tours)[0]?.roomName}</p>
+                    <p className="font-title font-bold text-center text-junia-purple">Salle : {currentRoomName[tour.id_tours] || getPanoramaImagesForTour(tour.id_tours)[0]?.roomName}</p>
                     <div style={{ height: "500px" }}>
                       <Carousel 
                         items={getPanoramaImagesForTour(tour.id_tours)} 
@@ -214,7 +214,7 @@ const TourViewer = () => {
               <div className="flex justify-center margin-top-8">
                 <div 
                   onClick={() => handleTourClick(tour.id_tours)} 
-                  className="text-xl text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl p-2 w-1/3 max-w-max inline-block mb-2 mt-2 cursor-pointer bouton-modifier"
+                  className="text-xl text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl px-4 py-2 w-auto whitespace-nowrap inline-block mb-2 mt-2 cursor-pointer bouton-modifier"
                 >
                   Commencer le parcours
                 </div>
