@@ -105,7 +105,7 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
         context.textAlign = 'center';
 
         // Wrap title text if it exceeds the canvas width
-        const titleLines = wrapText(context, popup.title.toUpperCase().slice(0, 40), canvasWidth - 80); // Add padding
+        const titleLines = wrapText(context, popup.title.toUpperCase().slice(0, 45), canvasWidth - 80); // Add padding
         const titleYStart = 110; // Starting Y position for the title
         const titleLineHeight = 70; // Line height for the title
 
@@ -165,7 +165,7 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
         context.font = 'Bold 70px Arial';
 
         // Get text dimensions with correct canvas width
-        const titleLines = wrapText(context, popup.title.toUpperCase().slice(0, 40), canvasWidth - 100);
+        const titleLines = wrapText(context, popup.title.toUpperCase().slice(0, 45), canvasWidth - 100);
         context.font = 'Normal 52px Arial';
         const textLines = wrapText(context, popup.text, imageWidth);
 

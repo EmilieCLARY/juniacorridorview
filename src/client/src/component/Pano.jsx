@@ -1,14 +1,17 @@
 import { Buffer } from 'buffer';
-import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useRef, useState, useCallback, useMemo, useContext } from "react";
 import * as api from '../api/AxiosPano';
 import { getTourSteps } from '../api/AxiosTour';
 import '../style/Pano.css';
 import { toast } from "sonner";
 import Panorama360 from './Panorama360';
 import Loader from "./Loader";
+import Navbar from './Navbar';
+import { AppContext } from '../App';
 
 const PanoramaViewer = ({ location }) => {
   Buffer.from = Buffer.from || require('buffer').Buffer;
+  const { setSelectedImageName, setCurrentRoomNumber } = useContext(AppContext);
   const [images, setImages] = useState([]);
   const [currentImageId, setCurrentImageId] = useState(null);
   const [infoPopups, setInfoPopups] = useState({});
@@ -17,7 +20,6 @@ const PanoramaViewer = ({ location }) => {
   const isLoading = useRef(true);
 
   const [currentRoomName, setCurrentRoomName] = useState('');
-  const [currentRoomNumber, setCurrentRoomNumber] = useState('');
   const [rooms, setRooms] = useState([]);
   const [roomPreviews, setRoomPreviews] = useState({});
   const [previewFlags, setPreviewFlags] = useState({}); // Track which images are previews
@@ -199,6 +201,7 @@ const PanoramaViewer = ({ location }) => {
     const room = await api.getRoomDetails(id_rooms);
     setCurrentRoomName(room.name);
     setCurrentRoomNumber(room.number);
+    setSelectedImageName(room.name); // Use room.name directly here
   };
 
   const fetchFloor = async (id_rooms) => {
@@ -217,11 +220,12 @@ const PanoramaViewer = ({ location }) => {
   const displayImage = async (imageBlob, id) => {
     cleanUrlParams();
     if (currentImageId !== id) setCurrentImageId(id);
-
+  
     const retrievedPopupsPromise = handleRetrieveInfoPopUp(id);
     const retrievedLinksPromise = handleRetrieveLinks(id);
-
+  
     const roomIdPromise = api.getRoomIdByPictureId(id);
+
     const roomDetailsPromise = roomIdPromise.then((roomId) => {
       fetchRoomDetails(roomId);
       fetchFloor(roomId);
@@ -230,21 +234,21 @@ const PanoramaViewer = ({ location }) => {
     if(!isLoading.current || firstLoad) {
       showLoading([retrievedPopupsPromise, retrievedLinksPromise, roomIdPromise, roomDetailsPromise], 'Chargement des données...', 'Chargement des données réussi', 'Erreur lors du chargement des données');
     }
-
-    retrievedPopupsPromise.then((retrievedPopupsPromise) => {
-      setInfoPopups(prevInfoPopups => ({
+  
+    retrievedPopupsPromise.then((retrievedPopups) => {
+      setInfoPopups((prevInfoPopups) => ({
         ...prevInfoPopups,
-        [id]: retrievedPopupsPromise
+        [id]: retrievedPopups,
       }));
     });
-
-    retrievedLinksPromise.then((retrievedLinksPromise) => {
-      setLinks(prevLinks => ({
+  
+    retrievedLinksPromise.then((retrievedLinks) => {
+      setLinks((prevLinks) => ({
         ...prevLinks,
-        [id]: retrievedLinksPromise
+        [id]: retrievedLinks,
       }));
     });
-
+  
     Promise.all([retrievedPopupsPromise, retrievedLinksPromise, roomIdPromise, roomDetailsPromise]).then(() => {
       setLoadingImageBeforeRoomSwitch(false);
     });
@@ -260,6 +264,7 @@ const PanoramaViewer = ({ location }) => {
         displayImage(firstImage.imageBlob, firstImage.id);
       }
     }
+    setCurrentRoomNumber(id_rooms); // Set the selected room ID
   };
   
   const handleLinkClick = (id_pictures_destination) => {
@@ -272,9 +277,11 @@ const PanoramaViewer = ({ location }) => {
 
   useEffect(() => {
     if (images.length > 0 && !isLoading.current && firstLoad.current) {
-      if(loadingImage.current) return;
+      if (loadingImage.current) return;
       loadingImage.current = true;
-      displayImage(images[0].imageBlob, images[0].id);
+      const firstImage = images[0];
+      displayImage(firstImage.imageBlob, firstImage.id);
+      setSelectedImageName(currentRoomName || ''); // Update selectedImageName here
       firstLoad.current = false;
     }
   }, [images]);
@@ -289,6 +296,7 @@ const PanoramaViewer = ({ location }) => {
   const filteredRooms = useMemo(() => {
     // First filter out any rooms that are hidden
     const visibleRooms = rooms.filter(room => room.hidden !== 1);
+    visibleRooms.sort((a, b) => a.number.localeCompare(b.number));
     
     // Then apply the tour-specific filtering if needed
     return visitType.startsWith('Visite guidée') 
@@ -297,7 +305,7 @@ const PanoramaViewer = ({ location }) => {
   }, [visitType, rooms, tourSteps]);
   
   return (
-    <div >
+    <div>
       <Loader show={loading} text={textLoading} />
       <div className="panorama-container bg-junia-lavender">
         <div className="h-full scrollable-list flex-col w-15" id="style-2">
@@ -308,7 +316,7 @@ const PanoramaViewer = ({ location }) => {
           {filteredRooms.map(room => (
             <div
               key={room.id_rooms}
-              className="room-container"
+              className={`room-container ${currentRoomName === room.name ? 'selected-room' : ''}`}
               onClick={() => handleRoomClick(room.id_rooms)}
             >
               {roomPreviews[room.id_rooms] && (
@@ -318,7 +326,7 @@ const PanoramaViewer = ({ location }) => {
                 />
               )}
               <div className="bg-white text-center font-bold text-junia-orange room-title border-junia-orange">
-                {room.name} ({room.number})
+              {room.number} - {room.name}
               </div>
             </div>
           ))}
