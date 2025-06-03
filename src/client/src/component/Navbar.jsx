@@ -6,9 +6,10 @@ import { FaHome } from "react-icons/fa";
 import { AppContext } from '../App';
 import firebase from "firebase/compat/app"; // Use compat version
 import "firebase/compat/auth"; // Use compat version for auth
+import { FaUserCog } from "react-icons/fa"; // Ajout de l'icône user settings
 
-const Navbar = () => {
-  const { selectedImageName, currentRoomNumber, isAuthenticated, setIsAuthenticated } = useContext(AppContext);
+const Navbar = ({ isAuthenticated, selectedImageName, currentRoomNumber }) => {
+  const { setIsAuthenticated } = useContext(AppContext);
   const [login, setLogin] = useState(false);
   const location = useLocation();
   const history = useHistory();
@@ -30,11 +31,14 @@ const Navbar = () => {
         setRouteName('Accueil');
         break;
       case '/pano':
-        if(selectedImageName === '' || currentRoomNumber === '') {
+        // Correction ici : afficher "numéro de la salle - nom de la salle"
+        const safeImageName = selectedImageName || '';
+        const safeRoomNumber = currentRoomNumber || '';
+        if(safeImageName === '' || safeRoomNumber === '') {
           setRouteName('Immersion');
         }
         else {
-          setRouteName(currentRoomNumber + ' - ' + selectedImageName);
+          setRouteName(safeRoomNumber + ' - ' + safeImageName);
         }
         break;
       case '/tour':
@@ -51,6 +55,9 @@ const Navbar = () => {
         break;
       case '/admin/building':
         setRouteName('Gestion des Bâtiments');
+        break;
+      case '/admin/user':
+        setRouteName('Gestion des Utilisateurs');
         break;
       case location.pathname.match(/^\/admin\/room\/\d+$/)?.input:
         setRouteName('Gestion d\'une Salle');
@@ -108,6 +115,15 @@ const Navbar = () => {
           {!isAuthenticated && !isAdminPage && (
             <NavLink to="/login" className="text-inherit no-underline hover:text-inherit">
               Connexion
+            </NavLink>
+          )}
+          {isAuthenticated && isAdminPage && (
+            <NavLink
+              to="/admin/user"
+              className="text-inherit no-underline hover:text-inherit flex items-center"
+              style={{ display: "inline-flex", alignItems: "center" }}
+            >
+              <FaUserCog className="text-4xl ml-2 cursor-pointer" title="Paramètres utilisateur" />
             </NavLink>
           )}
           {isAuthenticated && (

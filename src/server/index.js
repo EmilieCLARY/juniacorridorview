@@ -700,6 +700,74 @@ app.post("/api/set-admin-claim", async (req, res) => {
 // Protect admin routes
 app.use("/admin", requireAuth);
 
+app.post("/api/create-user", async (req, res) => {
+  const { email, password } = req.body;
+  if (!email) return res.status(400).json({ error: "Email requis" });
+
+  try {
+    // Crée l'utilisateur avec un mot de passe temporaire (obligatoire pour Firebase Admin)
+    const tempPassword = password || (Math.random().toString(36).slice(-10) + "A1!");
+    const userRecord = await admin.auth().createUser({
+      email,
+      password: tempPassword,
+      emailVerified: false,
+    });
+
+    // Génère un lien de réinitialisation de mot de passe pour que l'utilisateur choisisse son mdp
+    const resetLink = await admin.auth().generatePasswordResetLink(email);
+
+    // Retourne le lien au frontend
+    res.json({ success: true, resetLink });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/list-users", async (req, res) => {
+  try {
+    const listAllUsers = async (nextPageToken, users = []) => {
+      const result = await admin.auth().listUsers(1000, nextPageToken);
+      users = users.concat(result.users.map(user => ({
+        email: user.email,
+        uid: user.uid,
+        customClaims: user.customClaims || {}
+      })));
+      if (result.pageToken) {
+        return listAllUsers(result.pageToken, users);
+      }
+      return users;
+    };
+    const users = await listAllUsers();
+    res.json({ users });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/reset-password", async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: "Email requis" });
+
+  try {
+    const resetLink = await admin.auth().generatePasswordResetLink(email);
+    res.json({ success: true, resetLink });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/delete-user", async (req, res) => {
+  const { uid } = req.body;
+  if (!uid) return res.status(400).json({ error: "UID requis" });
+
+  try {
+    await admin.auth().deleteUser(uid);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

@@ -9,6 +9,7 @@ import AdminRoom from './component/AdminRoom';
 import AdminRoomDetails from './component/AdminRoomDetails';
 import Login from './component/Login';
 import AdminBuilding from "./component/AdminBuilding";
+import AdminUser from './component/AdminUser';
 
 import './App.css';
 import {Toaster} from "sonner";
@@ -29,6 +30,8 @@ const PrivateRoute = ({ component: Component, ...rest }) => {
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [selectedImageName, setSelectedImageName] = useState('');
+  const [currentRoomNumber, setCurrentRoomNumber] = useState('');
 
   useEffect(() => {
     // Check authentication status on app load
@@ -37,17 +40,32 @@ const App = () => {
   }, []);
 
   return (
-    <AppContext.Provider value={{ isAuthenticated, setIsAuthenticated }}>
+    <AppContext.Provider value={{ isAuthenticated, setIsAuthenticated, selectedImageName, setSelectedImageName, currentRoomNumber, setCurrentRoomNumber }}>
       <Toaster />
-      <Navbar isAuthenticated={isAuthenticated} />
+      <Navbar
+        isAuthenticated={isAuthenticated}
+        selectedImageName={selectedImageName}
+        currentRoomNumber={currentRoomNumber}
+      />
       <Switch>
         <Route exact path="/" component={Home} />
-        <Route exact path="/pano" component={PanoramaViewer} />
+        <Route
+          exact
+          path="/pano"
+          render={props => (
+            <PanoramaViewer
+              {...props}
+              setSelectedImageName={setSelectedImageName}
+              setCurrentRoomNumber={setCurrentRoomNumber}
+            />
+          )}
+        />
         <Route exact path="/tour" component={TourViewer} />
         <PrivateRoute exact path="/admin/tour" component={AdminTour} />
         <PrivateRoute exact path="/admin/room" component={AdminRoom} />
         <PrivateRoute exact path="/admin/room/:id" component={AdminRoomDetails} />
         <PrivateRoute exact path="/admin/building" component={AdminBuilding} />
+        <PrivateRoute exact path="/admin/user" component={AdminUser} />
         <Route exact path="/login" component={Login} />
       </Switch>
     </AppContext.Provider>
@@ -55,6 +73,3 @@ const App = () => {
 }
 
 export default App;
-
-
-
