@@ -696,7 +696,9 @@ const AdminRoomDetails = () => {
                     if (!file.type.startsWith("image/")) {
                       alert("Veuillez sélectionner un fichier image valide.");
                       e.target.value = ""; // Clear the input
+                      }
                     }
+                  }
                   />
                   <div className="position-inputs-container">
                     <input 
