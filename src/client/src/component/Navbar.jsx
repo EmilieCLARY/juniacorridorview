@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { NavLink, useLocation, useHistory } from 'react-router-dom';
 import * as api from '../api/AxiosLogin';
 import '../style/Navbar.css';
@@ -6,7 +6,7 @@ import { FaHome } from "react-icons/fa";
 import { AppContext } from '../App';
 import firebase from "firebase/compat/app"; // Use compat version
 import "firebase/compat/auth"; // Use compat version for auth
-import { FaUserCog } from "react-icons/fa"; // Ajout de l'icône user settings
+import { FaUserCog, FaUser } from "react-icons/fa"; // Ajout de l'icône user settings
 
 const Navbar = ({ isAuthenticated, selectedImageName, currentRoomNumber }) => {
   const { setIsAuthenticated } = useContext(AppContext);
@@ -16,6 +16,7 @@ const Navbar = ({ isAuthenticated, selectedImageName, currentRoomNumber }) => {
   const [routeName, setRouteName] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false); // State to toggle modal visibility
   const [userEmail, setUserEmail] = useState(""); // State to store the user's email
+  const modalRef = useRef(null);
 
   useEffect(() => {
     const checkLogin = async () => {
@@ -72,7 +73,7 @@ const Navbar = ({ isAuthenticated, selectedImageName, currentRoomNumber }) => {
     const fetchUserEmail = () => {
       const user = firebase.auth().currentUser;
       if (user) {
-        setUserEmail(user.email); // Set the user's email
+        setUserEmail(user.email);
       }
     };
     fetchUserEmail();
@@ -83,14 +84,27 @@ const Navbar = ({ isAuthenticated, selectedImageName, currentRoomNumber }) => {
     await firebase.auth().signOut();
     localStorage.removeItem("isAuthenticated");
     setIsAuthenticated(false);
-    history.push("/login"); // Redirect to login page
+    history.push("/login");
   };
 
   const toggleModal = () => {
-    setIsModalOpen((prev) => !prev); // Toggle modal visibility
+    setIsModalOpen((prev) => !prev);
   };
 
   const isAdminPage = location.pathname.startsWith("/admin");
+
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const handleClickOutside = (event) => {
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        setIsModalOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isModalOpen]);
 
   return (
     <>
@@ -127,23 +141,15 @@ const Navbar = ({ isAuthenticated, selectedImageName, currentRoomNumber }) => {
             </NavLink>
           )}
           {isAuthenticated && (
-            <div className="relative inline-block text-left">
-              <div>
-                <button
-                  type="button"
-                  className="inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                  id="menu-button"
-                  aria-expanded="true"
-                  aria-haspopup="true"
-                  onClick={toggleModal}
-                >
-                  <img
-                    src="https://via.placeholder.com/30" // Replace with a real profile icon URL
-                    alt="Profile"
-                    className="h-8 w-8 rounded-full"
-                  />
-                </button>
-              </div>
+            <div className="relative inline-block text-left" ref={modalRef}>
+              <button
+                type="button"
+                onClick={toggleModal}
+                style={{ background: "none", border: "none", padding: 0, margin: 0, lineHeight: 1 }}
+                className="text-inherit no-underline hover:text-inherit flex items-center"
+              >
+                <FaUser className="text-4xl align-middle cursor-pointer" style={{ verticalAlign: "middle", fontSize: "1.75rem" }} title="Utilisateur" />
+              </button>
               {isModalOpen && (
                 <div
                   style={{

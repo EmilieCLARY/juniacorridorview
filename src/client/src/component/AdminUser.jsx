@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
 import { createUser, getAllUsers, resetPassword, deleteUser } from "../api/AxiosAdminUser";
-import { FaTrash, FaPen } from "react-icons/fa";
+import { FaTrash, FaPen, FaPlus } from "react-icons/fa";
 
 const generatePassword = () => {
   // 10 chars + 1 uppercase + 1 lowercase + 1 number + 1 special
@@ -31,6 +31,7 @@ const AdminUser = () => {
   const [resetLinks, setResetLinks] = useState({}); // { [uid]: link }
   const [resetModal, setResetModal] = useState({ open: false, email: "", link: "" });
   const [confirmDelete, setConfirmDelete] = useState({ open: false, email: "", uid: "" });
+  const [search, setSearch] = useState(""); // Ajout de l'état pour la recherche
 
   useEffect(() => {
     // Fetch users on mount
@@ -110,74 +111,80 @@ const AdminUser = () => {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#fff3f0' }}>
-      <div className="max-w-7xl mx-auto py-10 px-6">
-        <div className="bg-white rounded-2xl shadow-lg p-12 border-2 border-junia-orange" style={{ margin: "0 2rem" }}>
+      <div className="max-w-7xl mx-auto py-10 px-6 ">
+        <div className="bg-white rounded-2xl shadow-lg p-12 border-2 border-junia-orange m-4">
           <div className="flex flex-col lg:flex-row gap-8">
-            {/* Liste des utilisateurs à gauche, plus grande */}
-            <div className="flex-grow lg:w-3/4">
-              <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 ">
-                <div className="text-3xl font-title text-junia-orange">Liste des utilisateurs</div>
-                <button
-                  className="bg-junia-orange hover:bg-junia-purple transition-colors text-white px-6 py-3 rounded-full font-title text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
-                  onClick={() => setShowModal(true)}
-                >
-                  + Créer utilisateur
-                </button>
-              </div>
-              {message && (
-                <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg text-center font-semibold">
-                  {message}
+
+            <div className="flex flex-row items-start gap-8">
+              <div className="flex flex-col flex-grow">
+                <div className="flex flex-row justify-between items-center mb-8 ml-4 mt-2">
+                  <div className="text-3xl font-title text-junia-orange">Liste des utilisateurs</div>
+                  <button
+                    className="bg-junia-orange hover:bg-junia-purple text-white p-2 rounded-full font-title text-lg shadow-lg hover:shadow-xl transform mr-4 mt-2 cursor-pointer flex flex-row items-center gap-2"
+                    onClick={() => setShowModal(true)}
+                  >
+                    <FaPlus/> Créer utilisateur
+                  </button>
                 </div>
-              )}
-              <div className="overflow-x-auto rounded-xl border-2 border-junia-purple shadow-lg">
-                {loading ? (
-                  <div className="text-center py-12 text-xl text-junia-purple font-title">Chargement...</div>
-                ) : (
-                  <table className="w-full bg-white">
-                    <thead>
-                      <tr className="bg-junia-purple text-white">
-                        <th className="px-6 py-4 font-title text-lg text-left">Email</th>
-                        <th className="px-6 py-4 font-title text-lg text-left">UID</th>
-                        <th className="px-6 py-4 font-title text-lg text-left">Permissions</th>
-                        <th className="px-6 py-4 font-title text-lg text-left">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {users.map((user, index) => (
-                        <tr key={user.uid} className={`border-b border-gray-200 hover:bg-junia-lavender transition-colors ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
-                          <td className="px-6 py-4 font-texts text-gray-800">{user.email}</td>
-                          <td className="px-6 py-4 font-mono text-xs text-gray-600 break-all">{user.uid}</td>
-                          <td className="px-6 py-4">
-                            <div className="bg-gray-100 rounded p-2 font-mono text-xs">
-                              <pre className="whitespace-pre-wrap text-gray-700">
-                                {Object.keys(user.customClaims || {}).length > 0 
-                                  ? JSON.stringify(user.customClaims, null, 2)
-                                  : 'Aucune permission spécifiée.'
-                                }
-                              </pre>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 flex flex-col sm:flex-row gap-2">
-                            <button
-                              className="bg-junia-orange hover:bg-junia-purple transition-colors text-white px-4 py-2 rounded-full font-title text-sm mr-0 sm:mr-2 flex items-center gap-2 group"
-                              onClick={() => handleResetPassword(user.email, user.uid)}
-                            >
-                              <FaPen className="text-base group-hover:cursor-pointer" />
-                              Réinitialiser le mot de passe
-                            </button>
-                            <button
-                              className="bg-junia-purple hover:bg-red-800 transition-colors text-white px-4 py-2 rounded-full font-title text-sm flex items-center gap-2 group"
-                              onClick={() => handleDeleteUser(user.uid, user.email)}
-                            >
-                              <FaTrash className="text-base group-hover:cursor-pointer" />
-                              Supprimer le compte
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                {/* Barre de recherche */}
+                <div className="mb-6 ml-4 mr-4 pt-2">
+                  <input
+                    type="text"
+                    placeholder="Rechercher un utilisateur par email..."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-junia-orange rounded-full font-texts focus:outline-none focus:border-junia-purple transition-colors text-junia-orange placeholder-junia-orange"
+                  />
+                </div>
+                {message && (
+                  <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg text-center font-semibold">
+                    {message}
+                  </div>
                 )}
+                <div className="overflow-x-auto rounded-xl shadow-lg m-4">
+                  {loading ? (
+                    <div className="text-center py-12 text-xl text-junia-purple font-title">Chargement...</div>
+                  ) : (
+                    <table className="w-full bg-white rounded-xl">
+                      <thead className="p-4 rounded-t-xl">
+                        <tr className="bg-junia-purple text-white">
+                          <th className="px-4 py-4 font-title text-lg text-center">Email</th>
+                          <th className="px-4 py-4 font-title text-lg text-center">UID</th>
+                          <th className="py-4 font-title text-lg text-center">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="rounded-b-xl">
+                        {[...users]
+                          .filter(user => user.email.toLowerCase().includes(search.toLowerCase()))
+                          .sort((a, b) => a.email.localeCompare(b.email))
+                          .map((user, index) => (
+                            <tr key={user.uid} className={`border-b border-gray-200 hover:bg-junia-lavender transition-colors ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
+                              <td className="px-4 py-4 font-texts text-gray-800">{user.email}</td>
+                              <td className="px-4 py-4 font-mono text-xs text-gray-600 break-all text-center">{user.uid}</td>
+                              <td className="px-6 py-4 flex flex-col sm:flex-row gap-2 items-center">
+                                <button
+                                  className="bg-junia-orange hover:bg-junia-purple transition-colors text-white px-4 py-2 rounded-full font-title text-sm mr-0 sm:mr-2 flex items-center gap-2 group cursor-pointer"
+                                  onClick={() => handleResetPassword(user.email, user.uid)}
+                                  style={{ width: 'fit-content' }}
+                                >
+                                  <FaPen className="text-base" />
+                                  Réinitialiser le mot de passe
+                                </button>
+                                <button
+                                  className="bg-junia-purple hover:bg-red-800 transition-colors text-white px-4 py-2 rounded-full font-title text-sm flex items-center gap-2 group cursor-pointer"
+                                  onClick={() => handleDeleteUser(user.uid, user.email)}
+                                  style={{ width: 'fit-content' }}
+                                >
+                                  <FaTrash className="text-base" />
+                                  Supprimer le compte
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -305,15 +312,16 @@ const AdminUser = () => {
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-700 mb-2">
                 Envoyez ce lien à l'utilisateur pour qu'il puisse définir son mot de passe :
-              </p>
+              
               <a
                 href={resetModal.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 underline text-sm break-all hover:text-blue-800 transition-colors"
+                className="text-blue-600 underline text-sm break-all hover:text-blue-800 transition-colors pl-2"
               >
-                {resetModal.link}
+                Lien
               </a>
+              </p>
             </div>
             <div className="flex justify-end mt-4 gap-2">
               <button
