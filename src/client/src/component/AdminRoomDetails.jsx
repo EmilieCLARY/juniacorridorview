@@ -38,13 +38,13 @@ const AdminRoomDetails = () => {
   const [infospotToEdit, setInfospotToEdit] = useState(null);
   const [editInfospotMod, setEditInfospotMod] = useState(false);
   const [addImageModalOpen, setAddImageModalOpen] = useState(false);
+  const [newImage, setNewImage] = useState(null);
   const [modalSelectedPicture, setModalSelectedPicture] = useState('');
   const [modalInfoPopups, setModalInfoPopups] = useState([]);
   const [modalLinks, setModalLinks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingModal, setIsLoadingModal] = useState(true);
   const [disableBackgroundClick, setDisableBackgroundClick] = useState(false);
-  const [imageToUpdate, setImageToUpdate] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [textLoading, setTextLoading] = useState("Chargement des données...");
@@ -417,33 +417,34 @@ const AdminRoomDetails = () => {
     setEditLinkMod(false);
   }
 
-  const handleEditPicture = async (id) => {
-    console.log('Editing picture', id);
-    setImageToUpdate(pictures.find(pic => pic.id_pictures === id));
-    setAddImageModalOpen(true);
-  }
+  const handleImageChange = (e) => {
+    setNewImage(e.target.files[0]);
+  };
 
-  const handleDeletePicture = async (id) => {
-    if (!window.confirm('Etes-vous sûr de vouloir supprimer l\'image ?')) return;
-    const deletePromise = api.deleteImage(id);
-    const updatedPicturesPromise = deletePromise.then(async () => {
-      await fetchAllData();
-    });
-    showLoading([deletePromise, updatedPicturesPromise], 'Suppression de l\'image...', 'Image supprimée avec succès', 'Erreur lors de la suppression de l\'image');
-  }
-
-  const reloadAfterAddEditImage = async (type) => {
-    if (type === 'add') {
-      const reloadPromise = fetchAllData();
-      setAddImageModalOpen(false);
-      showLoading([reloadPromise], 'Ajout de l\'image...', 'Image ajoutée avec succès', 'Erreur lors de l\'ajout de l\'image');
-    } else if (type === 'edit') {
-      const reloadPromise =  fetchAllData();
-      setImageToUpdate(null);
-      setAddImageModalOpen(false);
-      showLoading([reloadPromise], 'Mise à jour de l\'image...', 'Image mise à jour avec succès', 'Erreur lors de la mise à jour de l\'image');
+  const handleImageUpload = async (event) => {
+    event.preventDefault();
+    if (!newImage) {
+      toast.error('Veuillez sélectionner une image');
+      return;
     }
-  }
+
+    const formData = new FormData();
+    formData.append('id_rooms', id);
+    formData.append('pic', newImage);
+
+    try {
+      const uploadPromise = api.uploadFile(formData);
+      const fetchDataPromise = uploadPromise.then(async () => {
+        await fetchAllData();
+        setAddImageModalOpen(false);
+        setNewImage(null);
+      });
+
+      showLoading([uploadPromise, fetchDataPromise], 'Chargement de l\'image...', 'Image ajoutée avec succès', 'Erreur lors du chargement de l\'image');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+    }
+  };
 
   const breakpointColumnsObj = {
     default: 2,
@@ -467,7 +468,7 @@ const AdminRoomDetails = () => {
       {/*<div className="text-2xl text-junia-purple font-title font-bold mt-4">{roomName}</div>*/}
 
 
-
+      
 
 
     <div className="admin-room-details-container flex flex-col items-center bg-junia-salmon p-3">
@@ -476,10 +477,7 @@ const AdminRoomDetails = () => {
 
         <div className="image-list flex flex-col p-2 justify-between">
             <div className="button-add-360 flex justify-center ">
-                        <button onClick={() => {
-                          setAddImageModalOpen(true);
-                          setImageToUpdate(null);
-                        }} className="button-type font-title font-bold text-2xl p-2">
+                        <button onClick={() => setAddImageModalOpen(true)} className="button-type font-title font-bold text-2xl p-2">
                           Ajouter une image 360°
                         </button>
             </div>
@@ -653,97 +651,271 @@ const AdminRoomDetails = () => {
 
       {/* modales... */}
       {newInfospotModalOpen && (
-        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-40 z-10">
-          <div className="bg-white p-5 border border-gray-400 w-4/5 max-w-6xl">
-            <span className="float-right text-2xl font-bold cursor-pointer text-gray-500 hover:text-black" onClick={closeModalInfospot}>&times;</span>
-            <h2 className="text-xl mb-4">{editInfospotMod ? 'Modifier l\'infobulle' : 'Ajouter une nouvelle infobulle'}</h2>
-            <div className="flex">
-              {!editInfospotMod && (
-                <div className="flex-1 flex flex-col overflow-y-auto p-2.5 border-r border-gray-300">
-                  {pictures.map(picture => (
-                    <div key={picture.id_pictures} className="mb-2.5 cursor-pointer" onClick={() => handleModalPictureClick(picture.imageUrl, picture.id_pictures)}>
-                      <img src={picture.imageUrl} alt={`Aperçu de ${picture.id_pictures}`} className="w-full h-auto" />
-                    </div>
-                  ))}
-                </div>
-              )}
-              <div className="flex-2 p-2.5" style={{flex: '2'}}>
-                <Panorama360
-                  infoPopups={modalInfoPopups}
-                  selectedPicture={modalSelectedPicture}
-                  links={modalLinks}
-                  onLinkClick={() => {}}
-                  onPositionSelect={handlePositionSelect}
-                  isLoading={isLoadingModal}
-                />
+        <div className="fixed inset-0 flex justify-center items-center modal-background z-10 p-4">
+          <div className="modal-infospot">
+            {/* En-tête fixe */}
+            <div className="modal-header">
+              <div className="text-2xl font-bold text-junia-purple font-title text-center flex-grow">
+                {editInfospotMod ? 'Modifier l\'infobulle' : 'Ajouter une nouvelle infobulle'}
               </div>
-              <div className="flex-1 p-2.5">
-                <button type="button" onClick={(event) => handleSelectPositionClick(event)} className="mb-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Positionner</button>
-                <form onSubmit={editInfospotMod ? handleEditInfospotSubmit : handleNewInfospotSubmit} className="flex flex-col gap-2">
-                  <input type="hidden" name="id_pictures" value={selectedImageId || ''} />
-                  <input type="text" name="posX" placeholder="Position X" value={parseFloat(posX).toFixed(4) || ''} onChange={(e) => setPosX(e.target.value)} required readOnly className="p-2 border border-gray-300 rounded" />
-                  <input type="text" name="posY" placeholder="Position Y" value={parseFloat(posY).toFixed(4) || ''} onChange={(e) => setPosY(e.target.value)} required readOnly className="p-2 border border-gray-300 rounded" />
-                  <input type="text" name="posZ" placeholder="Position Z" value={parseFloat(posZ).toFixed(4) || ''} onChange={(e) => setPosZ(e.target.value)} required readOnly className="p-2 border border-gray-300 rounded" />
-                  <input type="text" name="text" placeholder="Texte" required defaultValue={editInfospotMod ? infospotToEdit.text : ''} maxLength="300" className="p-2 border border-gray-300 rounded" />
-                  <input type="text" name="title" placeholder="Titre" required defaultValue={editInfospotMod ? infospotToEdit.title : ''} maxLength="45" className="p-2 border border-gray-300 rounded" />
-                  <input type="file" accept="image/*" name="pic" className="p-2 border border-gray-300 rounded" onChange={(e) => {
+              <button 
+                className="modal-close-button" 
+                onClick={closeModalInfospot}
+              >
+                &times;
+              </button>
+            </div>
+
+            {/* Section Panorama avec hauteur fixe */}
+            <div className="modal-panorama">
+              <Panorama360
+                infoPopups={modalInfoPopups}
+                selectedPicture={modalSelectedPicture}
+                links={modalLinks}
+                onLinkClick={() => {}}
+                onPositionSelect={handlePositionSelect}
+                isLoading={isLoadingModal}
+              />
+            </div>
+
+            {/* Conteneur de formulaire scrollable */}
+            <div className="modal-form-container">
+              <form onSubmit={editInfospotMod ? handleEditInfospotSubmit : handleNewInfospotSubmit} 
+                    className="grid grid-cols-2 gap-4">
+                <input type="hidden" name="id_pictures" value={selectedImageId || ''} />
+                
+                {/* Left column */}
+                <div className="flex flex-col gap-4">
+                  <input 
+                    type="file"
+                    accept="image/*"
+                    name="pic"
+                    className="p-2 rounded file:mr-4 file:py-2 file:px-4 file:text-junia-orange file:opacity-70 file:border-0 file:font-title orange-border"
+                    onChange={(e) => {
                     const file = e.target.files[0];
                     if (!file.type.startsWith("image/")) {
                       alert("Veuillez sélectionner un fichier image valide.");
                       e.target.value = ""; // Clear the input
                     }
-                  }} />
-                  <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">{editInfospotMod ? "Modifier" : "Ajouter"}</button>
-                </form>
-              </div>
+                  />
+                  <div className="position-inputs-container">
+                    <input 
+                      type="text" 
+                      name="posX" 
+                      placeholder="Position X" 
+                      value={parseFloat(posX).toFixed(4) || ''} 
+                      onChange={(e) => setPosX(e.target.value)} 
+                      required 
+                      readOnly 
+                      className="position-input" 
+                    />
+                    <input 
+                      type="text" 
+                      name="posY" 
+                      placeholder="Position Y" 
+                      value={parseFloat(posY).toFixed(4) || ''} 
+                      onChange={(e) => setPosY(e.target.value)} 
+                      required 
+                      readOnly 
+                      className="position-input" 
+                    />
+                    <input 
+                      type="text" 
+                      name="posZ" 
+                      placeholder="Position Z" 
+                      value={parseFloat(posZ).toFixed(4) || ''} 
+                      onChange={(e) => setPosZ(e.target.value)} 
+                      required 
+                      readOnly 
+                      className="position-input" 
+                    />
+                  </div>
+                  
+                  <div className="flex gap-4 justify-center">
+                    <button 
+                      type="button" 
+                      onClick={(event) => handleSelectPositionClick(event)} 
+                      className="button-type font-bold font-title text-xl px-4 py-2">
+                      Positionner
+                    </button>
+                    <button 
+                      type="submit" 
+                      className="button-type font-bold font-title text-xl px-4 py-2">
+                      {editInfospotMod ? "Modifier" : "Ajouter"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Right column */}
+                <div className="flex flex-col gap-4">
+                  <input 
+                    type="text" 
+                    name="title" 
+                    placeholder="Titre" 
+                    required 
+                    defaultValue={editInfospotMod ? infospotToEdit.title : ''} 
+                    maxLength="45" 
+                    className="p-2 rounded orange-border" 
+                  />
+                  <textarea 
+                    name="text" 
+                    placeholder="Texte" 
+                    required 
+                    defaultValue={editInfospotMod ? infospotToEdit.text : ''} 
+                    maxLength="300" 
+                    className="p-2 rounded resize-none modal-textareaHeight orange-border" 
+                  />
+                </div>
+              </form>
             </div>
           </div>
         </div>
       )}
 
       {newLinkModalOpen && (
-        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-40 z-10">
-          <div className="bg-white p-5 border border-gray-400 w-4/5 max-w-6xl">
-            <span className="float-right text-2xl font-bold cursor-pointer text-gray-500 hover:text-black" onClick={closeModalLink}>&times;</span>
-            <h2 className="text-xl mb-4">{editLinkMod ? 'Modifier le lien' : 'Ajouter un nouveau lien'}</h2>
-            <div className="flex">
-              <div className="flex-1 flex flex-col overflow-y-auto p-2.5 border-r border-gray-300">
-                {pictures.map(picture => (
-                  <div key={picture.id_pictures} className="mb-2.5 cursor-pointer" onClick={() => handleModalPictureClick(picture.imageUrl, picture.id_pictures)}>
-                    <p className="text-sm">ID : {picture.id_pictures}</p>
-                    <img src={picture.imageUrl} alt={`Preview of ${picture.id_pictures}`} className="w-full h-auto" />
+        <div className="fixed inset-0 flex justify-center items-center modal-background z-10 p-4">
+          <div className="modal-infospot">
+            {/* En-tête fixe */}
+            <div className="modal-header">
+              <div className="text-2xl font-bold text-junia-purple font-title text-center flex-grow">
+                {editLinkMod ? 'Modifier le lien' : 'Ajouter un nouveau lien'}
+              </div>
+              <button 
+                className="modal-close-button" 
+                onClick={closeModalLink}
+              >
+                &times;
+              </button>
+            </div>
+
+            {/* Section Panorama avec hauteur fixe */}
+            <div className="modal-panorama">
+              <Panorama360
+                infoPopups={modalInfoPopups}
+                selectedPicture={modalSelectedPicture}
+                links={modalLinks}
+                onLinkClick={() => {}}
+                onPositionSelect={handlePositionSelect}
+                isLoading={isLoadingModal}
+              />
+            </div>
+
+            {/* Conteneur de formulaire scrollable */}
+            <div className="modal-form-container">
+              <form onSubmit={editLinkMod ? handleEditLinkSubmit : handleNewLinkSubmit} 
+                    className="grid grid-cols-2 gap-4">
+                <input type="hidden" name="id_pictures" value={selectedImageId || ''} />
+                
+                {/* Left column */}
+                <div className="flex flex-col gap-4">
+                  <input 
+                    type="text" 
+                    name="id_pictures_destination" 
+                    placeholder="ID de destination" 
+                    required 
+                    defaultValue={editLinkMod ? linkToEdit.id_pictures_destination : ''} 
+                    className="p-2 rounded orange-border" 
+                    />
+                  <div className="position-inputs-container">
+                    
+
+                    <input 
+                      type="text" 
+                      name="posX" 
+                      placeholder="Position X" 
+                      value={parseFloat(posX).toFixed(4) || ''} 
+                      onChange={(e) => setPosX(e.target.value)} 
+                      required 
+                      readOnly 
+                      className="position-input" 
+                    />
+                    <input 
+                      type="text" 
+                      name="posY" 
+                      placeholder="Position Y" 
+                      value={parseFloat(posY).toFixed(4) || ''} 
+                      onChange={(e) => setPosY(e.target.value)} 
+                      required 
+                      readOnly 
+                      className="position-input" 
+                    />
+                    <input 
+                      type="text" 
+                      name="posZ" 
+                      placeholder="Position Z" 
+                      value={parseFloat(posZ).toFixed(4) || ''} 
+                      onChange={(e) => setPosZ(e.target.value)} 
+                      required 
+                      readOnly 
+                      className="position-input" 
+                    />
                   </div>
-                ))}
-              </div>
-              <div className="flex-2 p-2.5" style={{flex: '2'}}>
-                <Panorama360
-                  infoPopups={modalInfoPopups}
-                  selectedPicture={modalSelectedPicture}
-                  links={modalLinks}
-                  onLinkClick={() => {}}
-                  onPositionSelect={handlePositionSelect}
-                  isLoading={isLoadingModal}
-                />
-              </div>
-              <div className="flex-1 p-2.5">
-                <button type="button" onClick={(event) => handleSelectPositionClick(event)} className="mb-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Positionner</button>
-                <form onSubmit={editLinkMod ? handleEditLinkSubmit : handleNewLinkSubmit} className="flex flex-col gap-2">
-                  <input type="hidden" name="id_pictures" value={selectedImageId || ''} />
-                  <input type="text" name="posX" placeholder="Position X" value={parseFloat(posX).toFixed(4) || ''} onChange={(e) => setPosX(e.target.value)} required readOnly className="p-2 border border-gray-300 rounded" />
-                  <input type="text" name="posY" placeholder="Position Y" value={parseFloat(posY).toFixed(4) || ''} onChange={(e) => setPosY(e.target.value)} required readOnly className="p-2 border border-gray-300 rounded" />
-                  <input type="text" name="posZ" placeholder="Position Z" value={parseFloat(posZ).toFixed(4) || ''} onChange={(e) => setPosZ(e.target.value)} required readOnly className="p-2 border border-gray-300 rounded" />
-                  <input type="text" name="id_pictures_destination" placeholder="Picture Destination ID" required defaultValue={editLinkMod ? linkToEdit.id_pictures_destination : ''} className="p-2 border border-gray-300 rounded" />
-                  <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">{editLinkMod ? "Modifier" : "Ajouter"}</button>
-                </form>
-              </div>
+                  
+                  <div className="flex gap-4 justify-center">
+                    <button 
+                      type="button" 
+                      onClick={(event) => handleSelectPositionClick(event)} 
+                      className="button-type font-bold font-title text-xl px-4 py-2">
+                      Positionner
+                    </button>
+                    <button 
+                      type="submit" 
+                      className="button-type font-bold font-title text-xl px-4 py-2">
+                      {editLinkMod ? "Modifier" : "Ajouter"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Right column */}
+                <div className="flex flex-col gap-4 h-full overflow-y-auto">
+                  
+                  <div className="flex-1 overflow-y-auto">
+                    {pictures.map(picture => (
+                      <div 
+                        key={picture.id_pictures} 
+                        className="mb-4 cursor-pointer bg-white p-2 rounded-lg hover:shadow-lg transition-all"
+                        onClick={() => handleModalPictureClick(picture.imageUrl, picture.id_pictures)}
+                      >
+                        <p className="text-sm font-bold mb-2">ID : {picture.id_pictures}</p>
+                        <img 
+                          src={picture.imageUrl} 
+                          alt={`Aperçu ${picture.id_pictures}`} 
+                          className="w-full h-auto rounded-lg"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </form>
             </div>
           </div>
         </div>
       )}
 
-      <ModalAddEditImage isOpen={addImageModalOpen} toggle={
-        () => setAddImageModalOpen(!addImageModalOpen)
-      } id_rooms={id} imageToUpdate={imageToUpdate} reload={reloadAfterAddEditImage} />
+      {addImageModalOpen && (
+        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-40 z-10">
+          <div className="bg-white p-5 border border-gray-400 w-4/5 max-w-lg">
+            <span className="float-right text-2xl font-bold cursor-pointer text-gray-500 hover:text-black" onClick={() => setAddImageModalOpen(false)}>&times;</span>
+            <h2 className="text-xl mb-4">Ajouter une nouvelle image 360°</h2>
+            <div>
+              <form onSubmit={handleImageUpload} className="flex flex-col gap-2">
+                <div className="mb-4">
+                  <label className="block mb-2">Image panoramique (360°)</label>
+                  <input 
+                    type="file" 
+                    name="pic" 
+                    accept="image/*" 
+                    onChange={handleImageChange} 
+                    required 
+                    className="w-full p-2 border border-gray-300 rounded"
+                  />
+                </div>
+                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Ajouter l'image</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
