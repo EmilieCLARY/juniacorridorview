@@ -14,6 +14,7 @@ const AdminRoomDetails = () => {
   const { id } = useParams();
   const [pictures, setPictures] = useState([]);
   const [selectedPicture, setSelectedPicture] = useState('');
+  const [selectedPictureId, setSelectedPictureId] = useState('');
   const [infoPopups, setInfoPopups] = useState([]);
   const [links, setLinks] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -119,6 +120,7 @@ const AdminRoomDetails = () => {
     }
     Promise.all([getInfoPopupPromise,getLinksPromise]).then(() => {
     setSelectedPicture(imageUrl);
+    setSelectedPictureId(pictureId);
     setIsLoading(false);
     });
   };
@@ -167,16 +169,12 @@ const AdminRoomDetails = () => {
     const insertPromise = api.insertInfoPopUp(formData);
 
     const updatedInfoPopupsPromise = insertPromise.then(async () => {
-      await getInfoPopup(selectedImageId);
+      await getInfoPopup(selectedPictureId);
 
       const allImageInfoPopups = await Promise.all(
           pictures.map(async (pic) => await api.getInfoPopup(pic.id_pictures))
       );
       setAllInfoPopups(allImageInfoPopups.flat());
-    });
-
-    Promise.all([insertPromise, updatedInfoPopupsPromise]).then(() => {
-      setSelectedPicture('');
     });
 
     showLoading([insertPromise, updatedInfoPopupsPromise], 'Ajout de l\'infobulle...', 'Infobulle ajoutée avec succès', 'Erreur lors de l\'ajout de l\'infobulle');
@@ -191,15 +189,12 @@ const AdminRoomDetails = () => {
     const insertPromise = api.insertLink(formData);
 
     const updateLinksPromise = insertPromise.then(async () => {
-        await getLinks(selectedImageId);
+        await getLinks(selectedPictureId);
+        await getInfoPopup(selectedPictureId);
         const allImageLinks = await Promise.all(
             pictures.map(async (pic) => await api.getLinks(pic.id_pictures))
         );
         setAllLinks(allImageLinks.flat());
-    });
-
-    Promise.all([insertPromise, updateLinksPromise]).then(() => {
-        setSelectedPicture('');
     });
 
     showLoading([insertPromise, updateLinksPromise], 'Ajout du lien...', 'Lien ajouté avec succès', 'Erreur lors de l\'ajout du lien');
@@ -356,15 +351,11 @@ const AdminRoomDetails = () => {
     const updatePromise = api.updateInfospot(formData);
 
     const updatedInfoPopupsPromise = updatePromise.then(async () => {
-      await getInfoPopup(selectedImageId);
+      await getInfoPopup(selectedPictureId);
       const allImageInfoPopups = await Promise.all(
           pictures.map(async (pic) => await api.getInfoPopup(pic.id_pictures))
       );
       setAllInfoPopups(allImageInfoPopups.flat());
-    });
-
-    Promise.all([updatePromise, updatedInfoPopupsPromise]).then(() => {
-        setSelectedPicture('');
     });
 
     showLoading([updatePromise, updatedInfoPopupsPromise], 'Mise à jour de l\'infobulle...', 'Infobulle mise à jour avec succès', 'Erreur lors de la mise à jour de l\'infobulle');
@@ -409,15 +400,12 @@ const AdminRoomDetails = () => {
     const insertPromise = api.updateLink(formData);
 
     const updatedLinksPromise = insertPromise.then(async () => {
-        await getLinks(selectedImageId);
+        await getLinks(selectedPictureId);
+        await getInfoPopup(selectedPictureId);
         const allImageLinks = await Promise.all(
             pictures.map(async (pic) => await api.getLinks(pic.id_pictures))
         );
         setAllLinks(allImageLinks.flat());
-    });
-
-    Promise.all([insertPromise, updatedLinksPromise]).then(() => {
-      setSelectedPicture('');
     });
 
     showLoading([insertPromise, updatedLinksPromise], 'Mise à jour du lien...', 'Lien mis à jour avec succès', 'Erreur lors de la mise à jour du lien');
