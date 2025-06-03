@@ -284,6 +284,15 @@ const AdminRoom = () => {
 
   const handleNewRoomImagesChange = (e) => {
     const files = Array.from(e.target.files);
+    // For each file, check if it's an image
+    files.forEach(file => {
+        if (!file.type.startsWith("image/")) {
+            alert("Tous les fichiers doivent être des images.");
+            e.target.value = ""; // Clear the input
+            return;
+        }
+    });
+
     setNewRoomData(prevData => ({
       ...prevData,
       images: files
@@ -292,6 +301,11 @@ const AdminRoom = () => {
 
   const handleNewRoomPreviewChange = (e) => {
     const file = e.target.files[0];
+    if (!file.type.startsWith("image/")) {
+      alert("Veuillez sélectionner un fichier image valide.");
+      e.target.value = ""; // Clear the input
+      return;
+    }
     setNewRoomData(prevData => ({
       ...prevData,
       previewImage: file
@@ -442,6 +456,11 @@ const AdminRoom = () => {
 
   const handleEditRoomPreviewChange = (e) => {
     const file = e.target.files[0];
+    if (!file.type.startsWith("image/")) {
+        alert("Veuillez sélectionner un fichier image valide.");
+        e.target.value = ""; // Clear the input
+        return;
+    }
     setEditRoomData(prevData => ({
       ...prevData,
       previewImage: file

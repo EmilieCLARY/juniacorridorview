@@ -49,7 +49,33 @@ const { db,
     deleteFloor,
     updateFloor, getFloorById
 } = require('./database');
+const admin = require("firebase-admin");
+const { getAuth } = require("firebase-admin/auth");
 
+// Initialize Firebase Admin SDK
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(require("./yp-2425-10-firebase-adminsdk-fbsvc-7dfe32071b.json")),
+  });
+}
+
+// Middleware to restrict access to authenticated users
+const requireAuth = async (req, res, next) => {
+  const idToken = req.headers.authorization?.split("Bearer ")[1];
+  if (!idToken) {
+    console.error("No ID token provided in Authorization header");
+    return res.sendStatus(403); // Forbidden
+  }
+
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    console.log("Decoded token:", decodedToken); // Debugging log
+    next(); // User is authenticated, proceed to the route
+  } catch (error) {
+    console.error("Error verifying token:", error);
+    res.sendStatus(403); // Forbidden
+  }
+};
 
 const PORT = process.env.PORT || 8000;
 
@@ -647,6 +673,99 @@ app.post('/update-floor', (req, res) => {
             res.sendStatus(200);
         }
     });
+});
+
+app.post("/api/set-admin-claim", async (req, res) => {
+  const { uid } = req.body; // User ID to set the admin claim
+  if (!uid) {
+    console.error("No UID provided"); // Debugging log
+    return res.status(400).send("User ID is required");
+  }
+
+  try {
+    await getAuth().setCustomUserClaims(uid, { admin: true });
+    console.log(`Custom claim 'admin: true' set for user ${uid}`); // Debugging log
+
+    // Verify the claim was set
+    const user = await getAuth().getUser(uid);
+    console.log("Updated user claims:", user.customClaims); // Debugging log
+
+    res.status(200).send(`Admin claim set for user ${uid}`);
+  } catch (error) {
+    console.error("Error setting custom claim:", error); // Debugging log
+    res.status(500).send("Failed to set admin claim");
+  }
+});
+
+// Protect admin routes
+app.use("/admin", requireAuth);
+
+app.post("/api/create-user", async (req, res) => {
+  const { email, password } = req.body;
+  if (!email) return res.status(400).json({ error: "Email requis" });
+
+  try {
+    // Crée l'utilisateur avec un mot de passe temporaire (obligatoire pour Firebase Admin)
+    const tempPassword = password || (Math.random().toString(36).slice(-10) + "A1!");
+    const userRecord = await admin.auth().createUser({
+      email,
+      password: tempPassword,
+      emailVerified: false,
+    });
+
+    // Génère un lien de réinitialisation de mot de passe pour que l'utilisateur choisisse son mdp
+    const resetLink = await admin.auth().generatePasswordResetLink(email);
+
+    // Retourne le lien au frontend
+    res.json({ success: true, resetLink });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/list-users", async (req, res) => {
+  try {
+    const listAllUsers = async (nextPageToken, users = []) => {
+      const result = await admin.auth().listUsers(1000, nextPageToken);
+      users = users.concat(result.users.map(user => ({
+        email: user.email,
+        uid: user.uid,
+        customClaims: user.customClaims || {}
+      })));
+      if (result.pageToken) {
+        return listAllUsers(result.pageToken, users);
+      }
+      return users;
+    };
+    const users = await listAllUsers();
+    res.json({ users });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/reset-password", async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: "Email requis" });
+
+  try {
+    const resetLink = await admin.auth().generatePasswordResetLink(email);
+    res.json({ success: true, resetLink });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/delete-user", async (req, res) => {
+  const { uid } = req.body;
+  if (!uid) return res.status(400).json({ error: "UID requis" });
+
+  try {
+    await admin.auth().deleteUser(uid);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.listen(PORT, () => {

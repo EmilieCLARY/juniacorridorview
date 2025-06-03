@@ -1,0 +1,376 @@
+import React, { useEffect, useState } from "react";
+import firebase from "firebase/compat/app";
+import "firebase/compat/auth";
+import { createUser, getAllUsers, resetPassword, deleteUser } from "../api/AxiosAdminUser";
+import { FaTrash, FaPen, FaPlus } from "react-icons/fa";
+
+const generatePassword = () => {
+  // 10 chars + 1 uppercase + 1 lowercase + 1 number + 1 special
+  const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const specials = "!@#$%^&*()_+-=~";
+  let pwd = "";
+  for (let i = 0; i < 10; i++) {
+    pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  pwd += specials.charAt(Math.floor(Math.random() * specials.length));
+  pwd += String.fromCharCode(65 + Math.floor(Math.random() * 26)); // uppercase
+  pwd += String.fromCharCode(97 + Math.floor(Math.random() * 26)); // lowercase
+  pwd += Math.floor(Math.random() * 10); // number
+  return pwd;
+};
+
+const AdminUser = () => {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [resetLink, setResetLink] = useState("");
+  const [resetLinks, setResetLinks] = useState({}); // { [uid]: link }
+  const [resetModal, setResetModal] = useState({ open: false, email: "", link: "" });
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, email: "", uid: "" });
+  const [search, setSearch] = useState(""); // Ajout de l'état pour la recherche
+
+  useEffect(() => {
+    // Fetch users on mount
+    getAllUsers()
+      .then((users) => {
+        setUsers(users);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const handleCreateUser = async (e) => {
+    e.preventDefault();
+    setMessage("");
+    setResetLink("");
+    try {
+      const res = await createUser(newEmail, newPassword);
+      setMessage("Utilisateur créé !");
+      setResetLink(res.resetLink);
+      // Ne vide pas les champs ici, attend la fermeture de la modal
+      setLoading(true);
+      const users = await getAllUsers();
+      setUsers(users);
+      setLoading(false);
+    } catch (err) {
+      setMessage(
+        err?.response?.data?.error ||
+        err?.message ||
+        "Erreur lors de la création."
+      );
+    }
+  };
+
+  const handleGeneratePassword = () => {
+    const pwd = generatePassword();
+    setNewPassword(pwd);
+    navigator.clipboard.writeText(pwd).then(() => setCopied(true));
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  const handleResetPassword = async (email, uid) => {
+    setMessage("");
+    try {
+      const res = await resetPassword(email);
+      setResetLinks(prev => ({ ...prev, [uid]: res.resetLink }));
+      setResetModal({ open: true, email, link: res.resetLink });
+      setMessage(""); // Optionally clear message here
+    } catch (err) {
+      setMessage(
+        err?.response?.data?.error ||
+        err?.message ||
+        "Erreur lors de la génération du lien de réinitialisation."
+      );
+    }
+  };
+
+  const handleDeleteUser = async (uid, email) => {
+    setConfirmDelete({ open: true, email, uid });
+  };
+
+  const confirmDeleteUser = async () => {
+    try {
+      await deleteUser(confirmDelete.uid);
+      setUsers(users => users.filter(u => u.uid !== confirmDelete.uid));
+      setConfirmDelete({ open: false, email: "", uid: "" });
+      setResetModal({ open: false, email: "", link: "" });
+      setMessage("Utilisateur supprimé !");
+    } catch (err) {
+      setMessage(
+        err?.response?.data?.error ||
+        err?.message ||
+        "Erreur lors de la suppression de l'utilisateur."
+      );
+      setConfirmDelete({ open: false, email: "", uid: "" });
+    }
+  };
+
+  return (
+    <div className="min-h-screen" style={{ backgroundColor: '#fff3f0' }}>
+      <div className="max-w-7xl mx-auto py-10 px-6 ">
+        <div className="bg-white rounded-2xl shadow-lg p-12 border-2 border-junia-orange m-4">
+          <div className="flex flex-col lg:flex-row gap-8">
+
+            <div className="flex flex-row items-start gap-8">
+              <div className="flex flex-col flex-grow">
+                <div className="flex flex-row justify-between items-center mb-8 ml-4 mt-2">
+                  <div className="text-3xl font-title text-junia-orange">Liste des utilisateurs</div>
+                  <button
+                    className="bg-junia-orange hover:bg-junia-purple text-white p-2 rounded-full font-title text-lg shadow-lg hover:shadow-xl transform mr-4 mt-2 cursor-pointer flex flex-row items-center gap-2"
+                    onClick={() => setShowModal(true)}
+                  >
+                    <FaPlus/> Créer utilisateur
+                  </button>
+                </div>
+                {/* Barre de recherche */}
+                <div className="mb-6 ml-4 mr-4 pt-2">
+                  <input
+                    type="text"
+                    placeholder="Rechercher un utilisateur par email..."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-junia-orange rounded-full font-texts focus:outline-none focus:border-junia-purple transition-colors text-junia-orange placeholder-junia-orange"
+                  />
+                </div>
+                {message && (
+                  <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg text-center font-semibold">
+                    {message}
+                  </div>
+                )}
+                <div className="overflow-x-auto rounded-xl shadow-lg m-4">
+                  {loading ? (
+                    <div className="text-center py-12 text-xl text-junia-purple font-title">Chargement...</div>
+                  ) : (
+                    <table className="w-full bg-white rounded-xl">
+                      <thead className="p-4 rounded-t-xl">
+                        <tr className="bg-junia-purple text-white">
+                          <th className="px-4 py-4 font-title text-lg text-center">Email</th>
+                          <th className="px-4 py-4 font-title text-lg text-center">UID</th>
+                          <th className="py-4 font-title text-lg text-center">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="rounded-b-xl">
+                        {[...users]
+                          .filter(user => user.email.toLowerCase().includes(search.toLowerCase()))
+                          .sort((a, b) => a.email.localeCompare(b.email))
+                          .map((user, index) => (
+                            <tr key={user.uid} className={`border-b border-gray-200 hover:bg-junia-lavender transition-colors ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}>
+                              <td className="px-4 py-4 font-texts text-gray-800">{user.email}</td>
+                              <td className="px-4 py-4 font-mono text-xs text-gray-600 break-all text-center">{user.uid}</td>
+                              <td className="px-6 py-4 flex flex-col sm:flex-row gap-2 items-center">
+                                <button
+                                  className="bg-junia-orange hover:bg-junia-purple transition-colors text-white px-4 py-2 rounded-full font-title text-sm mr-0 sm:mr-2 flex items-center gap-2 group cursor-pointer"
+                                  onClick={() => handleResetPassword(user.email, user.uid)}
+                                  style={{ width: 'fit-content' }}
+                                >
+                                  <FaPen className="text-base" />
+                                  Réinitialiser le mot de passe
+                                </button>
+                                <button
+                                  className="bg-junia-purple hover:bg-red-800 transition-colors text-white px-4 py-2 rounded-full font-title text-sm flex items-center gap-2 group cursor-pointer"
+                                  onClick={() => handleDeleteUser(user.uid, user.email)}
+                                  style={{ width: 'fit-content' }}
+                                >
+                                  <FaTrash className="text-base" />
+                                  Supprimer le compte
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {showModal && (
+        <div className="modal">
+          <div className="modal-content max-w-lg">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-title text-junia-purple">Créer un utilisateur</h2>
+              <button
+                className="close text-gray-400 hover:text-junia-purple"
+                onClick={() => {
+                  setShowModal(false);
+                  setMessage("");
+                  setResetLink("");
+                  setNewEmail("");
+                  setNewPassword("");
+                }}
+                aria-label="Fermer"
+              >
+                &times;
+              </button>
+            </div>
+            {/* Affiche le message dans la modal */}
+            {message && (
+              <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg text-center font-semibold">
+                {message}
+              </div>
+            )}
+            <form onSubmit={handleCreateUser}>
+              <div className="form-group">
+                <label className="block text-sm font-title text-junia-purple mb-2">Email utilisateur</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="Entrez l'email du nouvel utilisateur"
+                  value={newEmail}
+                  onChange={e => setNewEmail(e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-junia-purple rounded-lg font-texts focus:outline-none focus:border-junia-orange transition-colors"
+                  disabled={!!message}
+                />
+              </div>
+              <div className="form-group">
+                <label className="block text-sm font-title text-junia-purple mb-2">Mot de passe temporaire</label>
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    required
+                    placeholder="Générez ou saisissez un mot de passe"
+                    value={newPassword}
+                    onChange={e => setNewPassword(e.target.value)}
+                    className="flex-1 px-4 py-3 border-2 border-junia-purple rounded-lg font-texts focus:outline-none focus:border-junia-orange transition-colors"
+                    disabled={!!message}
+                  />
+                  <button
+                    type="button"
+                    className="bg-junia-orange hover:bg-junia-purple transition-colors text-white px-4 py-3 rounded-lg font-title whitespace-nowrap"
+                    onClick={handleGeneratePassword}
+                    title="Générer un mot de passe sécurisé"
+                    disabled={!!message}
+                  >
+                    Générer
+                  </button>
+                </div>
+                {copied && (
+                  <div className="mt-2 text-green-600 text-sm font-semibold flex items-center">
+                    ✓ Mot de passe copié dans le presse-papiers !
+                  </div>
+                )}
+              </div>
+              {resetLink && (
+                <div className="form-group">
+                  <label className="block text-sm font-title text-junia-purple mb-2">Lien de création du mot de passe</label>
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-700 mb-2">Envoyez ce lien à l'utilisateur pour qu'il puisse définir son mot de passe :</p>
+                    <a href={resetLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm break-all hover:text-blue-800 transition-colors">
+                      {resetLink}
+                    </a>
+                  </div>
+                </div>
+              )}
+              <div className="flex gap-3 mt-6">
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setShowModal(false);
+                    setMessage("");
+                    setResetLink("");
+                    setNewEmail("");
+                    setNewPassword("");
+                  }}
+                  className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-full font-title text-lg hover:bg-gray-50 transition-colors"
+                >
+                  {message ? "Fermer la modal" : "Annuler"}
+                </button>
+                {!message && (
+                  <button 
+                    type="submit" 
+                    className="flex-1 bg-junia-purple hover:bg-junia-orange transition-colors text-white px-6 py-3 rounded-full font-title text-lg shadow-lg"
+                  >
+                    Créer l'utilisateur
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {resetModal.open && (
+        <div className="modal">
+          <div className="modal-content max-w-lg">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-title text-junia-purple">
+                Lien de réinitialisation du mot de passe pour {resetModal.email}
+              </h2>
+              <button
+                className="close text-gray-400 hover:text-junia-purple"
+                onClick={() => setResetModal({ open: false, email: "", link: "" })}
+                aria-label="Fermer"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-700 mb-2">
+                Envoyez ce lien à l'utilisateur pour qu'il puisse définir son mot de passe :
+              
+              <a
+                href={resetModal.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 underline text-sm break-all hover:text-blue-800 transition-colors pl-2"
+              >
+                Lien
+              </a>
+              </p>
+            </div>
+            <div className="flex justify-end mt-4 gap-2">
+              <button
+                className="px-6 py-3 bg-junia-purple hover:bg-junia-orange transition-colors text-white rounded-full font-title text-lg shadow-lg"
+                onClick={() => setResetModal({ open: false, email: "", link: "" })}
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {confirmDelete.open && (
+        <div className="modal">
+          <div className="modal-content max-w-lg">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-title text-junia-purple">
+                Confirmer la suppression
+              </h2>
+              <button
+                className="close text-gray-400 hover:text-junia-purple"
+                onClick={() => setConfirmDelete({ open: false, email: "", uid: "" })}
+                aria-label="Fermer"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
+              Êtes-vous sûr de vouloir supprimer le compte <b>{confirmDelete.email}</b> ? Cette action est irréversible.
+            </div>
+            <div className="flex justify-end mt-4 gap-2">
+              <button
+                className="px-6 py-3 bg-gray-200 hover:bg-gray-300 transition-colors text-gray-800 rounded-full font-title text-lg shadow-lg"
+                onClick={() => setConfirmDelete({ open: false, email: "", uid: "" })}
+              >
+                Annuler
+              </button>
+              <button
+                className="px-6 py-3 bg-red-600 hover:bg-red-800 transition-colors text-white rounded-full font-title text-lg shadow-lg"
+                onClick={confirmDeleteUser}
+              >
+                Supprimer définitivement
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default AdminUser;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom";
+import {useHistory, useParams} from "react-router-dom";
 import * as api from '../api/AxiosAdminRoom';
 import Panorama360 from './Panorama360';
 import { Buffer } from 'buffer';
@@ -7,11 +7,14 @@ import { toast } from "sonner";
 import Loader from "./Loader";
 import Masonry from 'react-masonry-css';
 import '../style/AdminRoomDetails.css';
+import {FaArrowLeft, FaPen, FaTrash} from "react-icons/fa";
+import ModalAddEditImage from "./room_details/ModalAddEditImage";
 
 const AdminRoomDetails = () => {
   const { id } = useParams();
   const [pictures, setPictures] = useState([]);
   const [selectedPicture, setSelectedPicture] = useState('');
+  const [selectedPictureId, setSelectedPictureId] = useState('');
   const [infoPopups, setInfoPopups] = useState([]);
   const [links, setLinks] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -45,6 +48,8 @@ const AdminRoomDetails = () => {
 
   const [loading, setLoading] = useState(true);
   const [textLoading, setTextLoading] = useState("Chargement des données...");
+
+  const history = useHistory();
 
   const showLoading = (promises, textLoading, textSuccess, textError) => {
     setLoading(true);
@@ -117,6 +122,7 @@ const AdminRoomDetails = () => {
     }
     Promise.all([getInfoPopupPromise,getLinksPromise]).then(() => {
     setSelectedPicture(imageUrl);
+    setSelectedPictureId(pictureId);
     setIsLoading(false);
     });
   };
@@ -165,16 +171,12 @@ const AdminRoomDetails = () => {
     const insertPromise = api.insertInfoPopUp(formData);
 
     const updatedInfoPopupsPromise = insertPromise.then(async () => {
-      await getInfoPopup(selectedImageId);
+      await getInfoPopup(selectedPictureId);
 
       const allImageInfoPopups = await Promise.all(
           pictures.map(async (pic) => await api.getInfoPopup(pic.id_pictures))
       );
       setAllInfoPopups(allImageInfoPopups.flat());
-    });
-
-    Promise.all([insertPromise, updatedInfoPopupsPromise]).then(() => {
-      setSelectedPicture('');
     });
 
     showLoading([insertPromise, updatedInfoPopupsPromise], 'Ajout de l\'infobulle...', 'Infobulle ajoutée avec succès', 'Erreur lors de l\'ajout de l\'infobulle');
@@ -189,15 +191,12 @@ const AdminRoomDetails = () => {
     const insertPromise = api.insertLink(formData);
 
     const updateLinksPromise = insertPromise.then(async () => {
-        await getLinks(selectedImageId);
+        await getLinks(selectedPictureId);
+        await getInfoPopup(selectedPictureId);
         const allImageLinks = await Promise.all(
             pictures.map(async (pic) => await api.getLinks(pic.id_pictures))
         );
         setAllLinks(allImageLinks.flat());
-    });
-
-    Promise.all([insertPromise, updateLinksPromise]).then(() => {
-        setSelectedPicture('');
     });
 
     showLoading([insertPromise, updateLinksPromise], 'Ajout du lien...', 'Lien ajouté avec succès', 'Erreur lors de l\'ajout du lien');
@@ -234,7 +233,7 @@ const AdminRoomDetails = () => {
       linksPromise.then((links) => {
         setModalLinks(links);
       });
-
+      showLoading([infospotsPromise, linksPromise], 'Chargement des détails de la pièce...', 'Chargement des détails réussi', 'Erreur lors du chargement des détails');
       Promise.all([infospotsPromise, linksPromise]).then(() => {
         setIsLoadingModal(false);
       });
@@ -271,7 +270,7 @@ const AdminRoomDetails = () => {
       linksPromise.then((links) => {
         setModalLinks(links);
       });
-
+        showLoading([infospotsPromise, linksPromise], 'Chargement des détails de la pièce...', 'Chargement des détails réussi', 'Erreur lors du chargement des détails');
       Promise.all([infospotsPromise, linksPromise]).then(() => {
         setIsLoadingModal(false);
       });
@@ -354,15 +353,11 @@ const AdminRoomDetails = () => {
     const updatePromise = api.updateInfospot(formData);
 
     const updatedInfoPopupsPromise = updatePromise.then(async () => {
-      await getInfoPopup(selectedImageId);
+      await getInfoPopup(selectedPictureId);
       const allImageInfoPopups = await Promise.all(
           pictures.map(async (pic) => await api.getInfoPopup(pic.id_pictures))
       );
       setAllInfoPopups(allImageInfoPopups.flat());
-    });
-
-    Promise.all([updatePromise, updatedInfoPopupsPromise]).then(() => {
-        setSelectedPicture('');
     });
 
     showLoading([updatePromise, updatedInfoPopupsPromise], 'Mise à jour de l\'infobulle...', 'Infobulle mise à jour avec succès', 'Erreur lors de la mise à jour de l\'infobulle');
@@ -407,15 +402,12 @@ const AdminRoomDetails = () => {
     const insertPromise = api.updateLink(formData);
 
     const updatedLinksPromise = insertPromise.then(async () => {
-        await getLinks(selectedImageId);
+        await getLinks(selectedPictureId);
+        await getInfoPopup(selectedPictureId);
         const allImageLinks = await Promise.all(
             pictures.map(async (pic) => await api.getLinks(pic.id_pictures))
         );
         setAllLinks(allImageLinks.flat());
-    });
-
-    Promise.all([insertPromise, updatedLinksPromise]).then(() => {
-      setSelectedPicture('');
     });
 
     showLoading([insertPromise, updatedLinksPromise], 'Mise à jour du lien...', 'Lien mis à jour avec succès', 'Erreur lors de la mise à jour du lien');
@@ -463,6 +455,14 @@ const AdminRoomDetails = () => {
   return (
     <div className="">
       <Loader show={loading} text={textLoading} />
+
+      <div className="absolute" style={{left: "20px", top: "80px"}}>
+        <button
+            onClick={() => history.push('/admin/room')}
+            className="px-4 py-2 button-type font-title font-bold flex items-center gap-2">
+          <FaArrowLeft /> Retour
+        </button>
+      </div>
       
       {/* à mettre dans la navbar*/}
       {/*<div className="text-2xl text-junia-purple font-title font-bold mt-4">{roomName}</div>*/}
@@ -482,14 +482,30 @@ const AdminRoomDetails = () => {
                         </button>
             </div>
           {pictures.map(picture => (
-            <div key={picture.id_pictures} className="w-40vw p-1 ">
-              <img
-                src={picture.imageUrl}
-                alt={`Aperçu de ${picture.id_pictures}`}
-                onClick={() => handlePictureClick(picture.imageUrl, picture.id_pictures)}
-                className="rounded-lg"
-              />
-            </div>
+              <div key={picture.id_pictures} className="w-40vw p-1">
+                <div className="relative">
+                  <img
+                      src={picture.imageUrl}
+                      alt={`Aperçu de ${picture.id_pictures}`}
+                      onClick={() => handlePictureClick(picture.imageUrl, picture.id_pictures)}
+                      className="image-card rounded-lg cursor-pointer shadow hover:shadow-lg transition-shadow duration-300 w-full"
+                  />
+                  <div className="flex gap-1 absolute" style={{ bottom: '5px', right: '5px' }}>
+                    <button
+                        onClick={() => handleEditPicture(picture.id_pictures)}
+                        className="px-2 py-2 button-type"
+                    >
+                      <FaPen />
+                    </button>
+                    <button
+                        onClick={() => handleDeletePicture(picture.id_pictures)}
+                        className="px-2 py-2 button-type2"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
+                </div>
+              </div>
           ))}
         </div>
 
@@ -671,9 +687,16 @@ const AdminRoomDetails = () => {
                 {/* Left column */}
                 <div className="flex flex-col gap-4">
                   <input 
-                    type="file" 
+                    type="file"
+                    accept="image/*"
                     name="pic"
                     className="p-2 rounded file:mr-4 file:py-2 file:px-4 file:text-junia-orange file:opacity-70 file:border-0 file:font-title orange-border"
+                    onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file.type.startsWith("image/")) {
+                      alert("Veuillez sélectionner un fichier image valide.");
+                      e.target.value = ""; // Clear the input
+                    }
                   />
                   <div className="position-inputs-container">
                     <input 

@@ -38,6 +38,11 @@ const ModalAddEditFloors = ({
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
         if (selectedFile) {
+            if (!selectedFile.type.startsWith("image/")) {
+                alert("Veuillez sélectionner un fichier image valide.");
+                e.target.value = ""; // Clear the input
+                return;
+            }
             setFile(selectedFile);
         }
     }

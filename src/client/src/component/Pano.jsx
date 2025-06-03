@@ -1,5 +1,5 @@
 import { Buffer } from 'buffer';
-import React, { useEffect, useRef, useState, useCallback, useMemo, useContext } from "react";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import * as api from '../api/AxiosPano';
 import { getTourSteps } from '../api/AxiosTour';
 import '../style/Pano.css';
@@ -7,11 +7,10 @@ import { toast } from "sonner";
 import Panorama360 from './Panorama360';
 import Loader from "./Loader";
 import Navbar from './Navbar';
-import { AppContext } from '../App';
 
-const PanoramaViewer = ({ location }) => {
+const PanoramaViewer = ({ location, setSelectedImageName, setCurrentRoomNumber }) => {
   Buffer.from = Buffer.from || require('buffer').Buffer;
-  const { setSelectedImageName, setCurrentRoomNumber } = useContext(AppContext);
+
   const [images, setImages] = useState([]);
   const [currentImageId, setCurrentImageId] = useState(null);
   const [infoPopups, setInfoPopups] = useState({});
@@ -20,6 +19,8 @@ const PanoramaViewer = ({ location }) => {
   const isLoading = useRef(true);
 
   const [currentRoomName, setCurrentRoomName] = useState('');
+  const [currentRoomNumberState, setCurrentRoomNumberState] = useState('');
+
   const [rooms, setRooms] = useState([]);
   const [roomPreviews, setRoomPreviews] = useState({});
   const [previewFlags, setPreviewFlags] = useState({}); // Track which images are previews
@@ -200,8 +201,10 @@ const PanoramaViewer = ({ location }) => {
   const fetchRoomDetails = async (id_rooms) => {
     const room = await api.getRoomDetails(id_rooms);
     setCurrentRoomName(room.name);
-    setCurrentRoomNumber(room.number);
-    setSelectedImageName(room.name); // Use room.name directly here
+    setCurrentRoomNumberState(room.number);
+    // Mettez à jour la navbar via les props
+    if (typeof setSelectedImageName === "function") setSelectedImageName(room.name);
+    if (typeof setCurrentRoomNumber === "function") setCurrentRoomNumber(room.number);
   };
 
   const fetchFloor = async (id_rooms) => {
@@ -264,7 +267,7 @@ const PanoramaViewer = ({ location }) => {
         displayImage(firstImage.imageBlob, firstImage.id);
       }
     }
-    setCurrentRoomNumber(id_rooms); // Set the selected room ID
+    setCurrentRoomNumber(id_rooms); // This sets the room id, but currentRoomNumber is the room number string. You may want to update this logic.
   };
   
   const handleLinkClick = (id_pictures_destination) => {
@@ -281,7 +284,7 @@ const PanoramaViewer = ({ location }) => {
       loadingImage.current = true;
       const firstImage = images[0];
       displayImage(firstImage.imageBlob, firstImage.id);
-      setSelectedImageName(currentRoomName || ''); // Update selectedImageName here
+      // setSelectedImageName(currentRoomName || ''); // Remove this line
       firstLoad.current = false;
     }
   }, [images]);
