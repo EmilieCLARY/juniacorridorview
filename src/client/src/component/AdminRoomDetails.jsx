@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom";
+import {useHistory, useParams} from "react-router-dom";
 import * as api from '../api/AxiosAdminRoom';
 import Panorama360 from './Panorama360';
 import { Buffer } from 'buffer';
@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import Loader from "./Loader";
 import Masonry from 'react-masonry-css';
 import '../style/AdminRoomDetails.css';
-import {FaPen, FaTrash} from "react-icons/fa";
+import {FaArrowLeft, FaPen, FaTrash} from "react-icons/fa";
 import ModalAddEditImage from "./room_details/ModalAddEditImage";
 
 const AdminRoomDetails = () => {
@@ -48,6 +48,8 @@ const AdminRoomDetails = () => {
 
   const [loading, setLoading] = useState(true);
   const [textLoading, setTextLoading] = useState("Chargement des données...");
+
+  const history = useHistory();
 
   const showLoading = (promises, textLoading, textSuccess, textError) => {
     setLoading(true);
@@ -452,6 +454,14 @@ const AdminRoomDetails = () => {
   return (
     <div className="">
       <Loader show={loading} text={textLoading} />
+
+      <div className="absolute" style={{left: "20px", top: "80px"}}>
+        <button
+            onClick={() => history.push('/admin/room')}
+            className="px-4 py-2 button-type font-title font-bold flex items-center gap-2">
+          <FaArrowLeft /> Retour
+        </button>
+      </div>
       
       {/* à mettre dans la navbar*/}
       {/*<div className="text-2xl text-junia-purple font-title font-bold mt-4">{roomName}</div>*/}

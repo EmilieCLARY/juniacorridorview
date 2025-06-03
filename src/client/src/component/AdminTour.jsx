@@ -17,6 +17,7 @@ import Carousel from '../reactbits/Components/Carousel/Carousel';
 import '../style/AdminTour.css';
 import Loader from "./Loader";
 import Select from 'react-select';
+import {FaArrowLeft} from "react-icons/fa";
 
 // Custom styles for React Select
 const customSelectStyles = {
@@ -473,6 +474,13 @@ const AdminTour = () => {
       
       <div className="relative absolute top-0 left-0 w-full h-full -z-10">
         <Loader show={isLoading} text={textLoading} />
+        <div className="absolute" style={{left: "20px"}}>
+          <button
+              onClick={() => history.push('/admin/room')}
+              className="px-4 py-2 button-type font-title font-bold flex items-center gap-2">
+            <FaArrowLeft /> Retour
+          </button>
+        </div>
         <div className="my-4 flex justify-center">
           <div className="flex gap-8 items-center font-title text-xl">
             <input
