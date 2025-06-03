@@ -236,7 +236,7 @@ const AdminRoomDetails = () => {
       linksPromise.then((links) => {
         setModalLinks(links);
       });
-
+      showLoading([infospotsPromise, linksPromise], 'Chargement des détails de la pièce...', 'Chargement des détails réussi', 'Erreur lors du chargement des détails');
       Promise.all([infospotsPromise, linksPromise]).then(() => {
         setIsLoadingModal(false);
       });
@@ -273,7 +273,7 @@ const AdminRoomDetails = () => {
       linksPromise.then((links) => {
         setModalLinks(links);
       });
-
+        showLoading([infospotsPromise, linksPromise], 'Chargement des détails de la pièce...', 'Chargement des détails réussi', 'Erreur lors du chargement des détails');
       Promise.all([infospotsPromise, linksPromise]).then(() => {
         setIsLoadingModal(false);
       });
