@@ -1,99 +1,88 @@
-import React,{useState,useEffect} from 'react'
-import {NavLink, useHistory} from 'react-router-dom'
-import * as api from '../api/AxiosLogin';
+import React, { useState, useEffect, useContext } from "react";
+import { useHistory } from "react-router-dom";
+import firebase from "firebase/compat/app"; // Use compat version
+import "firebase/compat/auth"; // Use compat version for auth
+import firebaseConfig from "../firebaseConfig";
+import { AppContext } from "../App";
+import "../style/Login.css"; // Add this line to import the new CSS file
 
-
-const Login = () => {
-    const [user, setUser] = useState({
-        email:"",
-        password:""
-    })
-    
-    const [show,setShow]= useState(false);
-    const [msg,setMsg]= useState("");
-
-    const his = useHistory();
-
-    const onSub=async (e) => {
-        e.preventDefault();
-        let val = await api.postLogin(user);
-        console.log(val);
-        setShow(val.login);
-        if(val.data.msg){
-            setMsg(val.data.msg);
-        }
-    }
-
-    useEffect(() => {
-        if(show){
-            his.push("/profile");
-        }
-    }, [show])
-
-    useEffect(() => {
-       const checkLogin= async ()=>{
-        let val= await api.getLogin();
-        console.log(val);
-        if(val.user){
-            his.push("/profile")
-        }
-       }
-       checkLogin();
-    }, [])
-
-
-
-    const userInput=(event)=>{
-        const {name,value}=event.target;
-        setUser((prev)=>{
-            return {
-                ...prev,
-                [name]:value
-            }
-        })
-
-    }
-    return (
-        <>
-       <div className="container" id="formm">
-       <div className="row">
-           <div className="col-lg-6 col-md-8 col-12 mx-auto">
-
-               {
-                  msg ? (
-                       <>
-                      <div class="alert alert-danger alert-dismissible">
-  <button type="button" class="close" data-dismiss="alert">&times;</button>
-  <strong>ERROR!</strong> {msg}
-</div>
-                       
-                       
-                       </>
-                   ):null
-               }
-               <br />
-           <form onSubmit={onSub}>
-  <div className="form-group">
-    <label >Email address:</label>
-    <input type="email" className="form-control" placeholder="Enter email" name="email" value={user.email} onChange={userInput} required />
-  </div>
-  <div className="form-group">
-    <label for="pwd">Password:</label>
-    <input type="password" className="form-control" placeholder="Enter password" name="password" value={user.password} onChange={userInput}  required/>
-  </div>
-  
-  <button type="submit" className="btn btn-primary">Submit</button>
-</form>
-<br />
-<NavLink to="/register">create a account </NavLink>
-
-           </div>
-          
-       </div>
-       </div>
-            
-        </>
-    )
+// Initialize Firebase
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
 }
 
-export default Login
+const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const { setIsAuthenticated } = useContext(AppContext); // Use setIsAuthenticated from context
+  const history = useHistory();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const user = firebase.auth().currentUser;
+      console.log("Current user in checkAuth:", user); // Debugging log
+      setIsAuthenticated(!!user); // Update authentication status
+    };
+    firebase.auth().onAuthStateChanged(checkAuth);
+  }, [setIsAuthenticated]);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const userCredential = await firebase.auth().signInWithEmailAndPassword(
+        email,
+        password
+      );
+      console.log("User logged in:", userCredential.user); // Debugging log
+
+      // Store authentication status in localStorage
+      localStorage.setItem("isAuthenticated", true);
+      setIsAuthenticated(true);
+
+      history.push("/admin/room");
+    } catch (err) {
+      console.error("Login error:", err); // Debugging log
+      setError(err.message);
+    }
+  };
+
+  return (
+    <div className="login-container bg-junia-lavender flex justify-center items-center h-screen">
+      <div className="login-box bg-white px-12 py-12 rounded-lg shadow-lg w-full max-w-lg">
+        <h1 className="text-junia-purple font-title text-2xl mb-6 text-center">
+          Connexion
+        </h1>
+        {error && (
+          <p className="text-red-500 text-center mb-4">{error}</p>
+        )}
+        <form
+          onSubmit={handleLogin}
+          className="flex flex-col gap-4"
+        >
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="input-field"
+          />
+          <input
+            type="password"
+            placeholder="Mot de passe"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="input-field"
+          />
+          <button type="submit" className="button-type">
+            Se connecter
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default Login;

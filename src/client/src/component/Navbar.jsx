@@ -1,15 +1,20 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useHistory } from 'react-router-dom';
 import * as api from '../api/AxiosLogin';
 import '../style/Navbar.css';
 import { FaHome } from "react-icons/fa";
 import { AppContext } from '../App';
+import firebase from "firebase/compat/app"; // Use compat version
+import "firebase/compat/auth"; // Use compat version for auth
 
 const Navbar = () => {
-  const { selectedImageName, currentRoomNumber } = useContext(AppContext);
+  const { selectedImageName, currentRoomNumber, isAuthenticated, setIsAuthenticated } = useContext(AppContext);
   const [login, setLogin] = useState(false);
   const location = useLocation();
+  const history = useHistory();
   const [routeName, setRouteName] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false); // State to toggle modal visibility
+  const [userEmail, setUserEmail] = useState(""); // State to store the user's email
 
   useEffect(() => {
     const checkLogin = async () => {
@@ -39,19 +44,46 @@ const Navbar = () => {
         setRouteName('Administrateur');
         break;
       case '/admin/tour':
-        setRouteName('Parcours');
+        setRouteName('Gestion des Parcours');
         break;
-      case '/admin/plan':
-        setRouteName('Salles');
+      case '/admin/room':
+        setRouteName('Gestion des Salles');
         break;
-      case location.pathname.match(/\/admin\room\/[0-9]{1,9}/)?.input + '/edit':
-        setRouteName('Détails de la Salle');
+      case '/admin/building':
+        setRouteName('Gestion des Bâtiments');
+        break;
+      case location.pathname.match(/^\/admin\/room\/\d+$/)?.input:
+        setRouteName('Gestion d\'une Salle');
       break;
 
       default:
         setRouteName('Menu Principal');
     }
   }, [location, selectedImageName, currentRoomNumber]);
+
+  useEffect(() => {
+    const fetchUserEmail = () => {
+      const user = firebase.auth().currentUser;
+      if (user) {
+        setUserEmail(user.email); // Set the user's email
+      }
+    };
+    fetchUserEmail();
+    firebase.auth().onAuthStateChanged(fetchUserEmail);
+  }, []);
+
+  const handleLogout = async () => {
+    await firebase.auth().signOut();
+    localStorage.removeItem("isAuthenticated");
+    setIsAuthenticated(false);
+    history.push("/login"); // Redirect to login page
+  };
+
+  const toggleModal = () => {
+    setIsModalOpen((prev) => !prev); // Toggle modal visibility
+  };
+
+  const isAdminPage = location.pathname.startsWith("/admin");
 
   return (
     <>
@@ -65,8 +97,69 @@ const Navbar = () => {
           {routeName}
         </div>
         <div className="flex items-center text-xl text-junia-orange font-title gap-2">
-        <NavLink to="/" className="text-inherit no-underline hover:text-inherit"><FaHome className="text-4xl" /></NavLink>
-          <NavLink to="/admin/room" className="text-inherit no-underline hover:text-inherit">Admin</NavLink>
+          <NavLink to="/" className="text-inherit no-underline hover:text-inherit">
+            <FaHome className="text-4xl" />
+          </NavLink>
+          {!isAdminPage && isAuthenticated && (
+            <NavLink to="/admin/room" className="text-inherit no-underline hover:text-inherit">
+              Admin 
+            </NavLink>
+          )}
+          {!isAuthenticated && !isAdminPage && (
+            <NavLink to="/login" className="text-inherit no-underline hover:text-inherit">
+              Connexion
+            </NavLink>
+          )}
+          {isAuthenticated && (
+            <div className="relative inline-block text-left">
+              <div>
+                <button
+                  type="button"
+                  className="inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                  id="menu-button"
+                  aria-expanded="true"
+                  aria-haspopup="true"
+                  onClick={toggleModal}
+                >
+                  <img
+                    src="https://via.placeholder.com/30" // Replace with a real profile icon URL
+                    alt="Profile"
+                    className="h-8 w-8 rounded-full"
+                  />
+                </button>
+              </div>
+              {isModalOpen && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "40px",
+                    right: "0",
+                    backgroundColor: "white",
+                    border: "1px solid #ccc",
+                    borderRadius: "5px",
+                    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                    padding: "10px",
+                    zIndex: 1000,
+                  }}
+                >
+                  <p style={{ marginBottom: "10px", fontSize: "14px", color: "#333" }}>
+                    {userEmail}
+                  </p>
+                  <button
+                    onClick={handleLogout}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "red",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Se Déconnecter
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </nav>
     </>
