@@ -357,7 +357,7 @@ async function fetchImageById(id) {
 }
 
 const getRoomNameById = (id_rooms, callback) => {
-    const sql = `SELECT name, number, id_floors FROM Rooms WHERE id_rooms = ?`;
+    const sql = `SELECT * FROM Rooms WHERE id_rooms = ?`;
     db.query(sql, [id_rooms], (err, rows) => {
         if (err) {
             console.error('Error fetching plan details', err);

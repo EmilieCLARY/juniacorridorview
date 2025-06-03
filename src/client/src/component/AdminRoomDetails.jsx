@@ -236,7 +236,7 @@ const AdminRoomDetails = () => {
       linksPromise.then((links) => {
         setModalLinks(links);
       });
-
+      showLoading([infospotsPromise, linksPromise], 'Chargement des détails de la pièce...', 'Chargement des détails réussi', 'Erreur lors du chargement des détails');
       Promise.all([infospotsPromise, linksPromise]).then(() => {
         setIsLoadingModal(false);
       });
@@ -273,7 +273,7 @@ const AdminRoomDetails = () => {
       linksPromise.then((links) => {
         setModalLinks(links);
       });
-
+        showLoading([infospotsPromise, linksPromise], 'Chargement des détails de la pièce...', 'Chargement des détails réussi', 'Erreur lors du chargement des détails');
       Promise.all([infospotsPromise, linksPromise]).then(() => {
         setIsLoadingModal(false);
       });
@@ -486,28 +486,30 @@ const AdminRoomDetails = () => {
                         </button>
             </div>
           {pictures.map(picture => (
-            <div key={picture.id_pictures} className="w-40vw p-1">
-              <img
-                src={picture.imageUrl}
-                alt={`Aperçu de ${picture.id_pictures}`}
-                onClick={() => handlePictureClick(picture.imageUrl, picture.id_pictures)}
-                className="image-card rounded-lg cursor-pointer shadow hover:shadow-lg transition-shadow duration-300"
-              />
-              <div className="absolute flex gap-2" style={{ bottom: '10px', right: '10px' }}>
-                <button
-                    onClick={() => handleEditPicture(picture.id_pictures)}
-                    className="px-2 py-2 button-type"
-                >
-                  <FaPen />
-                </button>
-                <button
-                    onClick={() => handleDeletePicture(picture.id_pictures)}
-                    className="px-2 py-2 button-type2"
-                >
-                  <FaTrash />
-                </button>
+              <div key={picture.id_pictures} className="w-40vw p-1">
+                <div className="relative">
+                  <img
+                      src={picture.imageUrl}
+                      alt={`Aperçu de ${picture.id_pictures}`}
+                      onClick={() => handlePictureClick(picture.imageUrl, picture.id_pictures)}
+                      className="image-card rounded-lg cursor-pointer shadow hover:shadow-lg transition-shadow duration-300 w-full"
+                  />
+                  <div className="flex gap-1 absolute" style={{ bottom: '5px', right: '5px' }}>
+                    <button
+                        onClick={() => handleEditPicture(picture.id_pictures)}
+                        className="px-2 py-2 button-type"
+                    >
+                      <FaPen />
+                    </button>
+                    <button
+                        onClick={() => handleDeletePicture(picture.id_pictures)}
+                        className="px-2 py-2 button-type2"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
           ))}
         </div>
 
