@@ -7,6 +7,7 @@ import { AppContext } from '../App';
 import firebase from "firebase/compat/app"; // Use compat version
 import "firebase/compat/auth"; // Use compat version for auth
 import { FaUserCog, FaUser } from "react-icons/fa"; // Ajout de l'icône user settings
+import { RiAdminFill } from "react-icons/ri";
 
 const Navbar = ({ isAuthenticated, selectedImageName, currentRoomNumber }) => {
   const { setIsAuthenticated } = useContext(AppContext);
@@ -118,17 +119,17 @@ const Navbar = ({ isAuthenticated, selectedImageName, currentRoomNumber }) => {
           {routeName}
         </div>
         <div className="flex items-center text-xl text-junia-orange font-title gap-2">
-          <NavLink to="/" className="text-inherit no-underline hover:text-inherit">
-            <FaHome className="text-4xl" />
+          <NavLink to="/" className="text-inherit no-underline hover:text-inherit" >
+            <FaHome className="text-4xl" title="Page d'accueil" />
           </NavLink>
           {!isAdminPage && isAuthenticated && (
             <NavLink to="/admin/room" className="text-inherit no-underline hover:text-inherit">
-              Admin 
+              <RiAdminFill className="text-4xl" title="Panneau d'administration"/>
             </NavLink>
           )}
           {!isAuthenticated && !isAdminPage && (
             <NavLink to="/login" className="text-inherit no-underline hover:text-inherit">
-              Connexion
+              <RiAdminFill className="text-4xl" title="Panneau d'administration"/>
             </NavLink>
           )}
           {isAuthenticated && isAdminPage && (
