@@ -3,3 +3,5 @@
 /src/client/dist/
 
 /src/server/database.env
+/src/client/src/firebaseConfig.js
+/src/server/yp-2425-10-firebase-adminsdk-fbsvc-7dfe32071b.json

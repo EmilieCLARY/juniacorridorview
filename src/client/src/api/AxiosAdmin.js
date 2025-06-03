@@ -1,4 +1,14 @@
 import axios from "axios";
+import firebase from "firebase/compat/app";
+
+const getAuthHeaders = async () => {
+  const user = firebase.auth().currentUser;
+  if (user) {
+    const token = await user.getIdToken();
+    return { Authorization: `Bearer ${token}` };
+  }
+  return {};
+};
 
 export const getRooms = async () => {
   try {
@@ -112,10 +122,11 @@ export const uploadFile = async (formData) => {
 
 export const getBuildings = async () => {
   try {
-    const response = await axios.get('/api/buildings');
+    const headers = await getAuthHeaders();
+    const response = await axios.get('/api/buildings', { headers });
     return response.data;
   } catch (error) {
-    console.error('Error fetching buildings', error);
+    console.error('Error fetching buildings:', error);
     return [];
   }
 };
@@ -127,5 +138,13 @@ export const getFirstPictureByRoomId = async (id_rooms) => {
   } catch (error) {
     console.error('Error fetching first picture by plan ID', error);
     return null;
+  }
+};
+
+export const setAdminClaim = async (uid) => {
+  try {
+    await axios.post("/api/set-admin-claim", { uid });
+  } catch (error) {
+    console.error("Error setting admin claim:", error);
   }
 };
