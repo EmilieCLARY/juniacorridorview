@@ -688,7 +688,7 @@ const AdminRoomDetails = () => {
                   <input type="text" name="posZ" placeholder="Position Z" value={parseFloat(posZ).toFixed(4) || ''} onChange={(e) => setPosZ(e.target.value)} required readOnly className="p-2 border border-gray-300 rounded" />
                   <input type="text" name="text" placeholder="Texte" required defaultValue={editInfospotMod ? infospotToEdit.text : ''} maxLength="300" className="p-2 border border-gray-300 rounded" />
                   <input type="text" name="title" placeholder="Titre" required defaultValue={editInfospotMod ? infospotToEdit.title : ''} maxLength="45" className="p-2 border border-gray-300 rounded" />
-                  <input type="file" name="pic" className="p-2 border border-gray-300 rounded" />
+                  <input type="file" accept="image/*" name="pic" className="p-2 border border-gray-300 rounded" />
                   <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">{editInfospotMod ? "Modifier" : "Ajouter"}</button>
                 </form>
               </div>
