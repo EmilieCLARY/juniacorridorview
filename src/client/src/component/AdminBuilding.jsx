@@ -2,11 +2,12 @@ import React, {useEffect, useRef, useState} from "react";
 import {toast} from "sonner";
 import Loader from "./Loader";
 import * as api from '../api/AxiosAdminBuilding';
-import {FaChevronDown, FaChevronUp, FaPen, FaPlus, FaPlusCircle, FaTrash} from "react-icons/fa";
+import {FaArrowLeft, FaChevronDown, FaChevronUp, FaPen, FaPlus, FaPlusCircle, FaTrash} from "react-icons/fa";
 import '../style/AdminBuilding.css'
 import {Buffer} from "buffer";
 import ModalAddEditBuilding from "./buildings/ModalAddEditBuilding";
 import ModalAddEditFloors from "./buildings/ModalAddEditFloors";
+import {useHistory} from "react-router-dom";
 
 const AdminBuilding = () => {
     const dataFetchedRef = useRef(false);
@@ -25,6 +26,8 @@ const AdminBuilding = () => {
 
     const [isLoading, setIsLoading] = useState(true);
     const [textLoading, setTextLoading] = useState("Chargement des données...");
+
+    const history = useHistory();
 
     const showLoading = (promises, textLoading, textSuccess, textError) => {
         setIsLoading(true);
@@ -144,9 +147,16 @@ const AdminBuilding = () => {
     return (
         <div className="mx-auto p-4 bg-junia-salmon">
             <Loader show={isLoading} text={textLoading} />
-            <button className="px-4 py-2 mb-4 button-type font-title font-bold flex flex-row gap-2 items-center hover:cursor-pointer" onClick={handleAddBuilding}>
-                <FaPlusCircle /> Ajouter un bâtiment
-            </button>
+            <div className="flex flex-row gap-4 mb-4">
+                <button
+                    onClick={() => history.push('/admin/room')}
+                    className="px-4 py-2 button-type font-title font-bold flex items-center gap-2">
+                    <FaArrowLeft /> Retour
+                </button>
+                <button className="px-4 py-2 button-type font-title font-bold flex flex-row gap-2 items-center hover:cursor-pointer" onClick={handleAddBuilding}>
+                    <FaPlusCircle /> Ajouter un bâtiment
+                </button>
+            </div>
             <div className="grid grid-cols-2 gap-4">
                 {building.map((building, index) => (
                     <div key={index} className="px-1 py-2 border-2 purpleborder rounded-3xl shadow bg-white flex flex-col">

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom";
+import {useHistory, useParams} from "react-router-dom";
 import * as api from '../api/AxiosAdminRoom';
 import Panorama360 from './Panorama360';
 import { Buffer } from 'buffer';
@@ -7,13 +7,14 @@ import { toast } from "sonner";
 import Loader from "./Loader";
 import Masonry from 'react-masonry-css';
 import '../style/AdminRoomDetails.css';
-import {FaPen, FaTrash} from "react-icons/fa";
+import {FaArrowLeft, FaPen, FaTrash} from "react-icons/fa";
 import ModalAddEditImage from "./room_details/ModalAddEditImage";
 
 const AdminRoomDetails = () => {
   const { id } = useParams();
   const [pictures, setPictures] = useState([]);
   const [selectedPicture, setSelectedPicture] = useState('');
+  const [selectedPictureId, setSelectedPictureId] = useState('');
   const [infoPopups, setInfoPopups] = useState([]);
   const [links, setLinks] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -47,6 +48,8 @@ const AdminRoomDetails = () => {
 
   const [loading, setLoading] = useState(true);
   const [textLoading, setTextLoading] = useState("Chargement des données...");
+
+  const history = useHistory();
 
   const showLoading = (promises, textLoading, textSuccess, textError) => {
     setLoading(true);
@@ -119,6 +122,7 @@ const AdminRoomDetails = () => {
     }
     Promise.all([getInfoPopupPromise,getLinksPromise]).then(() => {
     setSelectedPicture(imageUrl);
+    setSelectedPictureId(pictureId);
     setIsLoading(false);
     });
   };
@@ -167,16 +171,12 @@ const AdminRoomDetails = () => {
     const insertPromise = api.insertInfoPopUp(formData);
 
     const updatedInfoPopupsPromise = insertPromise.then(async () => {
-      await getInfoPopup(selectedImageId);
+      await getInfoPopup(selectedPictureId);
 
       const allImageInfoPopups = await Promise.all(
           pictures.map(async (pic) => await api.getInfoPopup(pic.id_pictures))
       );
       setAllInfoPopups(allImageInfoPopups.flat());
-    });
-
-    Promise.all([insertPromise, updatedInfoPopupsPromise]).then(() => {
-      setSelectedPicture('');
     });
 
     showLoading([insertPromise, updatedInfoPopupsPromise], 'Ajout de l\'infobulle...', 'Infobulle ajoutée avec succès', 'Erreur lors de l\'ajout de l\'infobulle');
@@ -191,15 +191,12 @@ const AdminRoomDetails = () => {
     const insertPromise = api.insertLink(formData);
 
     const updateLinksPromise = insertPromise.then(async () => {
-        await getLinks(selectedImageId);
+        await getLinks(selectedPictureId);
+        await getInfoPopup(selectedPictureId);
         const allImageLinks = await Promise.all(
             pictures.map(async (pic) => await api.getLinks(pic.id_pictures))
         );
         setAllLinks(allImageLinks.flat());
-    });
-
-    Promise.all([insertPromise, updateLinksPromise]).then(() => {
-        setSelectedPicture('');
     });
 
     showLoading([insertPromise, updateLinksPromise], 'Ajout du lien...', 'Lien ajouté avec succès', 'Erreur lors de l\'ajout du lien');
@@ -356,15 +353,11 @@ const AdminRoomDetails = () => {
     const updatePromise = api.updateInfospot(formData);
 
     const updatedInfoPopupsPromise = updatePromise.then(async () => {
-      await getInfoPopup(selectedImageId);
+      await getInfoPopup(selectedPictureId);
       const allImageInfoPopups = await Promise.all(
           pictures.map(async (pic) => await api.getInfoPopup(pic.id_pictures))
       );
       setAllInfoPopups(allImageInfoPopups.flat());
-    });
-
-    Promise.all([updatePromise, updatedInfoPopupsPromise]).then(() => {
-        setSelectedPicture('');
     });
 
     showLoading([updatePromise, updatedInfoPopupsPromise], 'Mise à jour de l\'infobulle...', 'Infobulle mise à jour avec succès', 'Erreur lors de la mise à jour de l\'infobulle');
@@ -409,15 +402,12 @@ const AdminRoomDetails = () => {
     const insertPromise = api.updateLink(formData);
 
     const updatedLinksPromise = insertPromise.then(async () => {
-        await getLinks(selectedImageId);
+        await getLinks(selectedPictureId);
+        await getInfoPopup(selectedPictureId);
         const allImageLinks = await Promise.all(
             pictures.map(async (pic) => await api.getLinks(pic.id_pictures))
         );
         setAllLinks(allImageLinks.flat());
-    });
-
-    Promise.all([insertPromise, updatedLinksPromise]).then(() => {
-      setSelectedPicture('');
     });
 
     showLoading([insertPromise, updatedLinksPromise], 'Mise à jour du lien...', 'Lien mis à jour avec succès', 'Erreur lors de la mise à jour du lien');
@@ -464,6 +454,14 @@ const AdminRoomDetails = () => {
   return (
     <div className="">
       <Loader show={loading} text={textLoading} />
+
+      <div className="absolute" style={{left: "20px", top: "80px"}}>
+        <button
+            onClick={() => history.push('/admin/room')}
+            className="px-4 py-2 button-type font-title font-bold flex items-center gap-2">
+          <FaArrowLeft /> Retour
+        </button>
+      </div>
       
       {/* à mettre dans la navbar*/}
       {/*<div className="text-2xl text-junia-purple font-title font-bold mt-4">{roomName}</div>*/}
@@ -688,7 +686,13 @@ const AdminRoomDetails = () => {
                   <input type="text" name="posZ" placeholder="Position Z" value={parseFloat(posZ).toFixed(4) || ''} onChange={(e) => setPosZ(e.target.value)} required readOnly className="p-2 border border-gray-300 rounded" />
                   <input type="text" name="text" placeholder="Texte" required defaultValue={editInfospotMod ? infospotToEdit.text : ''} maxLength="300" className="p-2 border border-gray-300 rounded" />
                   <input type="text" name="title" placeholder="Titre" required defaultValue={editInfospotMod ? infospotToEdit.title : ''} maxLength="45" className="p-2 border border-gray-300 rounded" />
-                  <input type="file" name="pic" className="p-2 border border-gray-300 rounded" />
+                  <input type="file" accept="image/*" name="pic" className="p-2 border border-gray-300 rounded" onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file.type.startsWith("image/")) {
+                      alert("Veuillez sélectionner un fichier image valide.");
+                      e.target.value = ""; // Clear the input
+                    }
+                  }} />
                   <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">{editInfospotMod ? "Modifier" : "Ajouter"}</button>
                 </form>
               </div>
