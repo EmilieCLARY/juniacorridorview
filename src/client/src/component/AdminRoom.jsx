@@ -8,7 +8,9 @@ import '../style/AdminRoom.css';
 import Loader from "./Loader";
 import {TbMapPinPlus} from "react-icons/tb";
 import ModalPlanPlacement from "./plan/ModalPlanPlacement"; // Add this line
-import { FaPen, FaTrash, FaPlusCircle } from "react-icons/fa"; // Add FaPlus import
+import { FaPen, FaTrash, FaPlusCircle  } from "react-icons/fa"; // Add FaPlus import
+import { ImLocation2 } from "react-icons/im";
+import { MdOutlineFileUpload } from "react-icons/md";
 
 const customSelectStyles = {
   control: (provided, state) => ({
@@ -1027,9 +1029,9 @@ const AdminRoom = () => {
               
               <button 
                 type="submit"
-                className="mt-4 p-2 bg-junia-orange hover:bg-junia-orange-dark rounded-3xl text-white font-bold shadow-md font-title text-center transition"
+                className="mt-4 p-2 bg-junia-orange hover:bg-junia-orange-dark rounded-3xl text-white font-bold shadow-md font-title text-center transition flex items-center gap-2 justify-center"
               >
-                Modifier la salle
+                <FaPen /> Modifier la salle
               </button>
             </form>
           </div>
