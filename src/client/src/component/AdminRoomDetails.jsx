@@ -7,7 +7,9 @@ import { toast } from "sonner";
 import Loader from "./Loader";
 import Masonry from 'react-masonry-css';
 import '../style/AdminRoomDetails.css';
-import {FaArrowLeft, FaPen, FaTrash} from "react-icons/fa";
+import {FaArrowLeft, FaPen, FaTrash, FaPlusCircle} from "react-icons/fa";
+import {ImLocation2} from "react-icons/im";
+import {MdOutlineFileUpload} from "react-icons/md";
 import ModalAddEditImage from "./room_details/ModalAddEditImage";
 
 const AdminRoomDetails = () => {
@@ -456,7 +458,7 @@ const AdminRoomDetails = () => {
     <div className="">
       <Loader show={loading} text={textLoading} />
 
-      <div className="absolute" style={{left: "20px", top: "80px"}}>
+      <div className={`fixed z-40 ${newInfospotModalOpen || newLinkModalOpen || addImageModalOpen ? 'pointer-events-none opacity-50' : ''}`} style={{left: "20px", top: "80px"}}>
         <button
             onClick={() => history.push('/admin/room')}
             className="px-4 py-2 button-type font-title font-bold flex items-center gap-2">
@@ -477,8 +479,8 @@ const AdminRoomDetails = () => {
 
         <div className="image-list flex flex-col p-2 justify-between">
             <div className="button-add-360 flex justify-center ">
-                        <button onClick={() => setAddImageModalOpen(true)} className="button-type font-title font-bold text-2xl p-2">
-                          Ajouter une image 360°
+                        <button onClick={() => setAddImageModalOpen(true)} className="button-type font-title font-bold text-2xl p-2 flex items-center gap-2">
+                          <FaPlusCircle /> Ajouter une image 360°
                         </button>
             </div>
           {pictures.map(picture => (
@@ -535,7 +537,7 @@ const AdminRoomDetails = () => {
             <div className="flex gap-4 items-center w-full mb-4">
               <div className="text-white text-4xl bg-junia-purple px-4 py-1 font-title font-bold rounded-full">Infobulles</div>
               <div className="button-type font-bold font-title text-xl px-4 py-2">
-                <button onClick={handleModalInfopopup}>Nouvelle info-bulle</button>
+                <button onClick={handleModalInfopopup} className="flex items-center gap-2"><FaPlusCircle /> Nouvelle info-bulle</button>
               </div>
               
             </div>
@@ -585,8 +587,8 @@ const AdminRoomDetails = () => {
                   )}
                 </div>
                 <div className="flex w-full justify-between ">
-                  <button onClick={(event) => handleEditInfoPopup(event, popup)} className="button-type p-2 font-title font-bold ">Modifier</button>
-                  <button onClick={(event) => handleDeleteInfoPopup(event, popup.id_info_popup)} className="button-type2 p-2 font-title font-bold ">Supprimer</button>
+                  <button onClick={(event) => handleEditInfoPopup(event, popup)} className="button-type p-2 font-title font-bold flex items-center gap-2"><FaPen /> Modifier</button>
+                  <button onClick={(event) => handleDeleteInfoPopup(event, popup.id_info_popup)} className="button-type2 p-2 font-title font-bold flex items-center gap-2"><FaTrash /> Supprimer</button>
                 </div>
               </div>
             ))}
@@ -599,7 +601,7 @@ const AdminRoomDetails = () => {
             <div className="flex gap-4 items-center w-full mb-4">
               <div className="text-white text-4xl bg-junia-purple px-4 py-1 font-title font-bold rounded-full">Liens</div>
               <div className="button-type font-bold font-title text-xl px-4 py-2">
-                <button onClick={handleModalLink}>Nouveau lien</button>
+                <button onClick={handleModalLink} className="flex items-center gap-2"><FaPlusCircle /> Nouveau lien</button>
               </div>
             </div>
 
@@ -640,8 +642,8 @@ const AdminRoomDetails = () => {
                 <img src={pictures.find(pic => pic.id_pictures === link.id_pictures_destination)?.imageUrl} alt={`Destination ${link.id_pictures_destination}`} className="max-w-[100px] max-h-[100px]" />
               </div>
               <div className="flex w-full justify-between px-2">
-                <button onClick={(event) => handleEditLink(event, link)} className="button-type p-2 font-title font-bold">Modifier</button>
-                <button onClick={(event) => handleDeleteLink(event, link.id_links)} className="button-type2 p-2 font-title font-bold">Supprimer</button>
+                <button onClick={(event) => handleEditLink(event, link)} className="button-type p-2 font-title font-bold flex items-center gap-2"><FaPen /> Modifier</button>
+                <button onClick={(event) => handleDeleteLink(event, link.id_links)} className="button-type2 p-2 font-title font-bold flex items-center gap-2"><FaTrash /> Supprimer</button>
               </div>
             </div>
           ))}
@@ -651,7 +653,7 @@ const AdminRoomDetails = () => {
 
       {/* modales... */}
       {newInfospotModalOpen && (
-        <div className="fixed inset-0 flex justify-center items-center modal-background z-10 p-4">
+        <div className="fixed inset-0 flex justify-center items-center modal-background z-50 p-4">
           <div className="modal-infospot">
             {/* En-tête fixe */}
             <div className="modal-header">
@@ -685,71 +687,88 @@ const AdminRoomDetails = () => {
                 <input type="hidden" name="id_pictures" value={selectedImageId || ''} />
                 
                 {/* Left column */}
-                <div className="flex flex-col gap-4">
-                  <input 
-                    type="file"
-                    accept="image/*"
-                    name="pic"
-                    className="p-2 rounded file:mr-4 file:py-2 file:px-4 file:text-junia-orange file:opacity-70 file:border-0 file:font-title orange-border"
-                    onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (!file.type.startsWith("image/")) {
-                      alert("Veuillez sélectionner un fichier image valide.");
-                      e.target.value = ""; // Clear the input
-                      }
-                    }
-                  }
-                  />
-                  <div className="position-inputs-container">
-                    <input 
-                      type="text" 
-                      name="posX" 
-                      placeholder="Position X" 
-                      value={parseFloat(posX).toFixed(4) || ''} 
-                      onChange={(e) => setPosX(e.target.value)} 
-                      required 
-                      readOnly 
-                      className="position-input" 
-                    />
-                    <input 
-                      type="text" 
-                      name="posY" 
-                      placeholder="Position Y" 
-                      value={parseFloat(posY).toFixed(4) || ''} 
-                      onChange={(e) => setPosY(e.target.value)} 
-                      required 
-                      readOnly 
-                      className="position-input" 
-                    />
-                    <input 
-                      type="text" 
-                      name="posZ" 
-                      placeholder="Position Z" 
-                      value={parseFloat(posZ).toFixed(4) || ''} 
-                      onChange={(e) => setPosZ(e.target.value)} 
-                      required 
-                      readOnly 
-                      className="position-input" 
-                    />
+                <div className="flex flex-col gap-4 justify-between h-full">
+                  <div className="file-input-container">
+                    <div className="file-input-junia">
+                      <div className="flex items-center bg-white">
+                        <MdOutlineFileUpload className="text-junia-orange text-xl m-2" />
+                        <input 
+                          type="file"
+                          accept="image/*"
+                          name="pic"
+                          className="file:mr-4 file:py-2 file:px-4 file:text-junia-orange file:opacity-70 file:border-0 file:font-title"
+                          onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (!file.type.startsWith("image/")) {
+                            alert("Veuillez sélectionner un fichier image valide.");
+                            e.target.value = ""; // Clear the input
+                            }
+                          }
+                        }
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="position-inputs-container flex-col">
+                    {/* Labels en haut */}
+                    <div className="flex w-full justify-between mb-1">
+                      <label className="text-junia-purple font-bold text-center w-1/3">Coordonnée X :</label>
+                      <label className="text-junia-purple font-bold text-center w-1/3">Coordonnée Y :</label>
+                      <label className="text-junia-purple font-bold text-center w-1/3">Coordonnée Z :</label>
+                    </div>
+                    {/* Inputs en bas */}
+                    <div className="flex w-full justify-between">
+                      <input 
+                        type="text" 
+                        name="posX" 
+                        placeholder="Position X" 
+                        value={parseFloat(posX).toFixed(4) || ''} 
+                        onChange={(e) => setPosX(e.target.value)} 
+                        required 
+                        readOnly 
+                        className="position-input" 
+                      />
+                      <input 
+                        type="text" 
+                        name="posY" 
+                        placeholder="Position Y" 
+                        value={parseFloat(posY).toFixed(4) || ''} 
+                        onChange={(e) => setPosY(e.target.value)} 
+                        required 
+                        readOnly 
+                        className="position-input" 
+                      />
+                      <input 
+                        type="text" 
+                        name="posZ" 
+                        placeholder="Position Z" 
+                        value={parseFloat(posZ).toFixed(4) || ''} 
+                        onChange={(e) => setPosZ(e.target.value)} 
+                        required 
+                        readOnly 
+                        className="position-input" 
+                      />
+                    </div>
                   </div>
                   
                   <div className="flex gap-4 justify-center">
                     <button 
                       type="button" 
                       onClick={(event) => handleSelectPositionClick(event)} 
-                      className="button-type font-bold font-title text-xl px-4 py-2">
-                      Positionner
+                      className="button-type font-bold font-title text-xl px-4 py-2 flex items-center gap-2">
+                      <ImLocation2 /> Positionner
                     </button>
                     <button 
                       type="submit" 
-                      className="button-type font-bold font-title text-xl px-4 py-2">
-                      {editInfospotMod ? "Modifier" : "Ajouter"}
+                      className="button-type font-bold font-title text-xl px-4 py-2 flex items-center gap-2">
+                      {editInfospotMod ? <><FaPen /> Modifier</> : "Ajouter"}
                     </button>
                   </div>
                 </div>
 
-                {/* Right column */}
-                <div className="flex flex-col gap-4">
+                {/* Right column - pas de justify-between ici */}
+                <div className="flex flex-col h-full">
                   <input 
                     type="text" 
                     name="title" 
@@ -757,7 +776,7 @@ const AdminRoomDetails = () => {
                     required 
                     defaultValue={editInfospotMod ? infospotToEdit.title : ''} 
                     maxLength="45" 
-                    className="p-2 rounded orange-border" 
+                    className="p-2 rounded orange-border mb-2" 
                   />
                   <textarea 
                     name="text" 
@@ -765,7 +784,7 @@ const AdminRoomDetails = () => {
                     required 
                     defaultValue={editInfospotMod ? infospotToEdit.text : ''} 
                     maxLength="300" 
-                    className="p-2 rounded resize-none modal-textareaHeight orange-border" 
+                    className="p-2 rounded resize-none orange-border flex-grow" 
                   />
                 </div>
               </form>
@@ -775,7 +794,7 @@ const AdminRoomDetails = () => {
       )}
 
       {newLinkModalOpen && (
-        <div className="fixed inset-0 flex justify-center items-center modal-background z-10 p-4">
+        <div className="fixed inset-0 flex justify-center items-center modal-background z-50 p-4">
           <div className="modal-infospot">
             {/* En-tête fixe */}
             <div className="modal-header">
@@ -809,7 +828,7 @@ const AdminRoomDetails = () => {
                 <input type="hidden" name="id_pictures" value={selectedImageId || ''} />
                 
                 {/* Left column */}
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4 justify-between h-full">
                   <input 
                     type="text" 
                     name="id_pictures_destination" 
@@ -818,58 +837,65 @@ const AdminRoomDetails = () => {
                     defaultValue={editLinkMod ? linkToEdit.id_pictures_destination : ''} 
                     className="p-2 rounded orange-border" 
                     />
-                  <div className="position-inputs-container">
-                    
-
-                    <input 
-                      type="text" 
-                      name="posX" 
-                      placeholder="Position X" 
-                      value={parseFloat(posX).toFixed(4) || ''} 
-                      onChange={(e) => setPosX(e.target.value)} 
-                      required 
-                      readOnly 
-                      className="position-input" 
-                    />
-                    <input 
-                      type="text" 
-                      name="posY" 
-                      placeholder="Position Y" 
-                      value={parseFloat(posY).toFixed(4) || ''} 
-                      onChange={(e) => setPosY(e.target.value)} 
-                      required 
-                      readOnly 
-                      className="position-input" 
-                    />
-                    <input 
-                      type="text" 
-                      name="posZ" 
-                      placeholder="Position Z" 
-                      value={parseFloat(posZ).toFixed(4) || ''} 
-                      onChange={(e) => setPosZ(e.target.value)} 
-                      required 
-                      readOnly 
-                      className="position-input" 
-                    />
+                  <div className="position-inputs-container flex-col">
+                    {/* Labels en haut */}
+                    <div className="flex w-full justify-between mb-1">
+                      <label className="text-junia-purple font-bold text-center w-1/3">Coordonnée X :</label>
+                      <label className="text-junia-purple font-bold text-center w-1/3">Coordonnée Y :</label>
+                      <label className="text-junia-purple font-bold text-center w-1/3">Coordonnée Z :</label>
+                    </div>
+                    {/* Inputs en bas */}
+                    <div className="flex w-full justify-between">
+                      <input 
+                        type="text" 
+                        name="posX" 
+                        placeholder="Position X" 
+                        value={parseFloat(posX).toFixed(4) || ''} 
+                        onChange={(e) => setPosX(e.target.value)} 
+                        required 
+                        readOnly 
+                        className="position-input" 
+                      />
+                      <input 
+                        type="text" 
+                        name="posY" 
+                        placeholder="Position Y" 
+                        value={parseFloat(posY).toFixed(4) || ''} 
+                        onChange={(e) => setPosY(e.target.value)} 
+                        required 
+                        readOnly 
+                        className="position-input" 
+                      />
+                      <input 
+                        type="text" 
+                        name="posZ" 
+                        placeholder="Position Z" 
+                        value={parseFloat(posZ).toFixed(4) || ''} 
+                        onChange={(e) => setPosZ(e.target.value)} 
+                        required 
+                        readOnly 
+                        className="position-input" 
+                      />
+                    </div>
                   </div>
                   
                   <div className="flex gap-4 justify-center">
                     <button 
                       type="button" 
                       onClick={(event) => handleSelectPositionClick(event)} 
-                      className="button-type font-bold font-title text-xl px-4 py-2">
-                      Positionner
+                      className="button-type font-bold font-title text-xl px-4 py-2 flex items-center gap-2">
+                      <ImLocation2 /> Positionner
                     </button>
                     <button 
                       type="submit" 
-                      className="button-type font-bold font-title text-xl px-4 py-2">
-                      {editLinkMod ? "Modifier" : "Ajouter"}
+                      className="button-type font-bold font-title text-xl px-4 py-2 flex items-center gap-2">
+                      {editLinkMod ? <><FaPen /> Modifier</> : "Ajouter"}
                     </button>
                   </div>
                 </div>
 
-                {/* Right column */}
-                <div className="flex flex-col gap-4 h-full overflow-y-auto">
+                {/* Right column - pas de justify-between ici */}
+                <div className="flex flex-col h-full">
                   
                   <div className="flex-1 overflow-y-auto">
                     {pictures.map(picture => (
@@ -895,7 +921,7 @@ const AdminRoomDetails = () => {
       )}
 
       {addImageModalOpen && (
-        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-40 z-10">
+        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-40 z-50">
           <div className="bg-white p-5 border border-gray-400 w-4/5 max-w-lg">
             <span className="float-right text-2xl font-bold cursor-pointer text-gray-500 hover:text-black" onClick={() => setAddImageModalOpen(false)}>&times;</span>
             <h2 className="text-xl mb-4">Ajouter une nouvelle image 360°</h2>
@@ -903,16 +929,24 @@ const AdminRoomDetails = () => {
               <form onSubmit={handleImageUpload} className="flex flex-col gap-2">
                 <div className="mb-4">
                   <label className="block mb-2">Image panoramique (360°)</label>
-                  <input 
-                    type="file" 
-                    name="pic" 
-                    accept="image/*" 
-                    onChange={handleImageChange} 
-                    required 
-                    className="w-full p-2 border border-gray-300 rounded"
-                  />
+                  <div className="file-input-container">
+                    <div className="file-input-junia">
+                      <div className="flex items-center bg-white">
+                        <MdOutlineFileUpload className="text-junia-orange text-xl m-2" />
+                        <input 
+                          type="file" 
+                          name="pic" 
+                          accept="image/*" 
+                          onChange={handleImageChange} 
+                          required 
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Ajouter l'image</button>
+                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center gap-2 justify-center">
+                  <FaPlusCircle /> Ajouter l'image
+                </button>
               </form>
             </div>
           </div>
