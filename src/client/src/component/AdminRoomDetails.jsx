@@ -45,6 +45,7 @@ const AdminRoomDetails = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingModal, setIsLoadingModal] = useState(true);
   const [disableBackgroundClick, setDisableBackgroundClick] = useState(false);
+  const [imageToUpdate, setImageToUpdate] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [textLoading, setTextLoading] = useState("Chargement des données...");
@@ -417,32 +418,31 @@ const AdminRoomDetails = () => {
     setEditLinkMod(false);
   }
 
-  const handleImageChange = (e) => {
-    setNewImage(e.target.files[0]);
-  };
+  const handleEditPicture = async (id) => {
+    console.log('Editing picture', id);
+    setImageToUpdate(pictures.find(pic => pic.id_pictures === id));
+    setAddImageModalOpen(true);
+  }
 
-  const handleImageUpload = async (event) => {
-    event.preventDefault();
-    if (!newImage) {
-      toast.error('Veuillez sélectionner une image');
-      return;
-    }
+  const handleDeletePicture = async (id) => {
+    if (!window.confirm('Etes-vous sûr de vouloir supprimer l\'image ?')) return;
+    const deletePromise = api.deleteImage(id);
+    const updatedPicturesPromise = deletePromise.then(async () => {
+      await fetchAllData();
+    });
+    showLoading([deletePromise, updatedPicturesPromise], 'Suppression de l\'image...', 'Image supprimée avec succès', 'Erreur lors de la suppression de l\'image');
+  }
 
-    const formData = new FormData();
-    formData.append('id_rooms', id);
-    formData.append('pic', newImage);
-
-    try {
-      const uploadPromise = api.uploadFile(formData);
-      const fetchDataPromise = uploadPromise.then(async () => {
-        await fetchAllData();
-        setAddImageModalOpen(false);
-        setNewImage(null);
-      });
-
-      showLoading([uploadPromise, fetchDataPromise], 'Chargement de l\'image...', 'Image ajoutée avec succès', 'Erreur lors du chargement de l\'image');
-    } catch (error) {
-      console.error('Error uploading image:', error);
+  const reloadAfterAddEditImage = async (type) => {
+    if (type === 'add') {
+      const reloadPromise = fetchAllData();
+      setAddImageModalOpen(false);
+      showLoading([reloadPromise], 'Ajout de l\'image...', 'Image ajoutée avec succès', 'Erreur lors de l\'ajout de l\'image');
+    } else if (type === 'edit') {
+      const reloadPromise =  fetchAllData();
+      setImageToUpdate(null);
+      setAddImageModalOpen(false);
+      showLoading([reloadPromise], 'Mise à jour de l\'image...', 'Image mise à jour avec succès', 'Erreur lors de la mise à jour de l\'image');
     }
   };
 
@@ -477,7 +477,10 @@ const AdminRoomDetails = () => {
 
         <div className="image-list flex flex-col p-2 justify-between">
             <div className="button-add-360 flex justify-center ">
-                        <button onClick={() => setAddImageModalOpen(true)} className="button-type font-title font-bold text-2xl p-2">
+                        <button onClick={() => {
+                          setAddImageModalOpen(true)
+                          setImageToUpdate(null);
+                        }} className="button-type font-title font-bold text-2xl p-2">
                           Ajouter une image 360°
                         </button>
             </div>
@@ -894,30 +897,9 @@ const AdminRoomDetails = () => {
         </div>
       )}
 
-      {addImageModalOpen && (
-        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-40 z-10">
-          <div className="bg-white p-5 border border-gray-400 w-4/5 max-w-lg">
-            <span className="float-right text-2xl font-bold cursor-pointer text-gray-500 hover:text-black" onClick={() => setAddImageModalOpen(false)}>&times;</span>
-            <h2 className="text-xl mb-4">Ajouter une nouvelle image 360°</h2>
-            <div>
-              <form onSubmit={handleImageUpload} className="flex flex-col gap-2">
-                <div className="mb-4">
-                  <label className="block mb-2">Image panoramique (360°)</label>
-                  <input 
-                    type="file" 
-                    name="pic" 
-                    accept="image/*" 
-                    onChange={handleImageChange} 
-                    required 
-                    className="w-full p-2 border border-gray-300 rounded"
-                  />
-                </div>
-                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Ajouter l'image</button>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+      <ModalAddEditImage isOpen={addImageModalOpen} toggle={
+        () => setAddImageModalOpen(!addImageModalOpen)
+      } id_rooms={id} imageToUpdate={imageToUpdate} reload={reloadAfterAddEditImage} />
     </div>
   );
 };
