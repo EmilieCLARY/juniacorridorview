@@ -122,9 +122,9 @@ const Navbar = ({ isAuthenticated, selectedImageName, currentRoomNumber }) => {
           <NavLink to="/" className="text-inherit no-underline hover:text-inherit" >
             <FaHome className="text-4xl" title="Page d'accueil" />
           </NavLink>
-          {!isAdminPage && isAuthenticated && (
+          {isAuthenticated && (
             <NavLink to="/admin/room" className="text-inherit no-underline hover:text-inherit">
-              <RiAdminFill className="text-4xl" title="Panneau d'administration"/>
+              <RiAdminFill className="text-4xl" title="Gestion des salles"/>
             </NavLink>
           )}
           {!isAuthenticated && !isAdminPage && (
@@ -132,13 +132,14 @@ const Navbar = ({ isAuthenticated, selectedImageName, currentRoomNumber }) => {
               <RiAdminFill className="text-4xl" title="Panneau d'administration"/>
             </NavLink>
           )}
-          {isAuthenticated && isAdminPage && (
+          {isAuthenticated && (
             <NavLink
               to="/admin/user"
               className="text-inherit no-underline hover:text-inherit flex items-center"
               style={{ display: "inline-flex", alignItems: "center" }}
+              title="Paramètres utilisateur"
             >
-              <FaUserCog className="text-4xl ml-2 cursor-pointer" title="Paramètres utilisateur" />
+              <FaUserCog className="text-4xl cursor-pointer" title="Paramètres utilisateur" />
             </NavLink>
           )}
           {isAuthenticated && (

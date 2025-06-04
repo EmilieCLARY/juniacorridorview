@@ -5,7 +5,6 @@ import { createUser, getAllUsers, resetPassword, deleteUser } from "../api/Axios
 import { FaTrash, FaPen, FaPlus } from "react-icons/fa";
 
 const generatePassword = () => {
-  // 10 chars + 1 uppercase + 1 lowercase + 1 number + 1 special
   const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   const specials = "!@#$%^&*()_+-=~";
   let pwd = "";
@@ -13,9 +12,9 @@ const generatePassword = () => {
     pwd += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   pwd += specials.charAt(Math.floor(Math.random() * specials.length));
-  pwd += String.fromCharCode(65 + Math.floor(Math.random() * 26)); // uppercase
-  pwd += String.fromCharCode(97 + Math.floor(Math.random() * 26)); // lowercase
-  pwd += Math.floor(Math.random() * 10); // number
+  pwd += String.fromCharCode(65 + Math.floor(Math.random() * 26));
+  pwd += String.fromCharCode(97 + Math.floor(Math.random() * 26));
+  pwd += Math.floor(Math.random() * 10);
   return pwd;
 };
 
@@ -110,20 +109,20 @@ const AdminUser = () => {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#fff3f0' }}>
+    <div className="min-h-screen  pb-1" style={{ backgroundColor: '#fff3f0' }}>
       <div className="max-w-7xl mx-auto py-10 px-6 ">
-        <div className="bg-white rounded-2xl shadow-lg p-12 border-2 border-junia-orange m-4">
+        <div className="bg-white rounded-2xl shadow-lg p-12 border-2 border-junia-orange m-4 mb-3">
           <div className="flex flex-col lg:flex-row gap-8">
 
             <div className="flex flex-row items-start gap-8">
               <div className="flex flex-col flex-grow">
                 <div className="flex flex-row justify-between items-center mb-8 ml-4 mt-2">
-                  <div className="text-3xl font-title text-junia-orange">Liste des utilisateurs</div>
+                  <div className="text-3xl font-title text-junia-purple font-bold">Liste des utilisateurs</div>
                   <button
                     className="bg-junia-orange hover:bg-junia-purple text-white p-2 rounded-full font-title text-lg shadow-lg hover:shadow-xl transform mr-4 mt-2 cursor-pointer flex flex-row items-center gap-2"
                     onClick={() => setShowModal(true)}
                   >
-                    <FaPlus/> Créer utilisateur
+                    <FaPlus/> Nouvel utilisateur
                   </button>
                 </div>
                 {/* Barre de recherche */}
@@ -141,11 +140,11 @@ const AdminUser = () => {
                     {message}
                   </div>
                 )}
-                <div className="overflow-x-auto rounded-xl shadow-lg m-4">
+                <div className="overflow-x-auto rounded-xl m-4">
                   {loading ? (
                     <div className="text-center py-12 text-xl text-junia-purple font-title">Chargement...</div>
                   ) : (
-                    <table className="w-full bg-white rounded-xl">
+                    <table className="w-full bg-white rounded-xl overflow-hidden">
                       <thead className="p-4 rounded-t-xl">
                         <tr className="bg-junia-purple text-white">
                           <th className="px-4 py-4 font-title text-lg text-center">Email</th>
@@ -191,12 +190,32 @@ const AdminUser = () => {
         </div>
       </div>
       {showModal && (
-        <div className="modal">
-          <div className="modal-content max-w-lg">
+        <div className="modal" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div className="modal-content max-w-lg" style={{
+            backgroundColor: 'white',
+            padding: '2rem',
+            borderRadius: '1rem',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            width: '90%',
+            maxWidth: '32rem'
+          }}>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-title text-junia-purple">Créer un utilisateur</h2>
               <button
-                className="close text-gray-400 hover:text-junia-purple"
+                className="text-gray-400 hover:text-junia-purple text-3xl leading-none cursor-pointer transition-colors"
                 onClick={() => {
                   setShowModal(false);
                   setMessage("");
@@ -205,6 +224,7 @@ const AdminUser = () => {
                   setNewPassword("");
                 }}
                 aria-label="Fermer"
+                style={{ background: 'none', border: 'none' }}
               >
                 &times;
               </button>
@@ -224,7 +244,7 @@ const AdminUser = () => {
                   placeholder="Entrez l'email du nouvel utilisateur"
                   value={newEmail}
                   onChange={e => setNewEmail(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-junia-purple rounded-lg font-texts focus:outline-none focus:border-junia-orange transition-colors"
+                  className={`w-full px-4 py-3 border-2 border-junia-purple rounded-lg font-texts focus:outline-none focus:border-junia-orange transition-colors ${!!message ? 'opacity-50 cursor-not-allowed' : ''}`}
                   disabled={!!message}
                 />
               </div>
@@ -237,15 +257,14 @@ const AdminUser = () => {
                     placeholder="Générez ou saisissez un mot de passe"
                     value={newPassword}
                     onChange={e => setNewPassword(e.target.value)}
-                    className="flex-1 px-4 py-3 border-2 border-junia-purple rounded-lg font-texts focus:outline-none focus:border-junia-orange transition-colors"
+                    className={`flex-1 px-4 py-3 border-2 border-junia-purple rounded-lg font-texts focus:outline-none focus:border-junia-orange transition-colors ${!!message ? 'opacity-50 cursor-not-allowed' : ''}`}
                     disabled={!!message}
                   />
                   <button
                     type="button"
-                    className="bg-junia-orange hover:bg-junia-purple transition-colors text-white px-4 py-3 rounded-lg font-title whitespace-nowrap"
-                    onClick={handleGeneratePassword}
+                    className={`px-4 py-3 rounded-lg font-title whitespace-nowrap transition-colors ${!!message ? 'bg-gray-400 cursor-not-allowed' : 'bg-junia-orange hover:bg-junia-purple text-white'}`}
+                    onClick={!!message ? undefined : handleGeneratePassword}
                     title="Générer un mot de passe sécurisé"
-                    disabled={!!message}
                   >
                     Générer
                   </button>
@@ -259,7 +278,7 @@ const AdminUser = () => {
               {resetLink && (
                 <div className="form-group">
                   <label className="block text-sm font-title text-junia-purple mb-2">Lien de création du mot de passe</label>
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="p-3 bg-blue-50 border border-junia-orange rounded-lg">
                     <p className="text-sm text-blue-700 mb-2">Envoyez ce lien à l'utilisateur pour qu'il puisse définir son mot de passe :</p>
                     <a href={resetLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm break-all hover:text-blue-800 transition-colors">
                       {resetLink}
@@ -295,16 +314,37 @@ const AdminUser = () => {
         </div>
       )}
       {resetModal.open && (
-        <div className="modal">
-          <div className="modal-content max-w-lg">
+        <div className="modal" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div className="modal-content max-w-lg" style={{
+            backgroundColor: 'white',
+            padding: '2rem',
+            borderRadius: '1rem',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            width: '90%',
+            maxWidth: '32rem'
+          }}>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-title text-junia-purple">
                 Lien de réinitialisation du mot de passe pour {resetModal.email}
               </h2>
               <button
-                className="close text-gray-400 hover:text-junia-purple"
+                className="text-gray-400 hover:text-junia-purple text-3xl leading-none cursor-pointer transition-colors"
                 onClick={() => setResetModal({ open: false, email: "", link: "" })}
                 aria-label="Fermer"
+                style={{ background: 'none', border: 'none' }}
               >
                 &times;
               </button>
@@ -335,32 +375,51 @@ const AdminUser = () => {
         </div>
       )}
       {confirmDelete.open && (
-        <div className="modal">
-          <div className="modal-content max-w-lg">
+        <div className="modal" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div className="modal-content max-w-lg" style={{
+            padding: '2rem',
+            borderRadius: '1rem',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            width: '90%',
+            maxWidth: '32rem'
+          }}>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-title text-junia-purple">
                 Confirmer la suppression
               </h2>
               <button
-                className="close text-gray-400 hover:text-junia-purple"
+                className="text-gray-400 hover:text-junia-purple text-3xl leading-none cursor-pointer"
                 onClick={() => setConfirmDelete({ open: false, email: "", uid: "" })}
                 aria-label="Fermer"
+                style={{ background: 'none', border: 'none' }}
               >
                 &times;
               </button>
             </div>
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
+            <div className="p-3 border border-red-200 rounded-lg text-red-700">
               Êtes-vous sûr de vouloir supprimer le compte <b>{confirmDelete.email}</b> ? Cette action est irréversible.
             </div>
-            <div className="flex justify-end mt-4 gap-2">
+            <div className="flex justify-between mt-4">
               <button
-                className="px-6 py-3 bg-gray-200 hover:bg-gray-300 transition-colors text-gray-800 rounded-full font-title text-lg shadow-lg"
+                className="px-6 py-3 bg-junia-orange rounded-full font-title text-lg shadow-lg"
                 onClick={() => setConfirmDelete({ open: false, email: "", uid: "" })}
               >
                 Annuler
               </button>
               <button
-                className="px-6 py-3 bg-red-600 hover:bg-red-800 transition-colors text-white rounded-full font-title text-lg shadow-lg"
+                className="bg-junia-purple px-6 py-3 text-white rounded-full font-title text-lg shadow-lg"
                 onClick={confirmDeleteUser}
               >
                 Supprimer définitivement
