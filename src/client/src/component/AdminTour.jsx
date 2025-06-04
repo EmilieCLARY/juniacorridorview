@@ -175,7 +175,7 @@ const AdminTour = () => {
     try {
       const roomsData = await api.getRooms();
       console.log("Fetched rooms:", roomsData);
-      return roomsData.filter(room => room.hidden !== 1);
+      return roomsData;
     } catch (error) {
       console.error("Error fetching rooms:", error);
       toast.error("Impossible de charger les salles. Certaines fonctionnalités peuvent être limitées.");
