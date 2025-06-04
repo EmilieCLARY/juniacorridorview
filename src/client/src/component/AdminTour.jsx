@@ -17,7 +17,7 @@ import Carousel from '../reactbits/Components/Carousel/Carousel';
 import '../style/AdminTour.css';
 import Loader from "./Loader";
 import Select from 'react-select';
-import {FaArrowLeft} from "react-icons/fa";
+import {FaArrowLeft, FaTrash} from "react-icons/fa";
 
 // Custom styles for React Select
 const customSelectStyles = {
@@ -175,7 +175,7 @@ const AdminTour = () => {
     try {
       const roomsData = await api.getRooms();
       console.log("Fetched rooms:", roomsData);
-      return roomsData.filter(room => room.hidden !== 1);
+      return roomsData;
     } catch (error) {
       console.error("Error fetching rooms:", error);
       toast.error("Impossible de charger les salles. Certaines fonctionnalités peuvent être limitées.");
@@ -339,6 +339,26 @@ const AdminTour = () => {
     updatedSteps[index][field] = value;
     setNewTourSteps(updatedSteps);
   };
+
+  const handleDeleteStep = (stepId) => {
+    console.log('Deleting step with ID:', stepId);
+    // Remove step from tourSteps
+    setTourSteps((prevSteps) => {
+      const updatedSteps = { ...prevSteps };
+      if (selectedTour && updatedSteps[selectedTour.id_tours]) {
+        updatedSteps[selectedTour.id_tours] = updatedSteps[selectedTour.id_tours].filter(step => step.id_tour_steps !== stepId);
+      }
+      return updatedSteps;
+    });
+    // Remove step from editModeNewSteps if it exists
+    setEditModeNewSteps((prevSteps) => {
+      return prevSteps.filter(step => step.id !== stepId);
+    });
+    // Remove step from newTourSteps if it exists
+    setNewTourSteps((prevSteps) => {
+      return prevSteps.filter(step => step.id !== stepId);
+    });
+  }
 
   // Add new function to handle edit mode new step changes
   const handleEditModeNewStepChange = (index, selectedOption) => {
@@ -623,6 +643,17 @@ const AdminTour = () => {
                                 menuPortalTarget={document.body}
                               />
                             </div>
+                            <button type="button"
+                                    onPointerDown={(e) => e.stopPropagation()}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      handleDeleteStep(step.id);
+                                    }}
+                                    className="px-2 py-2 button-type2"
+                            >
+                                <FaTrash />
+                            </button>
                           </div>
                         </SortableItem>
                       ))}
@@ -679,6 +710,17 @@ const AdminTour = () => {
                                 menuPortalTarget={document.body}
                               />
                             </div>
+                            <button type="button"
+                                    onPointerDown={(e) => e.stopPropagation()}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      handleDeleteStep(step.id_tour_steps);
+                                    }}
+                                    className="px-2 py-2 button-type2"
+                            >
+                              <FaTrash />
+                            </button>
                           </div>
                         </SortableItem>
                       ))}
