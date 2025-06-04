@@ -92,6 +92,7 @@ const AdminTour = () => {
   const [selectedTour, setSelectedTour] = useState(null);
   const [newStepCount, setNewStepCount] = useState(0);
   const [newTourSteps, setNewTourSteps] = useState([]);
+  const [editModeNewSteps, setEditModeNewSteps] = useState([]); // Add this new state
   const [newTourModalOpen, setNewTourModalOpen] = useState(false);
   const [rooms, setRooms] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -248,6 +249,7 @@ const AdminTour = () => {
 
   const handleEditTour = async (tour) => {
     setSelectedTour(tour);
+    setEditModeNewSteps([]); // Reset edit mode new steps
     if (!tourSteps[tour.id_tours]) {
         const stepsDataPromise = tourApi.getTourSteps(tour.id_tours);
         showLoading([stepsDataPromise], 'Modification du parcours...', 'Parcours modifié avec succès', 'La modification du parcours a échoué');
@@ -319,6 +321,8 @@ const AdminTour = () => {
 
   const handleAddStep = () => {
     setNewStepCount(newStepCount + 1);
+    // Initialize new step in edit mode
+    setEditModeNewSteps(prev => [...prev, { id_rooms: '', id: `new-step-${newStepCount}` }]);
   };
 
   const handleAddNewTourStep = () => {
@@ -336,6 +340,16 @@ const AdminTour = () => {
     setNewTourSteps(updatedSteps);
   };
 
+  // Add new function to handle edit mode new step changes
+  const handleEditModeNewStepChange = (index, selectedOption) => {
+    const updatedSteps = [...editModeNewSteps];
+    if (!updatedSteps[index]) {
+      updatedSteps[index] = { id: `new-step-${index}` };
+    }
+    updatedSteps[index].id_rooms = selectedOption ? selectedOption.value : '';
+    setEditModeNewSteps(updatedSteps);
+  };
+
   const openNewTourModal = () => {
     setNewTourSteps([]);
     setNewTourModalOpen(true);
@@ -345,6 +359,8 @@ const AdminTour = () => {
     setNewTourSteps([]);
     setNewTourModalOpen(false);
     setEditTourModalOpen(false);
+    setNewStepCount(0); // Reset new step count
+    setEditModeNewSteps([]); // Reset edit mode new steps
   };
 
   
@@ -668,6 +684,7 @@ const AdminTour = () => {
                       ))}
                       {[...Array(newStepCount)].map((_, index) => {
                         const newStepIndex = tourSteps[selectedTour.id_tours]?.length + index;
+                        const editStepData = editModeNewSteps[index] || { id_rooms: '' };
                         return (
                           <SortableItem key={`new_${index}`} id={`new-step-${index}`}>
                             <div className="draggable-step font-title">
@@ -677,15 +694,13 @@ const AdminTour = () => {
                               <input 
                                 type="hidden" 
                                 name={`steps[${newStepIndex}][id_rooms]`}
-                                id={`step-room-new-${index}`}
-                                value=""
+                                value={editStepData.id_rooms}
                               />
                               <div className="w-full" onPointerDown={(e) => e.stopPropagation()}>
                                 <Select
                                   options={roomOptions}
-                                  onChange={(selectedOption) => {
-                                    document.getElementById(`step-room-new-${index}`).value = selectedOption.value;
-                                  }}
+                                  value={roomOptions.flatMap(group => group.options || []).find(option => option.value === editStepData.id_rooms) || null}
+                                  onChange={(selectedOption) => handleEditModeNewStepChange(index, selectedOption)}
                                   styles={customSelectStyles}
                                   className="w-full font-texts"
                                   placeholder="Sélectionner une salle"
