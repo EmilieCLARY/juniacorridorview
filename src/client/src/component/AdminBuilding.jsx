@@ -110,7 +110,7 @@ const AdminBuilding = () => {
 
     const handleDeleteBuilding = (id_building) => {
         setBuildingToDelete(id_building);
-        setConfirmTitle("Suppresion du bâtiment");
+        setConfirmTitle("Suppression du bâtiment");
         setConfirmMessage("Êtes-vous sûr de vouloir supprimer ce bâtiment ? Cette action est irréversible.");
         setShowConfirm(true);
     }
