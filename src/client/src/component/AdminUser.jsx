@@ -263,7 +263,7 @@ const AdminUser = () => {
                   />
                   <button
                     type="button"
-                    className={`px-4 py-3 rounded-lg font-title whitespace-nowrap transition-colors ${!!message ? 'bg-gray-400 cursor-not-allowed' : 'bg-junia-orange hover:bg-junia-purple text-white'}`}
+                    className={`px-4 py-3 bg-junia-purple rounded-lg font-title whitespace-nowrap transition-colors ${!!message ? 'bg-gray-400 cursor-not-allowed' : 'bg-junia-orange hover:bg-junia-purple text-white'}`}
                     onClick={!!message ? undefined : handleGeneratePassword}
                     title="Générer un mot de passe sécurisé"
                   >
@@ -297,7 +297,7 @@ const AdminUser = () => {
                     setNewEmail("");
                     setNewPassword("");
                   }}
-                  className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-full font-title text-lg hover:bg-gray-50 transition-colors"
+                  className="bg-junia-orange flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-full font-title text-lg hover:bg-gray-50 transition-colors"
                 >
                   {message ? "Fermer la modal" : "Annuler"}
                 </button>
