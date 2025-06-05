@@ -340,3 +340,9 @@ input[type="file"]::file-selector-button {
 .left-form-column{
   justify-content: space-between;
 }
+
+/* Style spécifique pour la page AdminRoomDetails */
+.admin-room-details-page {
+  background-color: var(--color-junia-salmon);
+  min-height: 100vh; /* Pour s'assurer que le fond couvre toute la hauteur */
+}

@@ -41,3 +41,9 @@
     border-radius: 6px;
     background-color: #f06b42; /* Couleur de la barre de défilement */;
 }
+
+/* Style spécifique pour la page AdminBuilding */
+.admin-building-page {
+  background-color: var(--color-junia-salmon);
+  min-height: 100vh; /* Pour s'assurer que le fond couvre toute la hauteur */
+}

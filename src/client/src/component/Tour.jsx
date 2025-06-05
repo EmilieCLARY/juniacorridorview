@@ -182,7 +182,7 @@ const TourViewer = () => {
   }, [tourSteps, panoramaUrls, rooms]);
 
   return (
-    <div className="h-100">
+    <div className="body-container bg-junia-lavender">
       <Loader show={isLoading} text={textLoading} />
       <div className="bg-junia-lavender p-4">
         <Masonry

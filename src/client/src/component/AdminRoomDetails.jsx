@@ -484,7 +484,7 @@ const AdminRoomDetails = () => {
   };
 
   return (
-    <div className="">
+    <div className="admin-room-details-page">
       <Loader show={loading} text={textLoading} />
 
       <div className={`fixed z-40 ${newInfospotModalOpen || newLinkModalOpen || addImageModalOpen ? 'pointer-events-none opacity-50' : ''}`} style={{left: "20px", top: "80px"}}>
@@ -502,7 +502,7 @@ const AdminRoomDetails = () => {
       
 
 
-    <div className="admin-room-details-container flex flex-col items-center bg-junia-salmon p-3">
+    <div className="admin-room-details-container flex flex-col items-center p-3">
       
       <div className="image-panorama-container bg-white w-80 rounded-2xl mt-4 flex">
 
