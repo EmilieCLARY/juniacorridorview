@@ -424,12 +424,18 @@ const AdminRoom = () => {
   const handleEditRoom = async (event, room) => {
     event.stopPropagation();
     event.preventDefault();
+    
+    // Find the building for this room
+    const floor = floors.find(floor => floor.id_floors === room.id_floors);
+    const building = buildings.find(b => b.id_buildings === floor?.id_buildings);
+    
     setEditRoomData({
       id_rooms: room.id_rooms,
       number: room.number,
       name: room.name,
-      building: room.building_name,
-      floor: floors.find(floor => floor.id_floors === room.id_floors).name,
+      building: building?.name || room.building_name,
+      buildingId: building?.id_buildings?.toString() || '',
+      floor: floors.find(floor => floor.id_floors === room.id_floors)?.name || '',
       floorId: room.id_floors,
       images: [],
       plan_x: room.plan_x,
@@ -478,15 +484,13 @@ const AdminRoom = () => {
     formData.append('plan_x', editRoomData.plan_x);
     formData.append('plan_y', editRoomData.plan_y);
 
-    // Find the building and add error handling
-    const building = rooms.find(room => room.building_name === editRoomData.building);
-    if (!building) {
-      console.error(`Building with name "${editRoomData.building}" not found`);
-      toast.error(`Bâtiment "${editRoomData.building}" introuvable. Veuillez réessayer.`);
+    // Use the buildingId directly from editRoomData
+    if (!editRoomData.buildingId) {
+      toast.error('Veuillez sélectionner un bâtiment');
       return;
     }
 
-    formData.append('id_buildings', building.id_buildings);
+    formData.append('id_buildings', editRoomData.buildingId);
     formData.append('id_floors', editRoomData.floorId);
 
     // Add preview image to form data if it exists
@@ -504,6 +508,7 @@ const AdminRoom = () => {
           number: '',
           name: '',
           building: '',
+          buildingId: '',
           floor: '',
           floorId: '',
           images: [],
@@ -958,7 +963,7 @@ const AdminRoom = () => {
                     className="basic-single-select"
                     classNamePrefix="select"
                     placeholder="Sélectionner un bâtiment"
-                    defaultValue={{ value: editRoomData.building, label: editRoomData.building }}
+                    value={editRoomData.buildingId ? { value: editRoomData.buildingId, label: editRoomData.building } : null}
                     styles={customSelectStyles}
                     menuPlacement="auto"
                     menuPosition="fixed"
@@ -966,7 +971,8 @@ const AdminRoom = () => {
                     onChange={(selectedOption) => {
                         setEditRoomData(prevData => ({
                           ...prevData,
-                          building: selectedOption.value,
+                          building: selectedOption.label,
+                          buildingId: selectedOption.value,
                           floor: '',
                           floorId: '',
                           plan_x: '',
@@ -983,17 +989,17 @@ const AdminRoom = () => {
                 <div className="w-2/3 flex flex-row gap-4 items-center">
                   <Select
                     name="floor"
-                    //options={floors.map(floor => ({ value: floor.id_floors.toString(), label: floor.name })).sort((a, b) => a.value - b.value)}
-                    options={floors.filter(floor => floor.id_buildings === parseInt(editRoomData.building)).map(floor => ({ value: floor.id_floors.toString(), label: floor.name })).sort((a, b) => a.value - b.value)}
+                    options={floors.filter(floor => floor.id_buildings === parseInt(editRoomData.buildingId)).map(floor => ({ value: floor.id_floors.toString(), label: floor.name })).sort((a, b) => a.value - b.value)}
                     className="basic-single-select"
                     classNamePrefix="select"
                     placeholder="Sélectionner un étage"
-                    value={{ value: editRoomData.floor, label: editRoomData.floor }}
+                    value={editRoomData.floorId ? { value: editRoomData.floorId.toString(), label: editRoomData.floor } : null}
                     styles={customSelectStyles}
                     menuPlacement="auto"
                     menuPosition="fixed"
                     menuPortalTarget={document.body}
-                    onChange={(selectedOption) => setEditRoomData(prevData => ({ ...prevData, floor: selectedOption.label, floorId: selectedOption.value }))}
+                    onChange={(selectedOption) => setEditRoomData(prevData => ({ ...prevData, floor: selectedOption.label, floorId: selectedOption.value }))
+                    }
                     required
                   />
                   {editRoomData.floorId && editRoomData.floor && (
