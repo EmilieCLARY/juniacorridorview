@@ -661,7 +661,7 @@ const AdminTour = () => {
                   </SortableContext>
                 </DndContext>
                 <button type="button" onClick={handleAddNewTourStep} disabled={rooms.length === 0} className="bouton-ajouter font-texts shadow-md ">Ajouter une étape</button>
-                <button type="submit" disabled={rooms.length === 0 || newTourSteps.length === 0} className="bouton-modifier font-texts shadow-md">Confirmer l'ajout du parcours</button>
+                <button type="submit" disabled={rooms.length === 0 || newTourSteps.length === 0} className="bg-junia-orange disabled:bg-junia-orange disabled:opacity-50 bouton-modifier font-texts shadow-md">Confirmer l'ajout du parcours</button>
               </form>
             </div>
           </div>
@@ -761,7 +761,7 @@ const AdminTour = () => {
                     </SortableContext>
                   </DndContext>
                   <button type="button" onClick={handleAddStep} className="bouton-ajouter font-texts shadow-md">Ajouter une étape</button>
-                  <button type="submit" className="bouton-modifier font-texts shadow-md">Modifier le parcours</button>
+                  <button type="submit" className="bouton-modifier font-texts shadow-md bg-junia-orange">Modifier le parcours</button>
               </form>
             </div>
           </div>
