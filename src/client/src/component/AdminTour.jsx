@@ -624,7 +624,7 @@ const AdminTour = () => {
             <div className="modal-content">
               <div className="flex justify-between items-center pb-4">
                 <div className="text-3xl font-bold font-title text-center">Ajouter un nouveau parcours</div>
-                <span className="close items-center" onClick={() => setNewTourModalOpen(false)}>&times;</span>
+                <span className="close items-center" onClick={() => {setNewTourModalOpen(false); setNewTourSteps([]); setNewStepCount(0); setEditModeNewSteps([])}}>&times;</span>
               </div>
               <form onSubmit={handleNewTour}>
                 <input type="text" name="title" placeholder="Titre du Parcours" className="font-texts" required />
@@ -690,7 +690,7 @@ const AdminTour = () => {
             <div className="modal-content">
               <div className="flex justify-between items-center pb-4">
                 <div className="text-3xl font-bold font-title text-center">Modifier un parcours</div>
-                <span className="close items-center" onClick={() => setEditTourModalOpen(false)}>&times;</span>
+                <span className="close items-center" onClick={() => {setEditTourModalOpen(false); setNewTourSteps([]); setNewStepCount(0); setEditModeNewSteps([])}}>&times;</span>
               </div>
               <form onSubmit={handleEditTourSubmit}>
                   <input type="hidden" name="id_tours" value={selectedTour.id_tours} />
