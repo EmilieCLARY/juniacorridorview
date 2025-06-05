@@ -679,7 +679,7 @@ const AdminRoom = () => {
         {filteredRooms.map(room => (
           <div
             key={room.id_rooms}
-            className="room-card px-4 py-2 rounded-3xl shadow hover:shadow-lg transition-shadow duration-300 bg-white flex flex-col justify-between"
+            className="room-card px-4 py-2 rounded-3xl shadow hover:shadow-lg transition-shadow duration-300 bg-white flex flex-col justify-between cursor-pointer"
             onClick={() => handleRoomClick(room.id_rooms)}>
 
             <div className="mb-2 flex justify-between gap-2 py-2">
