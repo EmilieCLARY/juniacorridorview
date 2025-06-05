@@ -149,11 +149,11 @@ const AdminBuilding = () => {
     }
 
     const reloadBuilding = () => {
-        showLoading([fetchBuildings()], "Chargement des bâtiments...", "Bâtiments chargées avec succès", "Erreur lors du chargement des bâtiments");
+        showLoading([fetchBuildings()], "Chargement des bâtiments...", "Bâtiments chargés avec succès", "Erreur lors du chargement des bâtiments");
     }
 
     const reloadFloor = () => {
-        showLoading([fetchFloors()], "Chargement des niveaux...", "Niveaux chargées avec succès", "Erreur lors du chargement des niveaux");
+        showLoading([fetchFloors()], "Chargement des niveaux...", "Niveaux chargés avec succès", "Erreur lors du chargement des niveaux");
     }
 
     useEffect(() => {
