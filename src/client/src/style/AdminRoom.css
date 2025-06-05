@@ -61,8 +61,8 @@
   font-family: var(--font-texts);
 }
 
-#root{
-  background-color: #fff3f0;
+#root {
+  /* Aucun style de fond défini ici pour ne pas affecter les autres pages */
 }
 
 .research-input {
@@ -72,12 +72,12 @@
 }
 
 .research-input::placeholder {
-  color:rgba(240, 107, 66, 0.5)
+  color: rgba(240, 107, 66, 0.5);
 }
 
-.font-semibold{
+.font-semibold {
   --tw-font-weight: var(--font-weight-semibold);
-    font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-semibold);
 }
 
 .col-span-2 {
@@ -85,7 +85,7 @@
 }
 
 .basic-multi-select::placeholder {
-  color:rgba(240, 107, 66, 1);
+  color: rgba(240, 107, 66, 1);
 }
 
 .research-input:focus {
@@ -96,15 +96,15 @@
   height: 90%;
 }
 
-.h-80\%{
+.h-80\% {
   height: 80%;
 }
 
 .bg-gray-500 {
-background-color: var(--color-gray-500);
+  background-color: var(--color-gray-500);
 }
 
-.bg-junia-salmon{
+.bg-junia-salmon {
   background-color: var(--color-junia-salmon);
 }
 
@@ -138,7 +138,7 @@ background-color: var(--color-gray-500);
   background-color: white;
   transition: 0.4s;
   border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .toggle-switch input:checked + .toggle-slider {
@@ -156,4 +156,10 @@ background-color: var(--color-gray-500);
 .room-card:hover {
   transform: translateY(-5px);
   transition: 0.3s ease;
+}
+
+/* Style spécifique pour la page AdminRoom */
+.admin-room-page {
+  background-color: var(--color-junia-salmon);
+  min-height: 100vh; /* Pour s'assurer que le fond couvre toute la hauteur */
 }

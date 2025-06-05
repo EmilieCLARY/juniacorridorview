@@ -1335,7 +1335,7 @@ nav {
   display: flex;
 }
 .body-container {
-  height: calc(100vh - 90px) !important;
+  height: calc(100vh - 65px) !important;
 }
 .box {
   display: flex;

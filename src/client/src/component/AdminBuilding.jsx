@@ -3,7 +3,7 @@ import {toast} from "sonner";
 import Loader from "./Loader";
 import * as api from '../api/AxiosAdminBuilding';
 import {FaArrowLeft, FaChevronDown, FaChevronUp, FaPen, FaPlus, FaPlusCircle, FaTrash} from "react-icons/fa";
-import '../style/AdminBuilding.css'
+import '../style/AdminBuilding.css';
 import {Buffer} from "buffer";
 import ModalAddEditBuilding from "./buildings/ModalAddEditBuilding";
 import ModalAddEditFloors from "./buildings/ModalAddEditFloors";
@@ -164,67 +164,69 @@ const AdminBuilding = () => {
     }, []);
 
     return (
-        <div className="mx-auto p-4 bg-junia-salmon">
+        <div className="admin-building-page">
             <Loader show={isLoading} text={textLoading} />
-            <div className="flex flex-row gap-4 mb-4">
-                <button
-                    onClick={() => history.push('/admin/room')}
-                    className="px-4 py-2 button-type font-title font-bold flex items-center gap-2">
-                    <FaArrowLeft /> Retour
-                </button>
-                <button className="px-4 py-2 button-type font-title font-bold flex flex-row gap-2 items-center hover:cursor-pointer" onClick={handleAddBuilding}>
-                    <FaPlusCircle /> Ajouter un bâtiment
-                </button>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-                {building.map((building, index) => (
-                    <div key={index} className="px-1 py-2 border-2 purpleborder rounded-3xl shadow bg-white flex flex-col">
-                        <div className="mx-4 mb-2 py-2 border-b flex flex-row justify-between items-center">
-                            <h4 className="font-bold font-title ">Bâtiment {building.name}</h4>
-                            <div className="flex flex-row gap-2 items-center">
-                                <button className="px-3 py-1 button-type2 font-title flex flex-row gap-2 items-center hover:cursor-pointer" onClick={() => handleEditBuilding(building)}><FaPen /> Modifier</button>
-                                <button className="px-3 py-1 button-type font-title flex flex-row gap-2 items-center hover:cursor-pointer" onClick={() => handleDeleteBuilding(building.id_buildings)}><FaTrash /> Supprimer</button>
+            <div className="mx-auto p-3">
+                <div className="flex flex-row gap-4 mb-4">
+                    <button
+                        onClick={() => history.push('/admin/room')}
+                        className="px-4 py-2 button-type font-title font-bold flex items-center gap-2">
+                        <FaArrowLeft /> Retour
+                    </button>
+                    <button className="px-4 py-2 button-type font-title font-bold flex flex-row gap-2 items-center hover:cursor-pointer" onClick={handleAddBuilding}>
+                        <FaPlusCircle /> Ajouter un bâtiment
+                    </button>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    {building.map((building, index) => (
+                        <div key={index} className="px-1 py-2 border-2 purpleborder rounded-3xl shadow bg-white flex flex-col">
+                            <div className="mx-4 mb-2 py-2 border-b flex flex-row justify-between items-center">
+                                <h4 className="font-bold font-title ">Bâtiment {building.name}</h4>
+                                <div className="flex flex-row gap-2 items-center">
+                                    <button className="px-3 py-1 button-type2 font-title flex flex-row gap-2 items-center hover:cursor-pointer" onClick={() => handleEditBuilding(building)}><FaPen /> Modifier</button>
+                                    <button className="px-3 py-1 button-type font-title flex flex-row gap-2 items-center hover:cursor-pointer" onClick={() => handleDeleteBuilding(building.id_buildings)}><FaTrash /> Supprimer</button>
+                                </div>
                             </div>
-                        </div>
-                        <div className="px-3 flex flex-col gap-2 scrollable-floor" id="style-2">
-                            {getFloorsByBuilding(building.id_buildings).map((floor, index) => (
-                                <div key={index} className="px-4 py-2 orangeborder rounded-xl shadow hover:shadow-lg hover:cursor-pointer transition-shadow duration-300 bg-white select-none flex flex-col gap-2" onClick={toggleIndexToShow(floor.id_floors)}>
-                                    <div  className="flex flex-row justify-between items-center">
-                                        <h5 className="font-title">Niveau {floor.name}</h5>
-                                        <div className="flex flex-row gap-2 items-center">
-                                            <button className="px-3 py-1 button-type2 font-title flex flex-row gap-2 items-center hover:cursor-pointer" onClick={() => handleEditFloor(floor, building.id_buildings)}><FaPen /> Modifier</button>
-                                            <button className="px-3 py-1 button-type font-title flex flex-row gap-2 items-center hover:cursor-pointer" onClick={() => handleDeleteFloor(floor.id_floors)}><FaTrash /> Supprimer</button>
-                                            {indexesToShow.includes(floor.id_floors) ? <FaChevronUp className="ml-3" /> : <FaChevronDown className="ml-3" />}
-                                        </div>
-                                    </div>
-                                    {indexesToShow.includes(floor.id_floors) && (
-                                        <div className="flex flex-col items-center justify-center pt-2 border-t">
-                                            <h6 className="font-title">Plan de l'étage</h6>
-                                            <div className="overflow-hidden flex items-center">
-                                                <img src={`data:image/jpeg;base64,${Buffer.from(floor.plan).toString('base64')}`} alt={`Preview of ${floor.name}`} className="object-cover h-90% rounded-xl" />
+                            <div className="px-3 flex flex-col gap-2 scrollable-floor" id="style-2">
+                                {getFloorsByBuilding(building.id_buildings).map((floor, index) => (
+                                    <div key={index} className="px-4 py-2 orangeborder rounded-xl shadow hover:shadow-lg hover:cursor-pointer transition-shadow duration-300 bg-white select-none flex flex-col gap-2" onClick={toggleIndexToShow(floor.id_floors)}>
+                                        <div  className="flex flex-row justify-between items-center">
+                                            <h5 className="font-title">Niveau {floor.name}</h5>
+                                            <div className="flex flex-row gap-2 items-center">
+                                                <button className="px-3 py-1 button-type2 font-title flex flex-row gap-2 items-center hover:cursor-pointer" onClick={() => handleEditFloor(floor, building.id_buildings)}><FaPen /> Modifier</button>
+                                                <button className="px-3 py-1 button-type font-title flex flex-row gap-2 items-center hover:cursor-pointer" onClick={() => handleDeleteFloor(floor.id_floors)}><FaTrash /> Supprimer</button>
+                                                {indexesToShow.includes(floor.id_floors) ? <FaChevronUp className="ml-3" /> : <FaChevronDown className="ml-3" />}
                                             </div>
                                         </div>
-                                    )}
+                                        {indexesToShow.includes(floor.id_floors) && (
+                                            <div className="flex flex-col items-center justify-center pt-2 border-t">
+                                                <h6 className="font-title">Plan de l'étage</h6>
+                                                <div className="overflow-hidden flex items-center">
+                                                    <img src={`data:image/jpeg;base64,${Buffer.from(floor.plan).toString('base64')}`} alt={`Preview of ${floor.name}`} className="object-cover h-90% rounded-xl" />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                                <div className="px-4 mb-4 py-2 orangeborder rounded-xl shadow hover:shadow-lg hover:cursor-pointer transition-shadow duration-300 bg-white select-none flex flex-col items-center gap-2"
+                                     onClick={() => {handleAddFloor(building.id_buildings)}}
+                                >
+                                    <FaPlus className="text-3xl text-junia-orange" />
                                 </div>
-                            ))}
-                            <div className="px-4 mb-4 py-2 orangeborder rounded-xl shadow hover:shadow-lg hover:cursor-pointer transition-shadow duration-300 bg-white select-none flex flex-col items-center gap-2"
-                                 onClick={() => {handleAddFloor(building.id_buildings)}}
-                            >
-                                <FaPlus className="text-3xl text-junia-orange" />
                             </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
+                <ModalAddEditBuilding isOpen={showAddEditBuilding} toggle={toggleAddEditBuilding} building={buildingToEdit} reload={reloadBuilding} />
+                <ModalAddEditFloors isOpen={showAddEditFloor} toggle={toggleAddEditFloor} floor={floorToEdit} id_buildings={idBuildingFloor} reload={reloadFloor} />
+                <ConfirmDialog open={showConfirm} onClose={() => setShowConfirm(false)} title={confirmTitle} message={confirmMessage} onConfirm={() => {
+                    if (buildingToDelete) {
+                        confirmDeleteBuilding();
+                    } else if (floorToDelete) {
+                        confirmDeleteFloor();
+                    }
+                }} />
             </div>
-            <ModalAddEditBuilding isOpen={showAddEditBuilding} toggle={toggleAddEditBuilding} building={buildingToEdit} reload={reloadBuilding} />
-            <ModalAddEditFloors isOpen={showAddEditFloor} toggle={toggleAddEditFloor} floor={floorToEdit} id_buildings={idBuildingFloor} reload={reloadFloor} />
-            <ConfirmDialog open={showConfirm} onClose={() => setShowConfirm(false)} title={confirmTitle} message={confirmMessage} onConfirm={() => {
-                if (buildingToDelete) {
-                    confirmDeleteBuilding();
-                } else if (floorToDelete) {
-                    confirmDeleteFloor();
-                }
-            }} />
         </div>
     );
 }

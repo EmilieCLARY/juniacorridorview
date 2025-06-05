@@ -560,505 +560,503 @@ const AdminRoom = () => {
   }
 
   return (
-    <div className="mx-auto p-3 bg-junia-salmon">
-      <div className="flex justify-center">
-        <Loader show={isLoading} text={textLoading} />
-
-        
-        
-        
-      </div>
-
-      <div className="flex gap-3 justify-between mb-4">
-        <div className="flex gap-4 items-center ">
-          <input
-          type="text"
-          placeholder="Rechercher une salle..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full p-2  research-input bg-white rounded-full" />
-
-        <Select
-          isMulti
-          name="building"
-          options={ buildings.map(building => ({ value: building.name, label: building.name })).sort((a, b) => a.value.localeCompare(b.value))}
-          className="basic-multi-select"
-          classNamePrefix="select"
-          placeholder="Bâtiment"
-          isDisabled={buildings.length === 0}
-          isSearchable
-          menuPlacement="auto"
-          menuPosition="fixed"
-          styles={customSelectStyles}
-          menuPortalTarget={document.body}
-          onChange={handleFilterChange}
-        />
-        <Select
-          isMulti
-          name="floor"
-          options={floors.map(floor => ({ value: floor.id_floors.toString(), label: floor.name })).sort((a, b) => a.value - b.value)}
-          className="basic-multi-select"
-          styles={customSelectStyles}
-          classNamePrefix="select"
-          placeholder="Étage"
-          isSearchable
-          menuPlacement="auto"
-          menuPosition="fixed"
-          menuPortalTarget={document.body}
-          onChange={handleFilterChange}
-        />
-        <Select
-          isMulti
-          name="name"
-          options={getUniqueOptions('name')}
-          className="basic-multi-select"
-          classNamePrefix="select"
-          placeholder="Nom"
-          isSearchable
-          styles={customSelectStyles}
-          menuPlacement="auto"
-          menuPosition="fixed"
-          menuPortalTarget={document.body}
-          onChange={handleFilterChange}
-        />
-        <Select
-          isMulti
-          name="number"
-          options={getUniqueOptions('number')}
-          className="basic-multi-select flex"
-          classNamePrefix="select"
-          placeholder="Numéro"
-          isSearchable
-          styles={customSelectStyles}
-          menuPlacement="auto"
-          menuPosition="fixed"
-          menuPortalTarget={document.body}
-          onChange={handleFilterChange}
-        />
-        <Select
-          isMulti
-          name="id"
-          options={rooms.map(room => ({ value: room.id_rooms.toString(), label: room.id_rooms.toString() })).sort((a, b) => a.value - b.value)}
-          className="basic-multi-select"
-          classNamePrefix="select"
-          placeholder="ID"
-          isSearchable
-          styles={customSelectStyles}
-          menuPlacement="auto"
-          menuPosition="fixed"
-          menuPortalTarget={document.body}
-          onChange={handleFilterChange}
-        />
-        
+    <div className="admin-room-page">
+      <div className="mx-auto p-3">
+        <div className="flex justify-center">
+          <Loader show={isLoading} text={textLoading} />
         </div>
-        <div class="flex gap-4">
-          <button
-              onClick={() => {
-                setNewRoomModalOpen(true);
-                setPlanPlacementEditMode(false);
-              }}
-              className="px-3 py-2 font-title font-bold button-type flex items-center gap-2"
-          >
-            <FaPlusCircle /> Ajouter une salle
-          </button>
+
+        <div className="flex gap-3 justify-between mb-4">
+          <div className="flex gap-4 items-center ">
+            <input
+            type="text"
+            placeholder="Rechercher une salle..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full p-2  research-input bg-white rounded-full" />
+
+          <Select
+            isMulti
+            name="building"
+            options={ buildings.map(building => ({ value: building.name, label: building.name })).sort((a, b) => a.value.localeCompare(b.value))}
+            className="basic-multi-select"
+            classNamePrefix="select"
+            placeholder="Bâtiment"
+            isDisabled={buildings.length === 0}
+            isSearchable
+            menuPlacement="auto"
+            menuPosition="fixed"
+            styles={customSelectStyles}
+            menuPortalTarget={document.body}
+            onChange={handleFilterChange}
+          />
+          <Select
+            isMulti
+            name="floor"
+            options={floors.map(floor => ({ value: floor.id_floors.toString(), label: floor.name })).sort((a, b) => a.value - b.value)}
+            className="basic-multi-select"
+            styles={customSelectStyles}
+            classNamePrefix="select"
+            placeholder="Étage"
+            isSearchable
+            menuPlacement="auto"
+            menuPosition="fixed"
+            menuPortalTarget={document.body}
+            onChange={handleFilterChange}
+          />
+          <Select
+            isMulti
+            name="name"
+            options={getUniqueOptions('name')}
+            className="basic-multi-select"
+            classNamePrefix="select"
+            placeholder="Nom"
+            isSearchable
+            styles={customSelectStyles}
+            menuPlacement="auto"
+            menuPosition="fixed"
+            menuPortalTarget={document.body}
+            onChange={handleFilterChange}
+          />
+          <Select
+            isMulti
+            name="number"
+            options={getUniqueOptions('number')}
+            className="basic-multi-select flex"
+            classNamePrefix="select"
+            placeholder="Numéro"
+            isSearchable
+            styles={customSelectStyles}
+            menuPlacement="auto"
+            menuPosition="fixed"
+            menuPortalTarget={document.body}
+            onChange={handleFilterChange}
+          />
+          <Select
+            isMulti
+            name="id"
+            options={rooms.map(room => ({ value: room.id_rooms.toString(), label: room.id_rooms.toString() })).sort((a, b) => a.value - b.value)}
+            className="basic-multi-select"
+            classNamePrefix="select"
+            placeholder="ID"
+            isSearchable
+            styles={customSelectStyles}
+            menuPlacement="auto"
+            menuPosition="fixed"
+            menuPortalTarget={document.body}
+            onChange={handleFilterChange}
+          />
           
-          <button
-              onClick={() => history.push('/admin/tour')}
-              className="px-4 py-2  button-type font-title font-bold">
-              Parcours
-          </button>
-          
-          <button
-              onClick={() => history.push('/admin/building')}
-              className="px-4 py-2  button-type font-title font-bold">
-              Bâtiments
-          </button>
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        {filteredRooms.map(room => (
-          <div
-            key={room.id_rooms}
-            className="room-card px-4 py-2 rounded-3xl shadow hover:shadow-lg transition-shadow duration-300 bg-white flex flex-col justify-between cursor-pointer"
-            onClick={() => handleRoomClick(room.id_rooms)}>
-
-            <div className="mb-2 flex justify-between gap-2 py-2">
-              <div className="flex py-2 flex-col justify-between">
-                <div>
-                  <div className="text-junia-purple font-bold">Salle : </div>
-                  <div className="text-junia-orange font-title text-2xl font-semibold"> {room.name} </div>
-                </div>
-                <div>
-                  <div className="text-junia-purple font-bold"> Numéro : </div>
-                  <div className="text-junia-orange font-title text-2xl font-semibold"> {room.number} </div>
-                </div>
-                <div>
-                  <div className="text-junia-purple font-bold">Bâtiment : </div>
-                  <div className="text-junia-orange font-title text-2xl font-semibold"> {room.building_name} </div>
-                </div>
-                <div>
-                  <div className="text-junia-purple font-bold">Etage : </div>
-                  <div className="text-junia-orange font-title text-2xl font-semibold"> {floors.find(floor => floor.id_floors === room.id_floors).name} </div>
-                </div>
-                <div>
-                  <div className="text-junia-purple font-bold">ID Salle: </div>
-                  <div className="text-junia-orange font-title text-2xl font-semibold"> {room.id_rooms} </div>
-                </div> 
-                
-                <div
-                  className="flex flex-row align-center"
-                  onClick={(event) => {
-                    event.stopPropagation();  // Prevent click from bubbling up to the parent div
-                  }}
-                >
-                  <div className="text-junia-purple font-bold">Visibilité : </div>
-                  <label className="toggle-switch mx-2">
-                    <input
-                      type="checkbox"
-                      checked={!room.hidden}
-                      className="sr-only "
-                      onChange={() => { }} // Required for React controlled components
-                      onClick={(event) => {
-                        event.stopPropagation(); // Still needed for the toggle itself
-                        toggleRoomVisibility(event, room);
-                      }}
-                    />
-                    <span className="toggle-slider"></span>
-                  </label>
-                </div>
-              </div>
-
-
-              
-              {room.imageUrl && (
-                <div className="overflow-hidden w-80 rounded flex items-center justify-center">
-                  <img src={room.imageUrl} alt={`Preview of ${room.name}`} className="object-cover h-90% rounded-3xl " />
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-between pb-2">
-              <button onClick={(event) => handleEditRoom(event, room)} className="button-type font-title font-bold px-3 py-2 flex items-center gap-2">
-                <FaPen /> Modifier
-              </button>
-              <button onClick={(event) => handleDeleteRoom(event, room.id_rooms)} className="button-type2 font-title font-bold px-3 py-2 flex items-center gap-2">
-                <FaTrash /> Supprimer
-              </button>
-            </div>
-
           </div>
-        ))}
-      </div>
-
-      {debugInfo.error && (
-        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4">
-          <p className="font-bold">Debugging Information</p>
-          <p>Error: {debugInfo.error}</p>
-          <p>Building Data: {debugInfo.buildingData ? JSON.stringify(debugInfo.buildingData, null, 2) : 'None'}</p>
-          <button
-            onClick={fetchBuildings}
-            className="mt-2 p-2 bg-blue-500 text-white rounded"
-          >
-            Retry Fetching Buildings
-          </button>
+          <div class="flex gap-4">
+            <button
+                onClick={() => {
+                  setNewRoomModalOpen(true);
+                  setPlanPlacementEditMode(false);
+                }}
+                className="px-3 py-2 font-title font-bold button-type flex items-center gap-2"
+            >
+              <FaPlusCircle /> Ajouter une salle
+            </button>
+            
+            <button
+                onClick={() => history.push('/admin/tour')}
+                className="px-4 py-2  button-type font-title font-bold">
+                Parcours
+            </button>
+            
+            <button
+                onClick={() => history.push('/admin/building')}
+                className="px-4 py-2  button-type font-title font-bold">
+                Bâtiments
+            </button>
+          </div>
         </div>
-      )}
+        <div className="grid grid-cols-2 gap-4">
+          {filteredRooms.map(room => (
+            <div
+              key={room.id_rooms}
+              className="room-card px-4 py-2 rounded-3xl shadow hover:shadow-lg transition-shadow duration-300 bg-white flex flex-col justify-between cursor-pointer"
+              onClick={() => handleRoomClick(room.id_rooms)}>
 
-      {newRoomModalOpen && (
-        <div className="modal">
-          <div className="modal-content">
-            <div className="flex justify-between items-center pb-4">
-              <div className="text-3xl font-bold font-title text-center">Ajouter une nouvelle salle</div>
-              <span className="close items-center" onClick={() => setNewRoomModalOpen(false)}>&times;</span>
-            </div>
-            <form onSubmit={handleNewRoomSubmit}>
-              <div className="flex items-center gap-4">
-                <div className="fonts-title text-junia-purple font-bold w-1/3">Numéro de la salle :</div>
-                <input
-                  type="text"
-                  name="number"
-                  placeholder="Numéro de salle"
-                  value={newRoomData.number}
-                  onChange={handleNewRoomChange}
-                  className="w-2/3 p-2 border border-junia-orange rounded-md bg-white font-texts"
-                  required
-                />
-              </div>
-              
-              <div className="flex items-center gap-4">
-                <div className="fonts-title text-junia-purple font-bold w-1/3">Nom de la salle :</div>
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Nom de la salle"
-                  value={newRoomData.name}
-                  onChange={handleNewRoomChange}
-                  className="w-2/3 p-2 border border-junia-orange rounded-md bg-white font-texts"
-                  required
-                />
-              </div>
-              
-              <div className="flex items-center gap-4">
-                <div className="fonts-title text-junia-purple font-bold w-1/3">Bâtiment :</div>
-                <div className="w-2/3">
-                  <Select
-                    name="building"
-                    options={getBuildingOptions()}
-                    className="basic-single-select"
-                    classNamePrefix="select"
-                    placeholder="Sélectionner un bâtiment"
-                    styles={customSelectStyles}
-                    menuPlacement="auto"
-                    menuPosition="fixed"
-                    menuPortalTarget={document.body}
-                    onChange={(selectedOption) => {
-                      console.log("Building selected:", selectedOption);
-                      if (selectedOption.value === "manual") {
-                        // Show a manual input field if "manual" is selected
-                        setNewRoomData(prevData => ({
-                          ...prevData,
-                          building: "",
-                          buildingId: "manual",
-                          showManualBuildingInput: true
-                        }));
-                      } else {
-                        setNewRoomData(prevData => {
-                          console.log("Setting building data:", {
-                            label: selectedOption.label,
-                            value: selectedOption.value
-                          });
-                          return {
-                            ...prevData,
-                            building: selectedOption.label,
-                            buildingId: selectedOption.value,
-                            showManualBuildingInput: false
-                          };
-                        });
-                      }
+              <div className="mb-2 flex justify-between gap-2 py-2">
+                <div className="flex py-2 flex-col justify-between">
+                  <div>
+                    <div className="text-junia-purple font-bold">Salle : </div>
+                    <div className="text-junia-orange font-title text-2xl font-semibold"> {room.name} </div>
+                  </div>
+                  <div>
+                    <div className="text-junia-purple font-bold"> Numéro : </div>
+                    <div className="text-junia-orange font-title text-2xl font-semibold"> {room.number} </div>
+                  </div>
+                  <div>
+                    <div className="text-junia-purple font-bold">Bâtiment : </div>
+                    <div className="text-junia-orange font-title text-2xl font-semibold"> {room.building_name} </div>
+                  </div>
+                  <div>
+                    <div className="text-junia-purple font-bold">Etage : </div>
+                    <div className="text-junia-orange font-title text-2xl font-semibold"> {floors.find(floor => floor.id_floors === room.id_floors).name} </div>
+                  </div>
+                  <div>
+                    <div className="text-junia-purple font-bold">ID Salle: </div>
+                    <div className="text-junia-orange font-title text-2xl font-semibold"> {room.id_rooms} </div>
+                  </div> 
+                  
+                  <div
+                    className="flex flex-row align-center"
+                    onClick={(event) => {
+                      event.stopPropagation();  // Prevent click from bubbling up to the parent div
                     }}
-                    required
-                  />
+                  >
+                    <div className="text-junia-purple font-bold">Visibilité : </div>
+                    <label className="toggle-switch mx-2">
+                      <input
+                        type="checkbox"
+                        checked={!room.hidden}
+                        className="sr-only "
+                        onChange={() => { }} // Required for React controlled components
+                        onClick={(event) => {
+                          event.stopPropagation(); // Still needed for the toggle itself
+                          toggleRoomVisibility(event, room);
+                        }}
+                      />
+                      <span className="toggle-slider"></span>
+                    </label>
+                  </div>
                 </div>
+
+
+                
+                {room.imageUrl && (
+                  <div className="overflow-hidden w-80 rounded flex items-center justify-center">
+                    <img src={room.imageUrl} alt={`Preview of ${room.name}`} className="object-cover h-90% rounded-3xl " />
+                  </div>
+                )}
               </div>
 
-              {newRoomData.showManualBuildingInput && (
+              <div className="flex justify-between pb-2">
+                <button onClick={(event) => handleEditRoom(event, room)} className="button-type font-title font-bold px-3 py-2 flex items-center gap-2">
+                  <FaPen /> Modifier
+                </button>
+                <button onClick={(event) => handleDeleteRoom(event, room.id_rooms)} className="button-type2 font-title font-bold px-3 py-2 flex items-center gap-2">
+                  <FaTrash /> Supprimer
+                </button>
+              </div>
+
+            </div>
+          ))}
+        </div>
+
+        {debugInfo.error && (
+          <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4">
+            <p className="font-bold">Debugging Information</p>
+            <p>Error: {debugInfo.error}</p>
+            <p>Building Data: {debugInfo.buildingData ? JSON.stringify(debugInfo.buildingData, null, 2) : 'None'}</p>
+            <button
+              onClick={fetchBuildings}
+              className="mt-2 p-2 bg-blue-500 text-white rounded"
+            >
+              Retry Fetching Buildings
+            </button>
+          </div>
+        )}
+
+        {newRoomModalOpen && (
+          <div className="modal">
+            <div className="modal-content">
+              <div className="flex justify-between items-center pb-4">
+                <div className="text-3xl font-bold font-title text-center">Ajouter une nouvelle salle</div>
+                <span className="close items-center" onClick={() => setNewRoomModalOpen(false)}>&times;</span>
+              </div>
+              <form onSubmit={handleNewRoomSubmit}>
                 <div className="flex items-center gap-4">
-                  <div className="fonts-title text-junia-purple font-bold w-1/3">Nouveau bâtiment :</div>
+                  <div className="fonts-title text-junia-purple font-bold w-1/3">Numéro de la salle :</div>
                   <input
                     type="text"
-                    name="manualBuilding"
-                    placeholder="Nom du nouveau bâtiment"
-                    value={newRoomData.building}
-                    onChange={(e) => setNewRoomData(prev => ({ ...prev, building: e.target.value }))}
+                    name="number"
+                    placeholder="Numéro de salle"
+                    value={newRoomData.number}
+                    onChange={handleNewRoomChange}
                     className="w-2/3 p-2 border border-junia-orange rounded-md bg-white font-texts"
                     required
                   />
                 </div>
-              )}
-              
-              <div className="flex items-center gap-4">
-                <div className="fonts-title text-junia-purple font-bold w-1/3">Etage :</div>
-                <div className="w-2/3 flex flex-row gap-4 items-center">
-                  <Select
-                    name="floor"
-                    options={floors.filter(floor => floor.id_buildings === parseInt(newRoomData.buildingId)).map(floor => ({ value: floor.id_floors.toString(), label: floor.name })).sort((a, b) => a.value - b.value)}
-                    className="basic-single-select"
-                    classNamePrefix="select"
-                    placeholder="Sélectionner un étage"
-                    styles={customSelectStyles}
-                    menuPlacement="auto"
-                    menuPosition="fixed"
-                    menuPortalTarget={document.body}
-                    onChange={(selectedOption) => setNewRoomData(prevData => ({ ...prevData, floor: selectedOption.label, floorId: selectedOption.value }))}
+                
+                <div className="flex items-center gap-4">
+                  <div className="fonts-title text-junia-purple font-bold w-1/3">Nom de la salle :</div>
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Nom de la salle"
+                    value={newRoomData.name}
+                    onChange={handleNewRoomChange}
+                    className="w-2/3 p-2 border border-junia-orange rounded-md bg-white font-texts"
                     required
                   />
-                  {newRoomData.floorId && newRoomData.floor && (
-                    <button
-                      type="button"
-                      className="px-4 py-2 button-type flex flex-row gap-2 items-center"
-                      onClick={(e) => {
-                        setShowPlanPlacement(true);
-                        setPlanPlacementEditMode(false);
-                        setFloorPlan(floors.find(floor => floor.id_floors === parseInt(newRoomData.floorId)));
-                      }}
-                    >
-                      <TbMapPinPlus /> Placer sur le plan
-                    </button>
-                    )}
-
                 </div>
-              </div>
-              
-              <div className="flex items-center gap-4">
-                <label className="block font-bold text-junia-purple w-1/3">Images panoramiques (360°) :</label>
-                <div className="w-2/3">
-                  <div className="w-full rounded-md bg-white flex items-center">
-                    <input
-                      type="file"
-                      name="images"
-                      accept="image/*"
-                      multiple
-                      onChange={handleNewRoomImagesChange}
-                      className="w-full font-texts"
+                
+                <div className="flex items-center gap-4">
+                  <div className="fonts-title text-junia-purple font-bold w-1/3">Bâtiment :</div>
+                  <div className="w-2/3">
+                    <Select
+                      name="building"
+                      options={getBuildingOptions()}
+                      className="basic-single-select"
+                      classNamePrefix="select"
+                      placeholder="Sélectionner un bâtiment"
+                      styles={customSelectStyles}
+                      menuPlacement="auto"
+                      menuPosition="fixed"
+                      menuPortalTarget={document.body}
+                      onChange={(selectedOption) => {
+                        console.log("Building selected:", selectedOption);
+                        if (selectedOption.value === "manual") {
+                          // Show a manual input field if "manual" is selected
+                          setNewRoomData(prevData => ({
+                            ...prevData,
+                            building: "",
+                            buildingId: "manual",
+                            showManualBuildingInput: true
+                          }));
+                        } else {
+                          setNewRoomData(prevData => {
+                            console.log("Setting building data:", {
+                              label: selectedOption.label,
+                              value: selectedOption.value
+                            });
+                            return {
+                              ...prevData,
+                              building: selectedOption.label,
+                              buildingId: selectedOption.value,
+                              showManualBuildingInput: false
+                            };
+                          });
+                        }
+                      }}
                       required
                     />
                   </div>
                 </div>
-              </div>
-              
-              <div className="flex items-center gap-4">
-                <label className="block font-bold text-junia-purple w-1/3">Image de prévisualisation :</label>
-                <div className="w-2/3">
-                  <div className="w-full rounded-md bg-white flex items-center">
+
+                {newRoomData.showManualBuildingInput && (
+                  <div className="flex items-center gap-4">
+                    <div className="fonts-title text-junia-purple font-bold w-1/3">Nouveau bâtiment :</div>
                     <input
-                      type="file"
-                      name="previewImage"
-                      accept="image/*"
-                      onChange={handleNewRoomPreviewChange}
-                      className="w-full font-texts bg-junia-salmon"
+                      type="text"
+                      name="manualBuilding"
+                      placeholder="Nom du nouveau bâtiment"
+                      value={newRoomData.building}
+                      onChange={(e) => setNewRoomData(prev => ({ ...prev, building: e.target.value }))}
+                      className="w-2/3 p-2 border border-junia-orange rounded-md bg-white font-texts"
+                      required
                     />
                   </div>
-                </div>
-              </div>
-              
-              <button 
-                type="submit" 
-                className="mt-4 p-2 button-type"
-              >
-                Ajouter une salle
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-      
-      {editRoomModalOpen && (
-        <div className="modal">
-          <div className="modal-content">
-            <div className="flex justify-between items-center pb-4">
-              <div className="text-3xl font-bold font-title text-center">Modifier la salle</div>
-              <span className="close items-center" onClick={() => setEditRoomModalOpen(false)}>&times;</span>
-            </div>
-            <form onSubmit={handleEditRoomSubmit}>
-              <div className="flex items-center gap-4">
-                <div className="fonts-title text-junia-purple font-bold w-1/3">Numéro de la salle :</div>
-                <input
-                  type="text"
-                  name="number"
-                  placeholder="Numéro de salle"
-                  value={editRoomData.number}
-                  onChange={handleEditRoomChange}
-                  className="w-2/3 p-2 border border-junia-orange rounded-md bg-white font-texts"
-                  required
-                />
-              </div>
-              
-              <div className="flex items-center gap-4">
-                <div className="fonts-title text-junia-purple font-bold w-1/3">Nom de la salle :</div>
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Nom de la salle"
-                  value={editRoomData.name}
-                  onChange={handleEditRoomChange}
-                  className="w-2/3 p-2 border border-junia-orange rounded-md bg-white font-texts"
-                  required
-                />
-              </div>
-              
-              <div className="flex items-center gap-4">
-                <div className="fonts-title text-junia-purple font-bold w-1/3">Bâtiment :</div>
-                <div className="w-2/3">
-                  <Select
-                    name="building"
-                    options={getBuildingOptions()}
-                    className="basic-single-select"
-                    classNamePrefix="select"
-                    placeholder="Sélectionner un bâtiment"
-                    value={editRoomData.buildingId ? { value: editRoomData.buildingId, label: editRoomData.building } : null}
-                    styles={customSelectStyles}
-                    menuPlacement="auto"
-                    menuPosition="fixed"
-                    menuPortalTarget={document.body}
-                    onChange={(selectedOption) => {
-                        setEditRoomData(prevData => ({
-                          ...prevData,
-                          building: selectedOption.label,
-                          buildingId: selectedOption.value,
-                          floor: '',
-                          floorId: '',
-                          plan_x: '',
-                          plan_y: ''
-                        }))
-                    }}
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-4">
-                <div className="fonts-title text-junia-purple font-bold w-1/3">Etage :</div>
-                <div className="w-2/3 flex flex-row gap-4 items-center">
-                  <Select
-                    name="floor"
-                    options={floors.filter(floor => floor.id_buildings === parseInt(editRoomData.buildingId)).map(floor => ({ value: floor.id_floors.toString(), label: floor.name })).sort((a, b) => a.value - b.value)}
-                    className="basic-single-select"
-                    classNamePrefix="select"
-                    placeholder="Sélectionner un étage"
-                    value={editRoomData.floorId ? { value: editRoomData.floorId.toString(), label: editRoomData.floor } : null}
-                    styles={customSelectStyles}
-                    menuPlacement="auto"
-                    menuPosition="fixed"
-                    menuPortalTarget={document.body}
-                    onChange={(selectedOption) => setEditRoomData(prevData => ({ ...prevData, floor: selectedOption.label, floorId: selectedOption.value }))
-                    }
-                    required
-                  />
-                  {editRoomData.floorId && editRoomData.floor && (
+                )}
+                
+                <div className="flex items-center gap-4">
+                  <div className="fonts-title text-junia-purple font-bold w-1/3">Etage :</div>
+                  <div className="w-2/3 flex flex-row gap-4 items-center">
+                    <Select
+                      name="floor"
+                      options={floors.filter(floor => floor.id_buildings === parseInt(newRoomData.buildingId)).map(floor => ({ value: floor.id_floors.toString(), label: floor.name })).sort((a, b) => a.value - b.value)}
+                      className="basic-single-select"
+                      classNamePrefix="select"
+                      placeholder="Sélectionner un étage"
+                      styles={customSelectStyles}
+                      menuPlacement="auto"
+                      menuPosition="fixed"
+                      menuPortalTarget={document.body}
+                      onChange={(selectedOption) => setNewRoomData(prevData => ({ ...prevData, floor: selectedOption.label, floorId: selectedOption.value }))}
+                      required
+                    />
+                    {newRoomData.floorId && newRoomData.floor && (
                       <button
-                          type="button"
-                          className="px-4 py-2 button-type flex flex-row gap-2 items-center"
-                          onClick={(e) => {
-                            setShowPlanPlacement(true);
-                            setPlanPlacementEditMode(true);
-                            setFloorPlan(floors.find(floor => floor.id_floors === parseInt(editRoomData.floorId)));
-                          }}
+                        type="button"
+                        className="px-4 py-2 button-type flex flex-row gap-2 items-center"
+                        onClick={(e) => {
+                          setShowPlanPlacement(true);
+                          setPlanPlacementEditMode(false);
+                          setFloorPlan(floors.find(floor => floor.id_floors === parseInt(newRoomData.floorId)));
+                        }}
                       >
                         <TbMapPinPlus /> Placer sur le plan
                       </button>
-                  )}
+                      )}
+
+                  </div>
                 </div>
+                
+                <div className="flex items-center gap-4">
+                  <label className="block font-bold text-junia-purple w-1/3">Images panoramiques (360°) :</label>
+                  <div className="w-2/3">
+                    <div className="w-full rounded-md bg-white flex items-center">
+                      <input
+                        type="file"
+                        name="images"
+                        accept="image/*"
+                        multiple
+                        onChange={handleNewRoomImagesChange}
+                        className="w-full font-texts"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-4">
+                  <label className="block font-bold text-junia-purple w-1/3">Image de prévisualisation :</label>
+                  <div className="w-2/3">
+                    <div className="w-full rounded-md bg-white flex items-center">
+                      <input
+                        type="file"
+                        name="previewImage"
+                        accept="image/*"
+                        onChange={handleNewRoomPreviewChange}
+                        className="w-full font-texts bg-junia-salmon"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <button 
+                  type="submit" 
+                  className="mt-4 p-2 button-type"
+                >
+                  Ajouter une salle
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+        
+        {editRoomModalOpen && (
+          <div className="modal">
+            <div className="modal-content">
+              <div className="flex justify-between items-center pb-4">
+                <div className="text-3xl font-bold font-title text-center">Modifier la salle</div>
+                <span className="close items-center" onClick={() => setEditRoomModalOpen(false)}>&times;</span>
               </div>
-              
-              <div className="flex items-center gap-4">
-                <label className="block font-bold text-junia-purple w-1/3">Image de prévisualisation :</label>
-                <div className="w-2/3">
-                  <div className="w-full rounded-md bg-white flex items-center">
-                    <input
-                      type="file"
-                      name="previewImage"
-                      accept="image/*"
-                      onChange={handleEditRoomPreviewChange}
-                      className="w-full font-texts bg-junia-salmon"
+              <form onSubmit={handleEditRoomSubmit}>
+                <div className="flex items-center gap-4">
+                  <div className="fonts-title text-junia-purple font-bold w-1/3">Numéro de la salle :</div>
+                  <input
+                    type="text"
+                    name="number"
+                    placeholder="Numéro de salle"
+                    value={editRoomData.number}
+                    onChange={handleEditRoomChange}
+                    className="w-2/3 p-2 border border-junia-orange rounded-md bg-white font-texts"
+                    required
+                  />
+                </div>
+                
+                <div className="flex items-center gap-4">
+                  <div className="fonts-title text-junia-purple font-bold w-1/3">Nom de la salle :</div>
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Nom de la salle"
+                    value={editRoomData.name}
+                    onChange={handleEditRoomChange}
+                    className="w-2/3 p-2 border border-junia-orange rounded-md bg-white font-texts"
+                    required
+                  />
+                </div>
+                
+                <div className="flex items-center gap-4">
+                  <div className="fonts-title text-junia-purple font-bold w-1/3">Bâtiment :</div>
+                  <div className="w-2/3">
+                    <Select
+                      name="building"
+                      options={getBuildingOptions()}
+                      className="basic-single-select"
+                      classNamePrefix="select"
+                      placeholder="Sélectionner un bâtiment"
+                      value={editRoomData.buildingId ? { value: editRoomData.buildingId, label: editRoomData.building } : null}
+                      styles={customSelectStyles}
+                      menuPlacement="auto"
+                      menuPosition="fixed"
+                      menuPortalTarget={document.body}
+                      onChange={(selectedOption) => {
+                          setEditRoomData(prevData => ({
+                            ...prevData,
+                            building: selectedOption.label,
+                            buildingId: selectedOption.value,
+                            floor: '',
+                            floorId: '',
+                            plan_x: '',
+                            plan_y: ''
+                          }))
+                      }}
+                      required
                     />
                   </div>
                 </div>
-              </div>
-              
-              <button 
-                type="submit"
-                className="mt-4 p-2 bg-junia-orange hover:bg-junia-orange-dark rounded-3xl text-white font-bold shadow-md font-title text-center transition flex items-center gap-2 justify-center"
-              >
-                <FaPen /> Modifier la salle
-              </button>
-            </form>
+                
+                <div className="flex items-center gap-4">
+                  <div className="fonts-title text-junia-purple font-bold w-1/3">Etage :</div>
+                  <div className="w-2/3 flex flex-row gap-4 items-center">
+                    <Select
+                      name="floor"
+                      options={floors.filter(floor => floor.id_buildings === parseInt(editRoomData.buildingId)).map(floor => ({ value: floor.id_floors.toString(), label: floor.name })).sort((a, b) => a.value - b.value)}
+                      className="basic-single-select"
+                      classNamePrefix="select"
+                      placeholder="Sélectionner un étage"
+                      value={editRoomData.floorId ? { value: editRoomData.floorId.toString(), label: editRoomData.floor } : null}
+                      styles={customSelectStyles}
+                      menuPlacement="auto"
+                      menuPosition="fixed"
+                      menuPortalTarget={document.body}
+                      onChange={(selectedOption) => setEditRoomData(prevData => ({ ...prevData, floor: selectedOption.label, floorId: selectedOption.value }))
+                      }
+                      required
+                    />
+                    {editRoomData.floorId && editRoomData.floor && (
+                        <button
+                            type="button"
+                            className="px-4 py-2 button-type flex flex-row gap-2 items-center"
+                            onClick={(e) => {
+                              setShowPlanPlacement(true);
+                              setPlanPlacementEditMode(true);
+                              setFloorPlan(floors.find(floor => floor.id_floors === parseInt(editRoomData.floorId)));
+                            }}
+                        >
+                          <TbMapPinPlus /> Placer sur le plan
+                        </button>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-4">
+                  <label className="block font-bold text-junia-purple w-1/3">Image de prévisualisation :</label>
+                  <div className="w-2/3">
+                    <div className="w-full rounded-md bg-white flex items-center">
+                      <input
+                        type="file"
+                        name="previewImage"
+                        accept="image/*"
+                        onChange={handleEditRoomPreviewChange}
+                        className="w-full font-texts bg-junia-salmon"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <button 
+                  type="submit"
+                  className="mt-4 p-2 bg-junia-orange hover:bg-junia-orange-dark rounded-3xl text-white font-bold shadow-md font-title text-center transition flex items-center gap-2 justify-center"
+                >
+                  <FaPen /> Modifier la salle
+                </button>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
-      <ModalPlanPlacement isOpen={showPlanPlacement} toggle={togglePlanPlacement} setNewRoomData={setNewRoomData} setEditRoomData={setEditRoomData} newRoomData={newRoomData} editRoomData={editRoomData} editMode={planPlacementEditMode} floor={floorPlan}/>
-      <ConfirmDialog open={showConfirm} onClose={() => setShowConfirm(false)} title={confirmTitle} message={confirmMessage} onConfirm={async () => {
-        await confirmDeleteRoom()
-      }} />
+        )}
+        <ModalPlanPlacement isOpen={showPlanPlacement} toggle={togglePlanPlacement} setNewRoomData={setNewRoomData} setEditRoomData={setEditRoomData} newRoomData={newRoomData} editRoomData={editRoomData} editMode={planPlacementEditMode} floor={floorPlan}/>
+        <ConfirmDialog open={showConfirm} onClose={() => setShowConfirm(false)} title={confirmTitle} message={confirmMessage} onConfirm={async () => {
+          await confirmDeleteRoom()
+        }} />
+      </div>
     </div>
   );
 };

@@ -1,0 +1,5 @@
+/* Style spécifique pour la page AdminUser */
+.admin-user-page {
+  background-color: var(--color-junia-salmon);
+  min-height: 100vh; /* Pour s'assurer que le fond couvre toute la hauteur */
+}
