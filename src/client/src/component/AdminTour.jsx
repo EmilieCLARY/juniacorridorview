@@ -353,7 +353,6 @@ const AdminTour = () => {
   };
 
   const handleDeleteStep = (stepId) => {
-    console.log('Deleting step with ID:', stepId);
     // Remove step from tourSteps
     setTourSteps((prevSteps) => {
       const updatedSteps = { ...prevSteps };
@@ -363,8 +362,15 @@ const AdminTour = () => {
       return updatedSteps;
     });
     // Remove step from editModeNewSteps if it exists
+    // Change newStepCount if we are deleting a new step
+    if (stepId.startsWith('new-step-')) {
+      const index = parseInt(stepId.split('-')[2], 10);
+      if (index < newStepCount) {
+        setNewStepCount(newStepCount - 1);
+      }
+    }
     setEditModeNewSteps((prevSteps) => {
-      return prevSteps.filter(step => step.id !== stepId);
+        return prevSteps.filter(step => step.id !== stepId);
     });
     // Remove step from newTourSteps if it exists
     setNewTourSteps((prevSteps) => {
@@ -694,7 +700,7 @@ const AdminTour = () => {
                     <SortableContext items={tourSteps[selectedTour.id_tours]?.map(step => step.id_tour_steps)} strategy={verticalListSortingStrategy}>
                       {tourSteps[selectedTour.id_tours]?.map((step, index) => (
                         <SortableItem  key={`step-${step.id_tour_steps}`} id={step.id_tour_steps}>
-                          <div className="draggable-step font-title">
+                          <div className="draggable-step font-title flex items-center justify-between w-full">
                             <span className="drag-icon">☰</span>
                             <h4 className="font-title font-bold text-lg">Étape {index + 1}</h4>
                             <input type="hidden" name={`steps[${index}][id_tour_steps]`} value={step.id_tour_steps} />
@@ -741,7 +747,7 @@ const AdminTour = () => {
                         const editStepData = editModeNewSteps[index] || { id_rooms: '' };
                         return (
                           <SortableItem key={`new_${index}`} id={`new-step-${index}`}>
-                            <div className="draggable-step font-title">
+                            <div className="draggable-step font-title flex items-center justify-between w-full">
                               <span className="drag-icon">☰</span>
                               <h4 className="font-title font-bold text-lg">Nouvelle étape {newStepIndex + 1}</h4>
                               <input type="hidden" name={`steps[${newStepIndex}][id_tour_steps]`} value={`new_${index}`} />
@@ -766,6 +772,17 @@ const AdminTour = () => {
                                   menuPortalTarget={document.body}
                                 />
                               </div>
+                                <button type="button"
+                                        onPointerDown={(e) => e.stopPropagation()}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            e.preventDefault();
+                                            handleDeleteStep(`new-step-${index}`);
+                                        }}
+                                        className="px-2 py-2 button-type2"
+                                >
+                                    <FaTrash />
+                                </button>
                             </div>
                           </SortableItem>
                         );
