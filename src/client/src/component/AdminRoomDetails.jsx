@@ -413,6 +413,9 @@ const AdminRoomDetails = () => {
     setDisableBackgroundClick(true);
     setLinkToEdit(link);
     setEditLinkMod(true);
+    setPosX(link.position_x);
+    setPosY(link.position_y);
+    setPosZ(link.position_z);
     const imageUrl = pictures.find(pic => pic.id_pictures === link.id_pictures).imageUrl;
     handleModalPictureClick(imageUrl, link.id_pictures);
     setNewLinkModalOpen(true);
