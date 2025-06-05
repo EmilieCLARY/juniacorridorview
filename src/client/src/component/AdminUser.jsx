@@ -3,6 +3,7 @@ import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
 import { createUser, getAllUsers, resetPassword, deleteUser } from "../api/AxiosAdminUser";
 import { FaTrash, FaPen, FaPlus } from "react-icons/fa";
+import { toast } from 'sonner';
 
 const generatePassword = () => {
   const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -97,7 +98,7 @@ const AdminUser = () => {
       setUsers(users => users.filter(u => u.uid !== confirmDelete.uid));
       setConfirmDelete({ open: false, email: "", uid: "" });
       setResetModal({ open: false, email: "", link: "" });
-      setMessage("Utilisateur supprimé !");
+      toast.success("Utilisateur supprimé avec succès !");
     } catch (err) {
       setMessage(
         err?.response?.data?.error ||
