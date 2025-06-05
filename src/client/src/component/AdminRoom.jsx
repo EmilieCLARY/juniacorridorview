@@ -11,6 +11,7 @@ import ModalPlanPlacement from "./plan/ModalPlanPlacement"; // Add this line
 import { FaPen, FaTrash, FaPlusCircle  } from "react-icons/fa"; // Add FaPlus import
 import { ImLocation2 } from "react-icons/im";
 import { MdOutlineFileUpload } from "react-icons/md";
+import ConfirmDialog from "./dialogs/ConfirmDialog";
 
 const customSelectStyles = {
   control: (provided, state) => ({
@@ -101,6 +102,11 @@ const AdminRoom = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [textLoading, setTextLoading] = useState("Chargement des données...");
+
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmTitle, setConfirmTitle] = useState("");
+  const [confirmMessage, setConfirmMessage] = useState("");
+  const [roomToDelete, setRoomToDelete] = useState(null);
 
   const showLoading = (promises, textLoading, textSuccess, textError) => {
     setIsLoading(true);
@@ -412,9 +418,15 @@ const AdminRoom = () => {
   const handleDeleteRoom = async (event, id) => {
     event.stopPropagation();
     event.preventDefault();
-    if (!window.confirm('Etes-vous sûr de vouloir supprimer la salle ?')) return;
+    setRoomToDelete(id);
+    setConfirmTitle("Suppresion de la salle");
+    setConfirmMessage("Êtes-vous sûr de vouloir supprimer cette salle ? Cette action est irréversible.");
+    setShowConfirm(true);
+  }
+
+  const confirmDeleteRoom = async () => {
     try {
-      await api.deleteRoom(id);
+      await api.deleteRoom(roomToDelete);
       showLoading([fetchRooms()], 'Suppression de la salle...', 'Salle supprimée avec succès', 'Erreur lors de la suppression de la salle');
     } catch (error) {
       console.error('Error deleting plan:', error);
@@ -1038,6 +1050,9 @@ const AdminRoom = () => {
         </div>
       )}
       <ModalPlanPlacement isOpen={showPlanPlacement} toggle={togglePlanPlacement} setNewRoomData={setNewRoomData} setEditRoomData={setEditRoomData} newRoomData={newRoomData} editRoomData={editRoomData} editMode={planPlacementEditMode} floor={floorPlan}/>
+      <ConfirmDialog open={showConfirm} onClose={() => setShowConfirm(false)} title={confirmTitle} message={confirmMessage} onConfirm={async () => {
+        await confirmDeleteRoom()
+      }} />
     </div>
   );
 };
