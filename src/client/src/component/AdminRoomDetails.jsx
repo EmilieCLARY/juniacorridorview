@@ -326,7 +326,7 @@ const AdminRoomDetails = () => {
     event.stopPropagation();
     event.preventDefault();
     setInfospotToDelete(id);
-    setConfirmTitle("Suppresion d'infobulle");
+    setConfirmTitle("Suppression d'infobulle");
     setConfirmMessage("Etes-vous sûr de vouloir supprimer cette infobulle ? Cette action est irréversible.");
     setShowConfirm(true);
   }

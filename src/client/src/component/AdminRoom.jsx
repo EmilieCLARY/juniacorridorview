@@ -270,9 +270,9 @@ const AdminRoom = () => {
   };
 
   const filteredRooms = rooms.filter(room =>
-    (room.name.toLowerCase().includes(searchTerm.toLowerCase()) || room.number.includes(searchTerm)) &&
+    (room.name.toLowerCase().includes(searchTerm.toLowerCase()) || room.number.toLowerCase().includes(searchTerm.toLowerCase())) &&
     (filters.name.length === 0 || filters.name.some(name => room.name.toLowerCase().includes(name.toLowerCase()))) &&
-    (filters.number.length === 0 || filters.number.some(number => room.number.includes(number))) &&
+    (filters.number.length === 0 || filters.number.some(number => room.number.toLowerCase().includes(number.toLowerCase()))) &&
     (filters.building.length === 0 || filters.building.some(building => room.building_name.toLowerCase().includes(building.toLowerCase()))) &&
     (filters.id.length === 0 || filters.id.some(id => room.id_rooms.toString() === id)) &&
     (filters.floor.length === 0 || filters.floor.some(floor => room.id_floors.toString().includes(floor)))
@@ -419,7 +419,7 @@ const AdminRoom = () => {
     event.stopPropagation();
     event.preventDefault();
     setRoomToDelete(id);
-    setConfirmTitle("Suppresion de la salle");
+    setConfirmTitle("Suppression de la salle");
     setConfirmMessage("Êtes-vous sûr de vouloir supprimer cette salle ? Cette action est irréversible.");
     setShowConfirm(true);
   }
