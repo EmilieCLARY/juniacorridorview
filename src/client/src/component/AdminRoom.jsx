@@ -419,7 +419,7 @@ const AdminRoom = () => {
     event.stopPropagation();
     event.preventDefault();
     setRoomToDelete(id);
-    setConfirmTitle("Suppresion de la salle");
+    setConfirmTitle("Suppression de la salle");
     setConfirmMessage("Êtes-vous sûr de vouloir supprimer cette salle ? Cette action est irréversible.");
     setShowConfirm(true);
   }
