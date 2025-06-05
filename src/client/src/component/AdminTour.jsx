@@ -18,6 +18,7 @@ import '../style/AdminTour.css';
 import Loader from "./Loader";
 import Select from 'react-select';
 import {FaArrowLeft, FaTrash} from "react-icons/fa";
+import ConfirmDialog from "./dialogs/ConfirmDialog";
 
 // Custom styles for React Select
 const customSelectStyles = {
@@ -105,6 +106,11 @@ const AdminTour = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [textLoading, setTextLoading] = useState("Chargement des données...");
+
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmTitle, setConfirmTitle] = useState("");
+  const [confirmMessage, setConfirmMessage] = useState("");
+  const [tourToDelete, setTourToDelete] = useState(null);
 
   const showLoading = (promises, textLoading, textSuccess, textError) => {
     setIsLoading(true);
@@ -287,16 +293,22 @@ const AdminTour = () => {
     });
   };
 
-  const handleDeleteTour = async (tourId) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer le parcours ?')) return;
-    const deleteTourPromise = tourApi.deleteTour(tourId);
+  const handleDeleteTour = (tourId) => {
+    setTourToDelete(tourId);
+    setConfirmTitle("Suppression du parcours");
+    setConfirmMessage("Êtes-vous sûr de vouloir supprimer ce parcours ? Cette action est irréversible.");
+    setShowConfirm(true);
+  };
+
+  const confirmDeleteTour = () => {
+    const deleteTourPromise = tourApi.deleteTour(tourToDelete);
     const fetchUpdatedToursPromise = deleteTourPromise.then(() => fetchToursInfo());
     showLoading([deleteTourPromise, fetchUpdatedToursPromise], 'Suppression du parcours...', 'Parcours supprimé avec succès', 'La suppression du parcours a échoué');
     fetchUpdatedToursPromise.then(({ toursData, steps }) => {
       setTours(toursData);
       setTourSteps(steps);
     });
-  };
+  }
 
   const fetchUpdatedTour = async (tourId) => {
     try {
@@ -767,6 +779,9 @@ const AdminTour = () => {
           </div>
         )}
       </div>
+      <ConfirmDialog open={showConfirm} onClose={() => setShowConfirm(false)} title={confirmTitle} message={confirmMessage} onConfirm={() => {
+        confirmDeleteTour()
+      }} />
     </>
   );
 };

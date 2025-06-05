@@ -8,6 +8,7 @@ import {Buffer} from "buffer";
 import ModalAddEditBuilding from "./buildings/ModalAddEditBuilding";
 import ModalAddEditFloors from "./buildings/ModalAddEditFloors";
 import {useHistory} from "react-router-dom";
+import ConfirmDialog from "./dialogs/ConfirmDialog";
 
 const AdminBuilding = () => {
     const dataFetchedRef = useRef(false);
@@ -26,6 +27,12 @@ const AdminBuilding = () => {
 
     const [isLoading, setIsLoading] = useState(true);
     const [textLoading, setTextLoading] = useState("Chargement des données...");
+
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [confirmTitle, setConfirmTitle] = useState("");
+    const [confirmMessage, setConfirmMessage] = useState("");
+    const [buildingToDelete, setBuildingToDelete] = useState(null);
+    const [floorToDelete, setFloorToDelete] = useState(null);
 
     const history = useHistory();
 
@@ -102,31 +109,43 @@ const AdminBuilding = () => {
     }
 
     const handleDeleteBuilding = (id_building) => {
-        if (window.confirm("Êtes-vous sûr de vouloir supprimer ce bâtiment ?")) {
-            api.deleteBuilding(id_building)
-                .then(() => {
-                    toast.success("Bâtiment supprimé avec succès");
-                    reloadBuilding();
-                })
-                .catch((error) => {
-                    console.error('Error deleting building:', error);
-                    toast.error("Erreur lors de la suppression du bâtiment !");
-                });
-        }
+        setBuildingToDelete(id_building);
+        setConfirmTitle("Suppresion du bâtiment");
+        setConfirmMessage("Êtes-vous sûr de vouloir supprimer ce bâtiment ? Cette action est irréversible.");
+        setShowConfirm(true);
+    }
+
+    const confirmDeleteBuilding = () => {
+        api.deleteBuilding(buildingToDelete)
+            .then(() => {
+                toast.success("Bâtiment supprimé avec succès");
+                reloadBuilding();
+                setBuildingToDelete(null)
+            })
+            .catch((error) => {
+                console.error('Error deleting building:', error);
+                toast.error("Erreur lors de la suppression du bâtiment !");
+            });
     }
 
     const handleDeleteFloor = (id_floor) => {
-        if (window.confirm("Êtes-vous sûr de vouloir supprimer ce niveau ?")) {
-            api.deleteFloor(id_floor)
-                .then(() => {
-                    toast.success("Niveau supprimé avec succès");
-                    reloadFloor();
-                })
-                .catch((error) => {
-                    console.error('Error deleting niveau:', error);
-                    toast.error("Erreur lors de la suppression du niveau !");
-                });
-        }
+        setFloorToDelete(id_floor);
+        setConfirmTitle("Suppression du niveau");
+        setConfirmMessage("Êtes-vous sûr de vouloir supprimer ce niveau ? Cette action est irréversible.");
+        setShowConfirm(true);
+    }
+
+    const confirmDeleteFloor = () => {
+        api.deleteFloor(floorToDelete)
+            .then(() => {
+                toast.success("Niveau supprimé avec succès");
+                reloadFloor();
+                setFloorToDelete(null);
+            })
+            .catch((error) => {
+                console.error('Error deleting niveau:', error);
+                toast.error("Erreur lors de la suppression du niveau !");
+            });
     }
 
     const reloadBuilding = () => {
@@ -199,6 +218,13 @@ const AdminBuilding = () => {
             </div>
             <ModalAddEditBuilding isOpen={showAddEditBuilding} toggle={toggleAddEditBuilding} building={buildingToEdit} reload={reloadBuilding} />
             <ModalAddEditFloors isOpen={showAddEditFloor} toggle={toggleAddEditFloor} floor={floorToEdit} id_buildings={idBuildingFloor} reload={reloadFloor} />
+            <ConfirmDialog open={showConfirm} onClose={() => setShowConfirm(false)} title={confirmTitle} message={confirmMessage} onConfirm={() => {
+                if (buildingToDelete) {
+                    confirmDeleteBuilding();
+                } else if (floorToDelete) {
+                    confirmDeleteFloor();
+                }
+            }} />
         </div>
     );
 }

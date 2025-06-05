@@ -3,6 +3,7 @@ import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
 import { createUser, getAllUsers, resetPassword, deleteUser } from "../api/AxiosAdminUser";
 import { FaTrash, FaPen, FaPlus } from "react-icons/fa";
+import ConfirmDialog from "./dialogs/ConfirmDialog";
 import { toast } from 'sonner';
 
 const generatePassword = () => {
@@ -382,60 +383,7 @@ const AdminUser = () => {
           </div>
         </div>
       )}
-      {confirmDelete.open && (
-        <div className="modal" style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 1000
-        }}>
-          <div className="modal-content max-w-lg" style={{
-            padding: '2rem',
-            borderRadius: '1rem',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            width: '90%',
-            maxWidth: '32rem'
-          }}>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-title text-junia-purple">
-                Confirmer la suppression
-              </h2>
-              <button
-                className="text-gray-400 hover:text-junia-purple text-3xl leading-none cursor-pointer"
-                onClick={() => setConfirmDelete({ open: false, email: "", uid: "" })}
-                aria-label="Fermer"
-                style={{ background: 'none', border: 'none' }}
-              >
-                &times;
-              </button>
-            </div>
-            <div className="p-3 border border-red-200 rounded-lg text-red-700">
-              Êtes-vous sûr de vouloir supprimer le compte <b>{confirmDelete.email}</b> ? Cette action est irréversible.
-            </div>
-            <div className="flex justify-between mt-4">
-              <button
-                className="px-6 py-3 bg-junia-orange rounded-full font-title text-lg shadow-lg"
-                onClick={() => setConfirmDelete({ open: false, email: "", uid: "" })}
-              >
-                Annuler
-              </button>
-              <button
-                className="bg-junia-purple px-6 py-3 text-white rounded-full font-title text-lg shadow-lg"
-                onClick={confirmDeleteUser}
-              >
-                Supprimer définitivement
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog open={confirmDelete.open} onClose={() => setConfirmDelete({ open: false, email: "", uid: "" })} title={"Confirmer la suppression"} message={"Êtes-vous sûr de vouloir supprimer " + confirmDelete.email + " ? Cette action est irréversible."} confirmText={"Supprimer définitivement"} onConfirm={confirmDeleteUser} />
     </div>
   );
 };

@@ -11,6 +11,7 @@ import {FaArrowLeft, FaPen, FaTrash, FaPlusCircle} from "react-icons/fa";
 import {ImLocation2} from "react-icons/im";
 import {MdOutlineFileUpload} from "react-icons/md";
 import ModalAddEditImage from "./room_details/ModalAddEditImage";
+import ConfirmDialog from "./dialogs/ConfirmDialog";
 
 const AdminRoomDetails = () => {
   const { id } = useParams();
@@ -51,6 +52,13 @@ const AdminRoomDetails = () => {
 
   const [loading, setLoading] = useState(true);
   const [textLoading, setTextLoading] = useState("Chargement des données...");
+
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmTitle, setConfirmTitle] = useState("");
+  const [confirmMessage, setConfirmMessage] = useState("");
+  const [imageToDelete, setImageToDelete] = useState(null);
+  const [infospotToDelete, setInfospotToDelete] = useState(null);
+  const [linkToDelete, setLinkToDelete] = useState(null);
 
   const history = useHistory();
 
@@ -314,21 +322,27 @@ const AdminRoomDetails = () => {
     });
   };
 
-  const handleDeleteInfoPopup = async (event, id) => {
+  const handleDeleteInfoPopup = (event, id) => {
     event.stopPropagation();
     event.preventDefault();
-    if (!window.confirm('Etes-vous sûr de vouloir supprimer l\'infobulle ?')) return;
+    setInfospotToDelete(id);
+    setConfirmTitle("Suppresion d'infobulle");
+    setConfirmMessage("Etes-vous sûr de vouloir supprimer cette infobulle ? Cette action est irréversible.");
+    setShowConfirm(true);
+  }
+
+  const confirmDeleteInfospot = async () => {
     try {
-        const deletePromise = api.deleteInfospot(id);
-        deletePromise.then(() => {
-            const updatedInfoPopups = infoPopups.filter(popup => popup.id_info_popup !== id);
-            setInfoPopups(updatedInfoPopups);
-            const updatedAllInfoPopups = allInfoPopups.filter(popup => popup.id_info_popup !== id);
-            setAllInfoPopups(updatedAllInfoPopups);
-            toast.success('Infobulle supprimée');
-        });
+      const deletePromise = api.deleteInfospot(infospotToDelete);
+      deletePromise.then(() => {
+        const updatedInfoPopups = infoPopups.filter(popup => popup.id_info_popup !== infospotToDelete);
+        setInfoPopups(updatedInfoPopups);
+        const updatedAllInfoPopups = allInfoPopups.filter(popup => popup.id_info_popup !== infospotToDelete);
+        setAllInfoPopups(updatedAllInfoPopups);
+        toast.success('Infobulle supprimée');
+      });
     } catch (error) {
-        console.error('Error deleting infopopup:', error);
+      console.error('Error deleting infopopup:', error);
     }
   }
 
@@ -370,21 +384,27 @@ const AdminRoomDetails = () => {
     setEditInfospotMod(false);
   }
 
-  const handleDeleteLink = async (event, id) => {
+  const handleDeleteLink = (event, id) => {
     event.stopPropagation();
     event.preventDefault();
-    if (!window.confirm('Etes-vous sûr de vouloir supprimer le lien ?')) return;
+    setLinkToDelete(id);
+    setConfirmTitle("Suppression de lien");
+    setConfirmMessage("Etes-vous sûr de vouloir supprimer ce lien ? Cette action est irréversible.");
+    setShowConfirm(true);
+  }
+
+  const confirmDeleteLink = async () => {
     try {
-      const deletePromise = api.deleteLink(id);
+      const deletePromise = api.deleteLink(linkToDelete);
       deletePromise.then(() => {
-        const updatedLinks = links.filter(link => link.id_links !== id);
+        const updatedLinks = links.filter(link => link.id_links !== linkToDelete);
         setLinks(updatedLinks);
-        const updatedAllLinks = allLinks.filter(link => link.id_links !== id);
+        const updatedAllLinks = allLinks.filter(link => link.id_links !== linkToDelete);
         setAllLinks(updatedAllLinks);
         toast.success('Lien supprimé');
       });
     } catch (error) {
-        console.error('Error deleting link:', error);
+      console.error('Error deleting link:', error);
     }
   }
 
@@ -430,8 +450,14 @@ const AdminRoomDetails = () => {
   }
 
   const handleDeletePicture = async (id) => {
-    if (!window.confirm('Etes-vous sûr de vouloir supprimer l\'image ?')) return;
-    const deletePromise = api.deleteImage(id);
+    setImageToDelete(id);
+    setConfirmTitle("Suppression d'image");
+    setConfirmMessage("Etes-vous sûr de vouloir supprimer cette image ? Cette action est irréversible.");
+    setShowConfirm(true);
+  }
+
+  const confirmDeleteImage = async () => {
+    const deletePromise = api.deleteImage(imageToDelete);
     const updatedPicturesPromise = deletePromise.then(async () => {
       await fetchAllData();
     });
@@ -929,6 +955,16 @@ const AdminRoomDetails = () => {
       <ModalAddEditImage isOpen={addImageModalOpen} toggle={
         () => setAddImageModalOpen(!addImageModalOpen)
       } id_rooms={id} imageToUpdate={imageToUpdate} reload={reloadAfterAddEditImage} />
+
+      <ConfirmDialog open={showConfirm} onClose={() => setShowConfirm(false)} title={confirmTitle} message={confirmMessage} onConfirm={async () => {
+        if (imageToDelete) {
+          await confirmDeleteImage();
+        } else if (infospotToDelete) {
+          await confirmDeleteInfospot();
+        } else if (linkToDelete) {
+          await confirmDeleteLink();
+        }
+      }} />
     </div>
   );
 };
