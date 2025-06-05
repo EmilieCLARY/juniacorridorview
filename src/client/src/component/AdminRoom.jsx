@@ -268,7 +268,7 @@ const AdminRoom = () => {
     (filters.name.length === 0 || filters.name.some(name => room.name.toLowerCase().includes(name.toLowerCase()))) &&
     (filters.number.length === 0 || filters.number.some(number => room.number.includes(number))) &&
     (filters.building.length === 0 || filters.building.some(building => room.building_name.toLowerCase().includes(building.toLowerCase()))) &&
-    (filters.id.length === 0 || filters.id.some(id => room.id_rooms.toString().includes(id))) &&
+    (filters.id.length === 0 || filters.id.some(id => room.id_rooms.toString() === id)) &&
     (filters.floor.length === 0 || filters.floor.some(floor => room.id_floors.toString().includes(floor)))
   );
 
