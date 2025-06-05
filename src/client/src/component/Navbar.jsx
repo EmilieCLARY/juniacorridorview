@@ -112,7 +112,7 @@ const Navbar = ({ isAuthenticated, selectedImageName, currentRoomNumber }) => {
       <nav className="relative justify-between bg-white px-2 shadow-lg">
         <div className="flex items-center">
           <NavLink to="/">
-            <img src="/img/logojunia.png" alt="Logo JUNIA" className="height-60"></img>
+            <img src="/img/logojunia.png" alt="Logo JUNIA" className="height-60 cursor-pointer"></img>
           </NavLink>
         </div>
         <div className="flex items-center text-5xl text-junia-purple font-title">

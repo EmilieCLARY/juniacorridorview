@@ -225,7 +225,7 @@
 .modal-form-container form > div {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  /*justify-content: space-between;*/
   height: 100%;
 }
 
@@ -253,8 +253,19 @@
   background: #d85a35;
 }
 
-.modal-textareaHeight{
-    height: 70%
+.modal-textareaHeight {
+  flex-grow: 1;
+  min-height: 300px;  /* Hauteur minimale pour assurer un bon affichage */
+}
+
+/* Assure que les conteneurs flex s'étendent sur toute la hauteur disponible */
+.modal-form-container form {
+  height: 100%;
+}
+
+/* S'assurer que la colonne de droite s'étend également sur toute la hauteur */
+.modal-form-container form > div {
+  height: 100%;
 }
 
 .position-inputs-container {
@@ -297,4 +308,35 @@
 input[type="file"]::file-selector-button {
   color: #f06b42;
   opacity: 0.7;
+}
+
+.z-40 {
+  z-index: 40;
+}
+
+.z-50 {
+  z-index: 50;
+}
+
+/* Classe pour les inputs de type file avec bordure junia-orange */
+.file-input-junia {
+  border: 1px solid #f06b42;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.file-input-junia input[type="file"] {
+  padding: 0.5rem;
+  width: 100%;
+}
+
+.file-input-container {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto;
+  width: 60%;
+}
+
+.left-form-column{
+  justify-content: space-between;
 }

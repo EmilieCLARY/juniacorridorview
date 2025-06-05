@@ -152,11 +152,22 @@
   border-radius: 10px;
   border-color: #3c2c53;
   cursor: pointer; /* Change le curseur au survol */
+  margin-bottom: 15px;
+  border: none;
+  background-color: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Ombre permanente subtile */
 }
 
 .room-container:hover {
-  border: 3px solid #3c2c53 !important; /* Bordure visible */
-  transition: background-color 0.3s ease !important;
+  transform: translateY(-10px);
+  box-shadow: 0 5px 15px rgba(60, 44, 83, 0.3); /* Ombre plus prononcée au survol */
+}
+
+.selected-room {
+  transform: translateY(-5px);
+  box-shadow: 0 3px 10px rgba(240, 107, 66, 0.4); /* Ombre orange pour la salle sélectionnée */
+  border: 2px solid #f06b42; /* Bordure orange pour indiquer la sélection */
 }
 
 .room-container img {
@@ -241,9 +252,5 @@ html, body {
     font-size: 1rem;
     margin: 0.5rem 0.5rem;
   }
-}
-
-.selected-room {
-  border: 3px solid #f06b42;
 }
 
