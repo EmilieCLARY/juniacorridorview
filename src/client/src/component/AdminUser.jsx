@@ -280,10 +280,17 @@ const AdminUser = () => {
                 <div className="form-group">
                   <label className="block text-sm font-title text-junia-purple mb-2">Lien de création du mot de passe</label>
                   <div className="p-3 bg-blue-50 border border-junia-orange rounded-lg">
-                    <p className="text-sm text-blue-700 mb-2">Envoyez ce lien à l'utilisateur pour qu'il puisse définir son mot de passe :</p>
-                    <a href={resetLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm break-all hover:text-blue-800 transition-colors">
-                      {resetLink}
-                    </a>
+                    <p className="text-sm text-blue-700 mb-2">
+                      Envoyez ce lien à l'utilisateur pour qu'il puisse définir son mot de passe :
+                      <a
+                        href={resetLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline text-sm break-all hover:text-blue-800 transition-colors pl-2"
+                      >
+                        Lien
+                      </a>
+                    </p>
                   </div>
                 </div>
               )}
