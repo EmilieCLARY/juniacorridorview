@@ -191,35 +191,37 @@ const TourViewer = () => {
           columnClassName="my-masonry-grid_column"
         >
           {tours.map(tour => (
-            <div key={tour.id_tours} className=" text-justify bg-white p-2 rounded-3xl flex-col">
-              <div className="font-title font-bold text-junia-orange text-3xl text-center">{tour.title}</div>
-              <div className="font-texts text-junia-purple">{tour.description}</div>
-              {getPanoramaImagesForTour(tour.id_tours).length > 0 && (
-                <div className="mt-4" style={{ height: "500px" }}>
-                    <p className="font-title font-bold text-center text-junia-purple">Salle : {currentRoomName[tour.id_tours] || getPanoramaImagesForTour(tour.id_tours)[0]?.roomName}</p>
-                    <div style={{ height: "500px" }}>
-                      <Carousel 
-                        items={getPanoramaImagesForTour(tour.id_tours)} 
-                        baseWidth="100%" 
-                        autoplay={true} 
-                        autoplayDelay={3000} 
-                        pauseOnHover={true} 
-                        loop={true} 
-                        round={false}
-                        onChange={(index) => handleCarouselChange(tour.id_tours, index)}
-                      />
-                    </div>
-                </div>
-              )}
-              <div className="flex justify-center margin-top-8">
-                <div 
-                  onClick={() => handleTourClick(tour.id_tours)} 
-                  className="text-xl text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl px-4 py-2 w-auto whitespace-nowrap inline-block mb-2 mt-2 cursor-pointer bouton-modifier"
-                >
-                  Commencer le parcours
+            !tour.hidden ? (
+              <div key={tour.id_tours} className=" text-justify bg-white p-2 rounded-3xl flex-col">
+                <div className="font-title font-bold text-junia-orange text-3xl text-center">{tour.title}</div>
+                <div className="font-texts text-junia-purple">{tour.description}</div>
+                {getPanoramaImagesForTour(tour.id_tours).length > 0 && (
+                  <div className="mt-4" style={{ height: "500px" }}>
+                      <p className="font-title font-bold text-center text-junia-purple">Salle : {currentRoomName[tour.id_tours] || getPanoramaImagesForTour(tour.id_tours)[0]?.roomName}</p>
+                      <div style={{ height: "500px" }}>
+                        <Carousel
+                          items={getPanoramaImagesForTour(tour.id_tours)}
+                          baseWidth="100%"
+                          autoplay={true}
+                          autoplayDelay={3000}
+                          pauseOnHover={true}
+                          loop={true}
+                          round={false}
+                          onChange={(index) => handleCarouselChange(tour.id_tours, index)}
+                        />
+                      </div>
+                  </div>
+                )}
+                <div className="flex justify-center margin-top-8">
+                  <div
+                    onClick={() => handleTourClick(tour.id_tours)}
+                    className="text-xl text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl px-4 py-2 w-auto whitespace-nowrap inline-block mb-2 mt-2 cursor-pointer bouton-modifier"
+                  >
+                    Commencer le parcours
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : null
           ))}
         </Masonry>
       </div>

@@ -418,6 +418,22 @@ const AdminTour = () => {
     });
   };
 
+  const toggleTourVisibility = async (event, tour) => {
+    event.stopPropagation();
+    event.preventDefault();
+    try {
+      const updatedTour = { ...tour, hidden: !tour.hidden };
+      await tourApi.updateTourVisibility(updatedTour.id_tours, updatedTour.hidden);
+      setTours((prevTours) =>
+          prevTours.map(t => t.id_tours === updatedTour.id_tours ? updatedTour : t)
+      );
+      toast.success(`Parcours ${updatedTour.hidden ? 'caché' : 'visible'} avec succès`);
+    } catch (error) {
+      console.error('Error updating tour visibility:', error);
+      toast.error('Erreur lors de la mise à jour de la visibilité du parcours');
+    }
+  }
+
   const onDragEnd = (event) => {
     const { active, over } = event;
     if (active.id !== over.id) {
@@ -566,7 +582,27 @@ const AdminTour = () => {
                   <p  className="font-texts font-bold text-junia-orange text-2xl">Description</p>
                   {tour.description}
                 </div>
-                
+                <div
+                    className="flex flex-row align-center"
+                    onClick={(event) => {
+                      event.stopPropagation();  // Prevent click from bubbling up to the parent div
+                    }}
+                >
+                  <div className="font-texts font-bold text-junia-orange text-2xl">Visibilité</div>
+                  <label className="toggle-switch mx-4">
+                    <input
+                        type="checkbox"
+                        checked={!tour.hidden}
+                        className="sr-only "
+                        onChange={() => { }} // Required for React controlled components
+                        onClick={(event) => {
+                          event.stopPropagation(); // Still needed for the toggle itself
+                          toggleTourVisibility(event, tour);
+                        }}
+                    />
+                    <span className="toggle-slider"></span>
+                  </label>
+                </div>
                 {tourSteps[tour.id_tours] ? (
                   tourSteps[tour.id_tours].length > 0 ? (
                     <div className="mt-4" style={{ height: "500px" }}>

@@ -59,7 +59,8 @@ const getTours = (callback) => {
             const tours = rows.map(row => ({
                 id_tours: row.id_tours,
                 title: row.title,
-                description: row.description
+                description: row.description,
+                hidden: row.hidden,
             }));
             console.log('Fetched', tours.length, 'tours');
             callback(null, tours);
@@ -287,6 +288,14 @@ function updateRoomVisibility(id_rooms, hidden, callback) {
     console.log('Updating plan visibility', id_rooms, hidden);
     const sql = `UPDATE Rooms SET hidden = ? WHERE id_rooms = ?`;
     db.query(sql, [hidden, id_rooms], (err) => {
+        callback(err);
+    });
+}
+
+function updateTourVisibility(id_tours, hidden, callback) {
+    console.log('Updating tour visibility', id_tours, hidden);
+    const sql = `UPDATE Tours SET hidden = ? WHERE id_tours = ?`;
+    db.query(sql, [hidden, id_tours], (err) => {
         callback(err);
     });
 }
@@ -666,5 +675,6 @@ module.exports = {
     deleteBuilding,
     addFloor,
     updateFloor,
-    deleteFloor
+    deleteFloor,
+    updateTourVisibility,
 };
