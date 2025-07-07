@@ -9,3 +9,56 @@
   transform: scale(1.05) ;
 }
 
+/* Classes pour le texte adaptatif */
+.adaptive-title {
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  line-height: 1.2;
+  overflow-wrap: break-word;
+  max-width: fit-content; /* Permet au conteneur de s'adapter au contenu */
+  display: inline-flex; /* Pour que le fond s'adapte à la longueur du texte */
+  align-items: center;
+}
+
+.adaptive-text {
+  font-size: clamp(1.2rem, 2.5vw, 2rem);
+  line-height: 1.4;
+  overflow-wrap: break-word;
+  height: calc(100% - 3rem); /* S'ajuste pour prendre l'espace restant après le titre */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: auto;
+}
+
+/* Classes pour assurer que les conteneurs ont une hauteur fixe par rapport au viewport */
+.h-25vh {
+  height: 25vh;
+  min-height: 150px;
+  max-height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+.h-20vh {
+  height: 15vh;
+  min-height: 120px;
+  max-height: 240px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Media queries pour ajuster davantage sur les écrans très petits ou très grands */
+@media (max-height: 600px) {
+  .adaptive-text {
+    font-size: clamp(1rem, 1.8vw, 1.2rem);
+  }
+  
+  .adaptive-title {
+    font-size: clamp(1.2rem, 2vw, 1.5rem);
+  }
+}
+
+@media (min-width: 1920px) {
+  .adaptive-text {
+    font-size: clamp(1.4rem, 1.8vw, 1.8rem);
+  }
+}
