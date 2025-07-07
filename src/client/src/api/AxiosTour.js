@@ -63,6 +63,14 @@ const createTour = async (data) => {
     }
 };
 
+const updateTourVisibility = async (id_tours, hidden) => {
+    try {
+        await axios.post('/api/update-tour-visibility', { id_tours, hidden });
+    } catch (error) {
+        console.error('Error updating tour visibility:', error);
+    }
+}
+
 const deleteTour = async (id_tours) => {
     try {
         await axios.delete(`/api/delete-tour/${id_tours}`);
@@ -172,5 +180,6 @@ export {
     getImage,
     getRooms,
     getRoomPreview,
-    getFloors
+    getFloors,
+    updateTourVisibility,
 };

@@ -47,7 +47,7 @@ const { db,
     getFloors,
     addFloor,
     deleteFloor,
-    updateFloor, getFloorById
+    updateFloor, getFloorById, updateTourVisibility
 } = require('./database');
 const admin = require("firebase-admin");
 const { getAuth } = require("firebase-admin/auth");
@@ -512,6 +512,18 @@ app.post('/update-room-visibility', (req, res) => {
       res.sendStatus(200);
     }
   });
+});
+
+app.post('/update-tour-visibility', (req, res) => {
+   const { id_tours, hidden } = req.body;
+    updateTourVisibility(id_tours, hidden, (err) => {
+        if (err) {
+            console.error('Error updating tour visibility:', err);
+            res.sendStatus(500);
+        } else {
+            res.sendStatus(200);
+        }
+    });
 });
 
 app.delete('/delete-room/:id', (req, res) => {
