@@ -861,14 +861,17 @@ const AdminRoomDetails = () => {
                 
                 {/* Left column */}
                 <div className="flex flex-col gap-4 justify-between h-full">
-                  <input 
-                    type="text" 
-                    name="id_pictures_destination" 
-                    placeholder="ID de destination" 
-                    required 
-                    defaultValue={editLinkMod ? linkToEdit.id_pictures_destination : ''} 
-                    className="p-2 rounded orange-border" 
+                  <div>
+                    <label className="font-title font-bold text-center w-full text-junia-purple mb-2 block">Id de l'image de destination</label>
+                    <input 
+                      type="text" 
+                      name="id_pictures_destination" 
+                      placeholder="ID de destination" 
+                      required 
+                      defaultValue={editLinkMod ? linkToEdit.id_pictures_destination : ''} 
+                      className="p-2 rounded orange-border w-full" 
                     />
+                  </div>
                   <div className="position-inputs-container flex-col">
                     {/* Labels en haut */}
                     <div className="flex w-full justify-between mb-1">
