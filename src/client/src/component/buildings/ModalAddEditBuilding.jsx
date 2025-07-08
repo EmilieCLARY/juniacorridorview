@@ -22,7 +22,7 @@ const ModalAddEditBuilding = ({
     }, [isOpen]);
 
     useEffect(() => {
-        if (building && building.id_buildings) {
+        if (building && building.id_buildings != null) {
             setEditMode(true);
             setBuildingName(building.name);
         } else {
