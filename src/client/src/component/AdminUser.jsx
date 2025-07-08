@@ -349,9 +349,9 @@ const AdminUser = () => {
               maxWidth: '32rem'
             }}>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-title text-junia-purple">
+                <div className="text-2xl font-bold text-center font-title text-junia-purple">
                   Lien de réinitialisation du mot de passe pour {resetModal.email}
-                </h2>
+                </div>
                 <button
                   className="text-gray-400 hover:text-junia-purple text-3xl leading-none cursor-pointer transition-colors"
                   onClick={() => setResetModal({ open: false, email: "", link: "" })}
