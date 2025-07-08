@@ -577,7 +577,7 @@ const AdminTour = () => {
           >
             {filteredTours.map(tour => (
               <div key={tour.id_tours} className="purpleborder text-justify bg-white border-5 border-junia-orange p-2 rounded-3xl flex flex-col mb-10">
-                <div className="font-title font-bold text-junia-orange text-3xl text-center">Parcours : {tour.title}</div>
+                <div className="font-title font-bold text-junia-noir text-3xl text-center">Parcours : {tour.title}</div>
                 <div className="font-texts">
                   <p  className="font-texts font-bold text-junia-orange text-2xl">Description</p>
                   {tour.description}
@@ -588,7 +588,7 @@ const AdminTour = () => {
                       event.stopPropagation();  // Prevent click from bubbling up to the parent div
                     }}
                 >
-                  <div className="font-texts font-bold text-junia-orange text-2xl">Visibilité</div>
+                  <div className="font-texts font-bold text-junia-noir text-2xl">Visibilité</div>
                   <label className="toggle-switch mx-4">
                     <input
                         type="checkbox"
@@ -606,7 +606,7 @@ const AdminTour = () => {
                 {tourSteps[tour.id_tours] ? (
                   tourSteps[tour.id_tours].length > 0 ? (
                     <div className="mt-4" style={{ height: "500px" }}>
-                      <p  className="font-texts font-bold text-junia-orange text-2xl">Étapes</p>
+                      <p  className="font-texts font-bold text-junia-noir text-2xl">Étapes</p>
                       <p className="font-texts font-bold text-center text-junia-violet">
                         Salle : {currentRoomName[tour.id_tours] || (getPanoramaImagesForTour(tour.id_tours)[0]?.roomName || 'Aucune salle disponible')}
                       </p>
