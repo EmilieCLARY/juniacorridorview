@@ -59,7 +59,7 @@ const Navbar = ({ isAuthenticated, selectedImageName, currentRoomNumber }) => {
         setRouteName('Gestion des Bâtiments');
         break;
       case '/admin/user':
-        setRouteName('Gestion des Utilisateurs');
+        setRouteName('Gestion des Administrateurs');
         break;
       case location.pathname.match(/^\/admin\/room\/\d+$/)?.input:
         setRouteName('Gestion d\'une Salle');
@@ -139,7 +139,7 @@ const Navbar = ({ isAuthenticated, selectedImageName, currentRoomNumber }) => {
               style={{ display: "inline-flex", alignItems: "center" }}
               title="Paramètres utilisateur"
             >
-              <FaUserCog className="text-4xl cursor-pointer" title="Paramètres utilisateur" />
+              <FaUserCog className="text-4xl cursor-pointer" title="Paramètres administrateurs" />
             </NavLink>
           )}
           {isAuthenticated && (

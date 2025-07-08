@@ -52,7 +52,7 @@ const AdminUser = () => {
     setResetLink("");
     try {
       const res = await createUser(newEmail, newPassword);
-      setMessage("Utilisateur créé !");
+      setMessage("Administrateur créé !");
       setResetLink(res.resetLink);
       // Ne vide pas les champs ici, attend la fermeture de la modal
       setLoading(true);
@@ -101,12 +101,12 @@ const AdminUser = () => {
       setUsers(users => users.filter(u => u.uid !== confirmDelete.uid));
       setConfirmDelete({ open: false, email: "", uid: "" });
       setResetModal({ open: false, email: "", link: "" });
-      toast.success("Utilisateur supprimé avec succès !");
+      toast.success("Administrateur supprimé avec succès !");
     } catch (err) {
       setMessage(
         err?.response?.data?.error ||
         err?.message ||
-        "Erreur lors de la suppression de l'utilisateur."
+        "Erreur lors de la suppression de l'administrateur."
       );
       setConfirmDelete({ open: false, email: "", uid: "" });
     }
@@ -122,19 +122,19 @@ const AdminUser = () => {
               <div className="flex flex-row items-start gap-8">
                 <div className="flex flex-col flex-grow">
                   <div className="flex flex-row justify-between items-center mb-8 ml-4 mt-2">
-                    <div className="text-3xl font-title text-junia-purple font-bold">Liste des utilisateurs</div>
+                    <div className="text-3xl font-title text-junia-purple font-bold">Liste des administrateurs</div>
                     <button
                       className="bg-junia-orange hover:bg-junia-purple text-white p-2 rounded-full font-title text-lg shadow-lg hover:shadow-xl transform mr-4 mt-2 cursor-pointer flex flex-row items-center gap-2"
                       onClick={() => setShowModal(true)}
                     >
-                      <FaPlus/> Nouvel utilisateur
+                      <FaPlus/> Nouvel administrateur
                     </button>
                   </div>
                   {/* Barre de recherche */}
                   <div className="mb-6 ml-4 mr-4 pt-2">
                     <input
                       type="text"
-                      placeholder="Rechercher un utilisateur par email..."
+                      placeholder="Rechercher un administrateur par email..."
                       value={search}
                       onChange={e => setSearch(e.target.value)}
                       className="w-full px-4 py-3 border-2 border-junia-orange rounded-full font-texts focus:outline-none focus:border-junia-purple transition-colors text-junia-orange placeholder-junia-orange"
@@ -218,7 +218,7 @@ const AdminUser = () => {
               maxWidth: '32rem'
             }}>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-title text-junia-purple">Créer un utilisateur</h2>
+                <h2 className="text-2xl font-title text-junia-purple">Créer un administrateur</h2>
                 <button
                   className="text-gray-400 hover:text-junia-purple text-3xl leading-none cursor-pointer transition-colors"
                   onClick={() => {
@@ -242,11 +242,11 @@ const AdminUser = () => {
               )}
               <form onSubmit={handleCreateUser}>
                 <div className="form-group">
-                  <label className="block text-sm font-title text-junia-purple mb-2">Email utilisateur</label>
+                  <label className="block text-sm font-title text-junia-purple mb-2">Email de l'administrateur</label>
                   <input
                     type="email"
                     required
-                    placeholder="Entrez l'email du nouvel utilisateur"
+                    placeholder="Entrez l'email du nouvel administrateur"
                     value={newEmail}
                     onChange={e => setNewEmail(e.target.value)}
                     className={`w-full px-4 py-3 border-2 border-junia-purple rounded-lg font-texts focus:outline-none focus:border-junia-orange transition-colors ${!!message ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -285,7 +285,7 @@ const AdminUser = () => {
                     <label className="block text-sm font-title text-junia-purple mb-2">Lien de création du mot de passe</label>
                     <div className="p-3 bg-blue-50 border border-junia-orange rounded-lg">
                       <p className="text-sm text-blue-700 mb-2">
-                        Envoyez ce lien à l'utilisateur pour qu'il puisse définir son mot de passe :
+                        Envoyez ce lien à l'administrateur pour qu'il puisse définir son mot de passe :
                         <a
                           href={resetLink}
                           target="_blank"
@@ -317,7 +317,7 @@ const AdminUser = () => {
                       type="submit" 
                       className="flex-1 bg-junia-purple hover:bg-junia-orange transition-colors text-white px-6 py-3 rounded-full font-title text-lg shadow-lg"
                     >
-                      Créer l'utilisateur
+                      Créer l'administrateur
                     </button>
                   )}
                 </div>
@@ -363,7 +363,7 @@ const AdminUser = () => {
               </div>
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-sm text-blue-700 mb-2">
-                  Envoyez ce lien à l'utilisateur pour qu'il puisse définir son mot de passe :
+                  Envoyez ce lien à l'administrateur pour qu'il puisse définir son mot de passe :
                 
                 <a
                   href={resetModal.link}
