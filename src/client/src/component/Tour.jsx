@@ -48,7 +48,9 @@ const TourViewer = () => {
   const fetchTours = async () => {
     try {
       const toursData = await api.getTours();
-      setTours(toursData);
+      // Filter out hidden tours
+      const visibleTours = toursData.filter(tour => !tour.hidden);
+      setTours(visibleTours);
     } catch (error) {
       console.error('Error fetching tours:', error);
     }
@@ -57,14 +59,22 @@ const TourViewer = () => {
   const fetchTourSteps = async (tourId) => {
     try {
       const stepsData = await api.getTourSteps(tourId);
+      // Filter tour steps to only include those where room_hidden is false
+      const visibleSteps = stepsData.filter(step => !step.room_hidden);
+
+      // If no visible steps, return early
+      if (visibleSteps.length === 0) {
+        return;
+      }
+
       setTourSteps(prevSteps => ({
         ...prevSteps,
-        [tourId]: stepsData
+        [tourId]: visibleSteps
       }));
 
       // Fetch plan details and one panorama URL for each step
       const roomDetails = await Promise.all(
-        stepsData.map(step => api.getRoomDetails(step.id_rooms)
+        visibleSteps.map(step => api.getRoomDetails(step.id_rooms)
           .then(room => ({ ...room, id_rooms: step.id_rooms })) // Add id_rooms to the plan object
         )
       );
@@ -75,7 +85,7 @@ const TourViewer = () => {
 
       // Try to get previews first, fall back to panorama images
       const imageUrlsData = await Promise.all(
-        stepsData.map(async step => {
+        visibleSteps.map(async step => {
           // First try to get plan preview
           const previewUrl = await api.getRoomPreview(step.id_rooms);
 
@@ -181,49 +191,56 @@ const TourViewer = () => {
     }
   }, [tourSteps, panoramaUrls, rooms]);
 
+    // Function to check if a tour has tour steps
+  const tourHaveSteps = (tour) => {
+    return tourSteps[tour.id_tours] && tourSteps[tour.id_tours].length > 0;
+  }
+
   return (
     <div className="body-container bg-junia-lavender">
       <Loader show={isLoading} text={textLoading} />
       <div className="bg-junia-lavender p-4">
-        <Masonry
-          breakpointCols={breakpointColumnsObj}
-          className="my-masonry-grid"
-          columnClassName="my-masonry-grid_column"
-        >
-          {tours.map(tour => (
-            !tour.hidden ? (
-              <div key={tour.id_tours} className=" text-justify bg-white p-2 rounded-3xl flex-col">
-                <div className="font-title font-bold text-junia-orange text-3xl text-center">{tour.title}</div>
-                <div className="font-texts text-junia-purple">{tour.description}</div>
-                {getPanoramaImagesForTour(tour.id_tours).length > 0 && (
-                  <div className="mt-4" style={{ height: "500px" }}>
-                      <p className="font-title font-bold text-center text-junia-purple">Salle : {currentRoomName[tour.id_tours] || getPanoramaImagesForTour(tour.id_tours)[0]?.roomName}</p>
-                      <div style={{ height: "500px" }}>
-                        <Carousel
-                          items={getPanoramaImagesForTour(tour.id_tours)}
-                          baseWidth="100%"
-                          autoplay={true}
-                          autoplayDelay={3000}
-                          pauseOnHover={true}
-                          loop={true}
-                          round={false}
-                          onChange={(index) => handleCarouselChange(tour.id_tours, index)}
-                        />
-                      </div>
-                  </div>
-                )}
-                <div className="flex justify-center margin-top-8">
-                  <div
-                    onClick={() => handleTourClick(tour.id_tours)}
-                    className="text-xl text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl px-4 py-2 w-auto whitespace-nowrap inline-block mb-2 mt-2 cursor-pointer bouton-modifier"
-                  >
-                    Commencer le parcours
+        {!isLoading && (
+          <Masonry
+            breakpointCols={breakpointColumnsObj}
+            className="my-masonry-grid"
+            columnClassName="my-masonry-grid_column"
+          >
+            {tours.map(tour => (
+              tourHaveSteps(tour) ? (
+                <div key={tour.id_tours} className=" text-justify bg-white p-2 rounded-3xl flex-col">
+                  <div className="font-title font-bold text-junia-orange text-3xl text-center">{tour.title}</div>
+                  <div className="font-texts text-junia-purple">{tour.description}</div>
+                  {getPanoramaImagesForTour(tour.id_tours).length > 0 && (
+                    <div className="mt-4" style={{ height: "500px" }}>
+                        <p className="font-title font-bold text-center text-junia-purple">Salle : {currentRoomName[tour.id_tours] || getPanoramaImagesForTour(tour.id_tours)[0]?.roomName}</p>
+                        <div style={{ height: "500px" }}>
+                          <Carousel
+                            items={getPanoramaImagesForTour(tour.id_tours)}
+                            baseWidth="100%"
+                            autoplay={true}
+                            autoplayDelay={3000}
+                            pauseOnHover={true}
+                            loop={true}
+                            round={false}
+                            onChange={(index) => handleCarouselChange(tour.id_tours, index)}
+                          />
+                        </div>
+                    </div>
+                  )}
+                  <div className="flex justify-center margin-top-8">
+                    <div
+                      onClick={() => handleTourClick(tour.id_tours)}
+                      className="text-xl text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl px-4 py-2 w-auto whitespace-nowrap inline-block mb-2 mt-2 cursor-pointer bouton-modifier"
+                    >
+                      Commencer le parcours
+                    </div>
                   </div>
                 </div>
-              </div>
-            ) : null
-          ))}
-        </Masonry>
+              ) : null
+            ))}
+          </Masonry>
+        )}
       </div>
     </div>
   );

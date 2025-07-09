@@ -89,7 +89,7 @@ const getTourSteps = (tourId, callback) => {
 
 const getTourStepsWithRoomInfo = (tourId, callback) => {
     const sql = `
-        SELECT Tour_Steps.*, Rooms.name as room_name, Rooms.number as room_number
+        SELECT Tour_Steps.*, Rooms.name as room_name, Rooms.number as room_number, Rooms.hidden as room_hidden
         FROM Tour_Steps
         JOIN Rooms ON Tour_Steps.id_rooms = Rooms.id_rooms
         WHERE Tour_Steps.id_tours = ?
@@ -106,7 +106,8 @@ const getTourStepsWithRoomInfo = (tourId, callback) => {
                 step_number: row.step_number,
                 id_tours: row.id_tours,
                 room_name: row.room_name,
-                room_number: row.room_number
+                room_number: row.room_number,
+                room_hidden: row.room_hidden
             }));
             console.log('Fetched', steps.length, 'tour steps for tour', tourId);
             callback(null, steps);
