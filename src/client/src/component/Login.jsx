@@ -21,7 +21,6 @@ const Login = () => {
   useEffect(() => {
     const checkAuth = async () => {
       const user = firebase.auth().currentUser;
-      console.log("Current user in checkAuth:", user); // Debugging log
       setIsAuthenticated(!!user); // Update authentication status
     };
     firebase.auth().onAuthStateChanged(checkAuth);
@@ -34,7 +33,6 @@ const Login = () => {
         email,
         password
       );
-      console.log("User logged in:", userCredential.user); // Debugging log
 
       // Store authentication status in localStorage
       localStorage.setItem("isAuthenticated", true);

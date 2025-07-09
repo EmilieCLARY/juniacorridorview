@@ -225,7 +225,6 @@ const AdminRoomDetails = () => {
   };
 
   const handleModalInfopopup = () => {
-    console.log('Opening new infospot modal');
     setNewInfospotModalOpen(true);
     setDisableBackgroundClick(true);
     setPosX(null);
@@ -363,7 +362,6 @@ const AdminRoomDetails = () => {
   }
 
   const handleEditInfoPopup = async (event, popup) => {
-    console.log('Editing infopopup', popup);
     setDisableBackgroundClick(true);
     setInfospotToEdit(popup);
     setEditInfospotMod(true);
@@ -426,7 +424,6 @@ const AdminRoomDetails = () => {
   }
 
   const handleEditLink = async (event, link) => {
-    console.log('Editing link', link);
     setDisableBackgroundClick(true);
     setLinkToEdit(link);
     setEditLinkMod(true);
@@ -461,7 +458,6 @@ const AdminRoomDetails = () => {
   }
 
   const handleEditPicture = async (id) => {
-    console.log('Editing picture', id);
     setImageToUpdate(pictures.find(pic => pic.id_pictures === id));
     setAddImageModalOpen(true);
   }

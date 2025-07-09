@@ -145,7 +145,7 @@ const AdminTour = () => {
                 const imageUrl = await tourApi.getImage(picture.id_pictures);
                 return { id_rooms: step.id_rooms, imageUrl, isPreview: false };
               }
-              console.log(`No picture found for room ID: ${step.id_rooms}`);
+              console.error(`No picture found for room ID: ${step.id_rooms}`);
               return { id_rooms: step.id_rooms, imageUrl: null, isPreview: false };
             }
           } catch (error) {
@@ -180,7 +180,6 @@ const AdminTour = () => {
   const fetchRooms = async () => {
     try {
       const roomsData = await api.getRooms();
-      console.log("Fetched rooms:", roomsData);
       return roomsData;
     } catch (error) {
       console.error("Error fetching rooms:", error);
@@ -193,7 +192,6 @@ const AdminTour = () => {
   const fetchFloors = async () => {
     try {
       const floorsData = await tourApi.getFloors();
-      console.log('Fetched floors:', floorsData);
       setFloors(floorsData);
       return floorsData;
     } catch (error) {
@@ -204,7 +202,6 @@ const AdminTour = () => {
   };
 
   const fetchAllData = async () => {
-    console.log('Fetching all data...');
     try {
       // Fetch tours and steps
       const { toursData, steps } = await fetchToursInfo();

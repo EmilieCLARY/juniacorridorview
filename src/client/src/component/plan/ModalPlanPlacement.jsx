@@ -19,10 +19,6 @@ const ModalPlanPlacement = ({
     useEffect(() => {
         if (isOpen) {
             setShowPlanPlacement(true);
-            console.log(newRoomData);
-            console.log(editRoomData);
-            console.log(editMode);
-            console.log(floor);
         } else {
             setShowPlanPlacement(false);
         }

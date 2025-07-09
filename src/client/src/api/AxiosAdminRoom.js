@@ -107,9 +107,7 @@ const createRoom = async (formData) => {
 
 const getBuildings = async () => {
   try {
-    console.log('Sending GET request to /buildings'); // Log request
     const response = await axios.get('/api/buildings');
-    console.log('Response from /buildings:', response); // Log response
     if (!Array.isArray(response.data)) {
       console.error('Unexpected buildings data format:', response.data);
       return [];
