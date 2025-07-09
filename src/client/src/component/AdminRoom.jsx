@@ -161,7 +161,6 @@ const AdminRoom = () => {
   const fetchFloors = async () => {
     try {
       const floorsData = await api.getFloors();
-      console.log('Fetched floors:', floorsData);
       setFloors(floorsData);
       return floorsData;
     } catch (error) {
@@ -173,7 +172,6 @@ const AdminRoom = () => {
 
   const fetchRooms = async () => {
     try {
-      console.log('Fetching rooms...');
       const roomsData = await api.getRooms();
 
       // Ensure we have building data before processing rooms
@@ -195,12 +193,11 @@ const AdminRoom = () => {
 
           try {
             previewUrl = await api.getRoomPreview(room.id_rooms);
-            console.log(`Preview URL for room ${room.id_rooms}:`, previewUrl);
             // If we got a valid URL back, set hasPreview to true
             hasPreview = !!previewUrl;
           } catch (error) {
             // Just silently continue if preview fetch fails
-            console.log(`No preview found for room ${room.id_rooms}`);
+            console.error(`No preview found for room ${room.id_rooms}`);
           }
 
           // If no preview, fall back to the panoramic image
@@ -212,7 +209,7 @@ const AdminRoom = () => {
                 imageUrl = await api.getImage(pictures[0].id_pictures);
               }
             } catch (error) {
-              console.log(`Error fetching panoramic image for room ${room.id_rooms}:`, error);
+              console.error(`Error fetching panoramic image for room ${room.id_rooms}:`, error);
             }
           } else {
             imageUrl = previewUrl;
@@ -254,7 +251,6 @@ const AdminRoom = () => {
   }, []);
 
   const handleFilterChange = (selectedOptions, { name }) => {
-    console.log('Selected options:', selectedOptions);
     setFilters(prevFilters => ({
       ...prevFilters,
       [name]: selectedOptions.map(option => option.value)
@@ -809,7 +805,6 @@ const AdminRoom = () => {
                       menuPosition="fixed"
                       menuPortalTarget={document.body}
                       onChange={(selectedOption) => {
-                        console.log("Building selected:", selectedOption);
                         if (selectedOption.value === "manual") {
                           // Show a manual input field if "manual" is selected
                           setNewRoomData(prevData => ({
@@ -820,10 +815,6 @@ const AdminRoom = () => {
                           }));
                         } else {
                           setNewRoomData(prevData => {
-                            console.log("Setting building data:", {
-                              label: selectedOption.label,
-                              value: selectedOption.value
-                            });
                             return {
                               ...prevData,
                               building: selectedOption.label,

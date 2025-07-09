@@ -436,7 +436,6 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
 
   const onClick = (event) => {
     if (!mountRef.current) return;
-    console.log("Click event ::::" + disableClick);
     if (disableClick) return;
 
     // Récupérer la taille et position du conteneur
@@ -455,7 +454,6 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
     infoMeshes.forEach((info, index) => {
       const intersects = raycaster.intersectObject(info);
       if (intersects.length > 0 && infoPopups[index]) {
-        console.log("Info spot clicked"); // Debug log
         const existingPopup = displayedPopups.find(popup => popup.name === `popup_${index}`);
         const popupGroup = createInfoPopup(infoPopups[index]);
         popupGroup.name = `popup_${index}`;
@@ -466,7 +464,6 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
         scene.add(popupGroup);
         popupGroup.lookAt(camera.position);
         displayedPopups.push(popupGroup);
-        console.log("Popup ajouté à la scène");
       }
     });
 
@@ -474,7 +471,6 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
     linksMeshes.forEach((link, index) => {
       const intersects = raycaster.intersectObject(link);
       if (intersects.length > 0 && links[index]) {
-        console.log("Link clicked"); // Debug log
         onLinkClick(links[index].id_pictures_destination);
       }
     });
@@ -488,11 +484,9 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
       const hitPoint = intersects[0].point.clone();
       const direction = hitPoint.clone().normalize().multiplyScalar(495);
       infoMesh.position.copy(direction);
-      console.log("Click at", hitPoint);
 
       if (intersects.length > 0) {
         const hitPoint = intersects[0].point.clone();
-        console.log("Selected Position:", hitPoint);
 
         if (typeof onPositionSelect === "function") {
           if (window.isSelectingPosition) {
@@ -518,7 +512,6 @@ const Panorama360 = ({ infoPopups, selectedPicture, links, onLinkClick, onPositi
         if (intersects.length > 0) {
           scene.remove(popupGroup);
           displayedPopups.splice(index, 1);
-          console.log("Popup closed");
         }
       }
     });

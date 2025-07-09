@@ -65,7 +65,6 @@ export const getImage = async (id, retries = 3, delay = 1000) => {
       console.error('Error fetching image:', error);
     }
     if (retries > 0) {
-      console.log(`Retrying... (${3 - retries + 1})`);
       await new Promise(resolve => setTimeout(resolve, delay));
       return getImage(id, retries - 1, delay * 2); // Exponential backoff
     }

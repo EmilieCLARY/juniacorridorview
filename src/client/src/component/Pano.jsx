@@ -178,7 +178,6 @@ const PanoramaViewer = ({ location, setSelectedImageName, setCurrentRoomNumber }
     event.preventDefault();
     const formData = new FormData(event.target);
     const data = Object.fromEntries(formData.entries());
-    console.log('Data:', data);
     await api.insertLink(data);
   };
 
@@ -210,8 +209,6 @@ const PanoramaViewer = ({ location, setSelectedImageName, setCurrentRoomNumber }
   const fetchFloor = async (id_rooms) => {
     const room = rooms.find(room => room.id_rooms === id_rooms);
     const id_floor = room ? room.id_floors : null;
-    console.log(room);
-    console.log(id_floor);
     if (id_floor) {
       const floor = await api.getFloorById(id_floor);
       floor.plan_x = room.plan_x;

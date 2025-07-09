@@ -101,7 +101,6 @@ const AdminRoomDetails = () => {
         picturesData.map(async (pic) => await api.getInfoPopup(pic.id_pictures))
       );
       setAllInfoPopups(allInfoPopups.flat());
-      console.log('allInfoPopups', allInfoPopups.flat());
 
       const allLinks = await Promise.all(
         picturesData.map(async (pic) => await api.getLinks(pic.id_pictures))
@@ -194,6 +193,7 @@ const AdminRoomDetails = () => {
 
     setNewInfospotModalOpen(false);
     setDisableBackgroundClick(false);
+    cancelSelectPosition();
   };
 
   const handleNewLinkSubmit = async (event) => {
@@ -214,6 +214,7 @@ const AdminRoomDetails = () => {
 
     setNewLinkModalOpen(false);
     setDisableBackgroundClick(false);
+    cancelSelectPosition();
   };
 
   const handlePositionSelect = (position) => {
@@ -224,18 +225,20 @@ const AdminRoomDetails = () => {
   };
 
   const handleModalInfopopup = () => {
-    console.log('Opening new infospot modal');
     setNewInfospotModalOpen(true);
     setDisableBackgroundClick(true);
+    setPosX(null);
+    setPosY(null);
+    setPosZ(null);
 
     if (pictures.length > 0) {
       const firstPicture = pictures[0];
       setIsLoadingModal(true);
-      setModalSelectedPicture(firstPicture.imageUrl);
-      setSelectedImageId(firstPicture.id_pictures);
+      setModalSelectedPicture(selectedPicture);
+      setSelectedImageId(selectedPictureId);
 
-      const infospotsPromise = getInfoPopup(firstPicture.id_pictures);
-      const linksPromise = getLinks(firstPicture.id_pictures);
+      const infospotsPromise = api.getInfoPopup(selectedPictureId)
+      const linksPromise = api.getLinks(selectedPictureId);
 
       infospotsPromise.then((infospots) => {
         setModalInfoPopups(infospots);
@@ -256,6 +259,7 @@ const AdminRoomDetails = () => {
     setDisableBackgroundClick(false);
     setEditInfospotMod(false);
     setInfospotToEdit(null);
+    cancelSelectPosition();
     setPosX('');
     setPosY('');
     setPosZ('');
@@ -264,15 +268,18 @@ const AdminRoomDetails = () => {
   const handleModalLink = () => {
     setNewLinkModalOpen(true)
     setDisableBackgroundClick(true);
+    setPosX(null);
+    setPosY(null);
+    setPosZ(null);
 
     if (pictures.length > 0) {
       const firstPicture = pictures[0];
       setIsLoadingModal(true);
-      setModalSelectedPicture(firstPicture.imageUrl);
-      setSelectedImageId(firstPicture.id_pictures);
+      setModalSelectedPicture(selectedPicture);
+      setSelectedImageId(selectedPictureId);
 
-      const infospotsPromise = getInfoPopup(firstPicture.id_pictures);
-      const linksPromise = getLinks(firstPicture.id_pictures);
+      const infospotsPromise = api.getInfoPopup(selectedPictureId)
+      const linksPromise = api.getLinks(selectedPictureId);
 
       infospotsPromise.then((infospots) => {
         setModalInfoPopups(infospots);
@@ -293,6 +300,7 @@ const AdminRoomDetails = () => {
     setDisableBackgroundClick(false);
     setEditLinkMod(false);
     setLinkToEdit(null);
+    cancelSelectPosition();
     setPosX('');
     setPosY('');
     setPosZ('');
@@ -304,12 +312,18 @@ const AdminRoomDetails = () => {
     window.isFirstClick = true;
   };
 
+  const cancelSelectPosition = () => {
+    setIsSelectingPosition(false);
+    window.isSelectingPosition = false;
+    window.isFirstClick = false;
+  }
+
   const handleModalPictureClick = async (imageUrl, pictureId) => {
     setIsLoadingModal(true);
     setModalSelectedPicture(imageUrl);
     setSelectedImageId(pictureId);
-    const infospotsPromise = getInfoPopup(pictureId);
-    const linksPromise = getLinks(pictureId);
+    const infospotsPromise = api.getInfoPopup(pictureId);
+    const linksPromise = api.getLinks(pictureId);
     showLoading([infospotsPromise, linksPromise], 'Chargement des détails de la pièce...', 'Chargement des détails réussi', 'Erreur lors du chargement des détails');
     infospotsPromise.then((infospots) => {
         setModalInfoPopups(infospots);
@@ -339,6 +353,7 @@ const AdminRoomDetails = () => {
         setInfoPopups(updatedInfoPopups);
         const updatedAllInfoPopups = allInfoPopups.filter(popup => popup.id_info_popup !== infospotToDelete);
         setAllInfoPopups(updatedAllInfoPopups);
+        setInfospotToDelete(null);
         toast.success('Infobulle supprimée');
       });
     } catch (error) {
@@ -347,7 +362,6 @@ const AdminRoomDetails = () => {
   }
 
   const handleEditInfoPopup = async (event, popup) => {
-    console.log('Editing infopopup', popup);
     setDisableBackgroundClick(true);
     setInfospotToEdit(popup);
     setEditInfospotMod(true);
@@ -401,6 +415,7 @@ const AdminRoomDetails = () => {
         setLinks(updatedLinks);
         const updatedAllLinks = allLinks.filter(link => link.id_links !== linkToDelete);
         setAllLinks(updatedAllLinks);
+        setLinkToDelete(null);
         toast.success('Lien supprimé');
       });
     } catch (error) {
@@ -409,7 +424,6 @@ const AdminRoomDetails = () => {
   }
 
   const handleEditLink = async (event, link) => {
-    console.log('Editing link', link);
     setDisableBackgroundClick(true);
     setLinkToEdit(link);
     setEditLinkMod(true);
@@ -444,7 +458,6 @@ const AdminRoomDetails = () => {
   }
 
   const handleEditPicture = async (id) => {
-    console.log('Editing picture', id);
     setImageToUpdate(pictures.find(pic => pic.id_pictures === id));
     setAddImageModalOpen(true);
   }
@@ -459,6 +472,7 @@ const AdminRoomDetails = () => {
   const confirmDeleteImage = async () => {
     const deletePromise = api.deleteImage(imageToDelete);
     const updatedPicturesPromise = deletePromise.then(async () => {
+      setImageToDelete(null);
       await fetchAllData();
     });
     showLoading([deletePromise, updatedPicturesPromise], 'Suppression de l\'image...', 'Image supprimée avec succès', 'Erreur lors de la suppression de l\'image');
@@ -550,7 +564,7 @@ const AdminRoomDetails = () => {
               selectedPicture={selectedPicture}
               links={links}
               onLinkClick={handleLinkClick}
-              onPositionSelect={() => {}}
+              onPositionSelect={null}
               isLoading={isLoading}
               disableClick={disableBackgroundClick}
               className=""
@@ -569,7 +583,7 @@ const AdminRoomDetails = () => {
             <div className="flex gap-4 items-center w-full mb-4">
               <div className="text-white text-4xl bg-junia-purple px-4 py-1 font-title font-bold rounded-full">Infobulles</div>
               <div className="button-type font-bold font-title text-xl px-4 py-2">
-                <button onClick={handleModalInfopopup} className="flex items-center gap-2"><FaPlusCircle /> Nouvelle info-bulle</button>
+                <button onClick={handleModalInfopopup} className="flex items-center gap-2"><FaPlusCircle /> Nouvelle infobulle</button>
               </div>
               
             </div>
@@ -755,7 +769,7 @@ const AdminRoomDetails = () => {
                         type="text" 
                         name="posX" 
                         placeholder="Position X" 
-                        value={parseFloat(posX).toFixed(4) || ''} 
+                        value={posX ? parseFloat(posX).toFixed(4) : ''}
                         onChange={(e) => setPosX(e.target.value)} 
                         required 
                         readOnly 
@@ -765,7 +779,7 @@ const AdminRoomDetails = () => {
                         type="text" 
                         name="posY" 
                         placeholder="Position Y" 
-                        value={parseFloat(posY).toFixed(4) || ''} 
+                        value={posY ? parseFloat(posY).toFixed(4) : ''}
                         onChange={(e) => setPosY(e.target.value)} 
                         required 
                         readOnly 
@@ -775,7 +789,7 @@ const AdminRoomDetails = () => {
                         type="text" 
                         name="posZ" 
                         placeholder="Position Z" 
-                        value={parseFloat(posZ).toFixed(4) || ''} 
+                        value={posZ ? parseFloat(posZ).toFixed(4) : ''}
                         onChange={(e) => setPosZ(e.target.value)} 
                         required 
                         readOnly 
@@ -885,7 +899,7 @@ const AdminRoomDetails = () => {
                         type="text" 
                         name="posX" 
                         placeholder="Position X" 
-                        value={parseFloat(posX).toFixed(4) || ''} 
+                        value={posX ? parseFloat(posX).toFixed(4) : ''}
                         onChange={(e) => setPosX(e.target.value)} 
                         required 
                         readOnly 
@@ -895,7 +909,7 @@ const AdminRoomDetails = () => {
                         type="text" 
                         name="posY" 
                         placeholder="Position Y" 
-                        value={parseFloat(posY).toFixed(4) || ''} 
+                        value={posY ? parseFloat(posY).toFixed(4) : ''}
                         onChange={(e) => setPosY(e.target.value)} 
                         required 
                         readOnly 
@@ -905,7 +919,7 @@ const AdminRoomDetails = () => {
                         type="text" 
                         name="posZ" 
                         placeholder="Position Z" 
-                        value={parseFloat(posZ).toFixed(4) || ''} 
+                        value={posZ ? parseFloat(posZ).toFixed(4) : ''}
                         onChange={(e) => setPosZ(e.target.value)} 
                         required 
                         readOnly 
