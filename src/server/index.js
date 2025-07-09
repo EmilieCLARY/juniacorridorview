@@ -69,7 +69,6 @@ const requireAuth = async (req, res, next) => {
 
   try {
     const decodedToken = await admin.auth().verifyIdToken(idToken);
-    console.log("Decoded token:", decodedToken); // Debugging log
     next(); // User is authenticated, proceed to the route
   } catch (error) {
     console.error("Error verifying token:", error);
@@ -130,9 +129,7 @@ app.get("/pictures", (req, res) => {
 app.post('/upload', (req, res) => {
     const { id_rooms } = req.body;
     const { pic } = req.files;
-    console.log('id_rooms:', id_rooms, 'pic:', pic);
     if (pic && id_rooms) {
-        console.log('Inserting image');
         insertImage(id_rooms, pic.data, (err) => {
             if (err) {
                 console.error('Error inserting image:', err);
@@ -189,7 +186,6 @@ app.post("/retrieveLinkByIdPicture/", (req, res) => {
 app.post("/insertInfoPopUp", (req, res) => {
     const { id_pictures, posX, posY, posZ, text, title } = req.body;
     const pic = req.files ? req.files.pic : null;
-    console.log('id_pictures:', id_pictures, 'posX:', posX, 'posY:', posY, 'posZ:', posZ, 'text:', text, 'title:', title, 'pic:', pic);
     if (id_pictures && posX && posY && posZ && text && title) {
         insertInfoPopUp(id_pictures, posX, posY, posZ, text, title, pic ? pic.data : null, (err) => {
             if (err) {
@@ -205,7 +201,6 @@ app.post("/insertInfoPopUp", (req, res) => {
 });
 
 app.post("/insertLink", (req, res) => {
-    console.log(req.body);
     const { id_pictures, posX, posY, posZ, id_pictures_destination } = req.body;
     insertLink(id_pictures, posX, posY, posZ, id_pictures_destination, (err) => {
         if (err) {
@@ -321,7 +316,6 @@ app.get('/room-id/:id', (req, res) => {
 });
 
 app.get('/rooms', (req, res) => {
-    console.log('GET /rooms called'); // Add logging
     getRooms((err, rooms) => {
         if (err) {
             console.error('Error fetching rooms', err);
@@ -573,7 +567,6 @@ app.use((req, res, next) => {
   
 
 app.get('/buildings', (req, res) => {
-  console.log('GET /buildings called'); // Add logging
   getBuildings((err, buildings) => {
     if (err) {
       console.error('Error fetching buildings', err);
@@ -626,7 +619,6 @@ app.get('/ping', (req, res) => {
 });
 
 app.get('/floors', (req, res) => {
-    console.log('GET /floors called'); // Add logging
     getFloors((err, floors) => {
         if (err) {
             console.error('Error fetching floors', err);
@@ -696,11 +688,9 @@ app.post("/api/set-admin-claim", async (req, res) => {
 
   try {
     await getAuth().setCustomUserClaims(uid, { admin: true });
-    console.log(`Custom claim 'admin: true' set for user ${uid}`); // Debugging log
 
     // Verify the claim was set
     const user = await getAuth().getUser(uid);
-    console.log("Updated user claims:", user.customClaims); // Debugging log
 
     res.status(200).send(`Admin claim set for user ${uid}`);
   } catch (error) {

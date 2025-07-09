@@ -201,7 +201,6 @@ function deleteImage(id_pictures, callback) {
 
 function updateInfospot(id_info_popup, id_pictures, posX, posY, posZ, text, title, image, callback) {
     console.log('Updating info popup', id_info_popup);
-    console.log('Image:', image);
     if(image) {
         const sql = `UPDATE Info_Popup SET id_pictures = ?, position_x = ?, position_y = ?, position_z = ?, text = ?, title = ?, image = ? WHERE id_info_popup = ?`;
         db.query(sql, [id_pictures, posX, posY, posZ, text, title, image, id_info_popup], (err) => {
