@@ -17,7 +17,7 @@ import Carousel from '../reactbits/Components/Carousel/Carousel';
 import '../style/AdminTour.css';
 import Loader from "./Loader";
 import Select from 'react-select';
-import {FaArrowLeft, FaTrash} from "react-icons/fa";
+import {FaArrowLeft, FaTrash, FaPlusCircle} from "react-icons/fa";
 import ConfirmDialog from "./dialogs/ConfirmDialog";
 
 // Custom styles for React Select
@@ -535,13 +535,35 @@ const AdminTour = () => {
     700: 1
   };
 
+  const [placeholderText, setPlaceholderText] = useState("Rechercher un parcours...");
+
+  // Hook pour détecter la taille de l'écran et ajuster le placeholder
+  useEffect(() => {
+    const updatePlaceholder = () => {
+      if (window.innerWidth < 768) {
+        setPlaceholderText("Rechercher...");
+      } else {
+        setPlaceholderText("Rechercher un parcours...");
+      }
+    };
+
+    // Définir le placeholder initial
+    updatePlaceholder();
+
+    // Écouter les changements de taille d'écran
+    window.addEventListener('resize', updatePlaceholder);
+
+    // Nettoyer l'event listener
+    return () => window.removeEventListener('resize', updatePlaceholder);
+  }, []);
+
   return (
     <>
       <div className="absolute top-0 left-0 w-full h-full bg-junia-salmon -z-10"></div>
       
       <div className="relative absolute top-0 left-0 w-full h-full -z-10">
         <Loader show={isLoading} text={textLoading} />
-        <div className="absolute" style={{left: "20px"}}>
+        <div className="absolute z-50" style={{left: "20px", top: "20px"}}>
           <button
               onClick={() => history.push('/admin/room')}
               className="px-4 py-2 button-type font-title font-bold flex items-center gap-2">
@@ -549,22 +571,21 @@ const AdminTour = () => {
           </button>
         </div>
         <div className="my-4 flex justify-center">
-          <div className="flex gap-8 items-center font-title text-xl">
+          <div className="search-container">
             <input
               type="text"
-              placeholder="Rechercher un parcours..."
+              placeholder={placeholderText}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full p-2 research-input bg-white rounded-full"
+              className="search-input-adaptive"
             />
             <button 
               onClick={openNewTourModal} 
-              className="text-white font-bold shadow-md font-title text-center bg-junia-orange rounded-3xl p-2 rounded-full cursor-pointer bouton-modifier"
+              className="button-add-tour-adaptive flex items-center gap-2"
             >
-              Ajouter un nouveau parcours
+              <FaPlusCircle /> Ajouter un parcours
             </button>
           </div>
-
         </div>
         <div className="h-full p-4">
           <Masonry

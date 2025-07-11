@@ -644,31 +644,31 @@ const AdminRoom = () => {
           />
           
           </div>
-          <div class="flex gap-4">
+          <div className="admin-buttons-container">
             <button
                 onClick={() => {
                   setNewRoomModalOpen(true);
                   setPlanPlacementEditMode(false);
                 }}
-                className="px-3 py-2 font-title font-bold button-type flex items-center gap-2"
+                className="admin-button-responsive"
             >
-              <FaPlusCircle /> Ajouter une salle
+              <FaPlusCircle className="admin-button-icon" /> Ajouter une salle
             </button>
             
             <button
                 onClick={() => history.push('/admin/tour')}
-                className="px-4 py-2  button-type font-title font-bold">
+                className="admin-button-responsive">
                 Parcours
             </button>
             
             <button
                 onClick={() => history.push('/admin/building')}
-                className="px-4 py-2  button-type font-title font-bold">
+                className="admin-button-responsive">
                 Bâtiments
             </button>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="rooms-grid">
           {filteredRooms.map(room => (
             <div
               key={room.id_rooms}

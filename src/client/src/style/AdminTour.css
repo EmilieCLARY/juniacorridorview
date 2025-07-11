@@ -133,3 +133,87 @@ html, body, #root {
 .cursor-pointer {
   cursor: pointer;
 }
+
+/* Styles adaptatifs pour la barre de recherche */
+.search-container {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  font-family: var(--font-title);
+  font-size: var(--text-xl);
+  margin-left: 200px; /* Assure un espace suffisant pour le bouton retour */
+}
+
+.search-input-adaptive {
+  padding: 0.5rem;
+  background-color: white;
+  border: 2px solid #fb8500;
+  border-radius: 9999px;
+  min-width: 200px; /* Largeur minimale réduite pour petits écrans */
+  width: 100%;
+  max-width: 600px; /* Largeur maximale pour grands écrans */
+}
+
+.search-input-adaptive::placeholder {
+  color: rgba(240, 107, 66, 0.5);
+}
+
+/* Media queries pour ajuster la largeur selon la taille d'écran */
+@media (min-width: 768px) {
+  .search-input-adaptive {
+    min-width: 320px;
+  }
+  
+  .search-container {
+    margin-left: 180px; /* Moins d'espace sur écrans moyens */
+  }
+}
+
+@media (min-width: 1024px) {
+  .search-input-adaptive {
+    min-width: 400px;
+  }
+  
+  .search-container {
+    margin-left: 150px; /* Encore moins d'espace sur grands écrans */
+  }
+}
+
+@media (min-width: 1440px) {
+  .search-input-adaptive {
+    min-width: 500px;
+  }
+  
+  .search-container {
+    margin-left: 120px; /* Espace minimal sur très grands écrans */
+  }
+}
+
+/* Pour les très petits écrans, réduire encore plus la marge */
+@media (max-width: 640px) {
+  .search-container {
+    margin-left: 100px;
+  }
+  
+  .search-input-adaptive {
+    min-width: 150px;
+  }
+}
+
+.button-add-tour-adaptive {
+  background-color: #f06b42;
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  font-family: var(--font-title);
+  text-align: center;
+  border-radius: 1.5rem;
+  padding: 0.5rem;
+  cursor: pointer;
+  white-space: nowrap; /* Empêche le texte de passer à la ligne */
+  min-width: fit-content; /* S'adapte au contenu */
+}
+
+.button-add-tour-adaptive:hover {
+  background-color: #e85c30;
+}
