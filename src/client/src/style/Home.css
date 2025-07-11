@@ -17,6 +17,9 @@
   max-width: fit-content; /* Permet au conteneur de s'adapter au contenu */
   display: inline-flex; /* Pour que le fond s'adapte à la longueur du texte */
   align-items: center;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .adaptive-text {
@@ -27,6 +30,8 @@
   display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow: auto;
+  max-height: 100%;
+  word-break: break-word; /* Empêche le texte de dépasser le conteneur */
 }
 
 /* Classes pour assurer que les conteneurs ont une hauteur fixe par rapport au viewport */
@@ -36,6 +41,7 @@
   max-height: 300px;
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* Empêche le débordement du texte */
 }
 
 .h-20vh {
@@ -44,6 +50,7 @@
   max-height: 240px;
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* Empêche le débordement du texte */
 }
 
 /* Media queries pour ajuster davantage sur les écrans très petits ou très grands */
@@ -60,5 +67,108 @@
 @media (min-width: 1920px) {
   .adaptive-text {
     font-size: clamp(1.4rem, 1.8vw, 1.8rem);
+  }
+}
+
+@media (max-width: 1536px) {
+  .h-25vh {
+    height: 22vh;
+    min-height: 130px;
+    max-height: 260px;
+  }
+  .h-20vh {
+    height: 13vh;
+    min-height: 100px;
+    max-height: 200px;
+  }
+  .gap-15 {
+    gap: 1.2rem !important;
+  }
+  .gap-12 {
+    gap: 1rem !important;
+  }
+  .gap-30 {
+    gap: 2rem !important;
+  }
+  .adaptive-title {
+    font-size: clamp(1.2rem, 2.5vw, 2rem);
+  }
+  .adaptive-text {
+    font-size: clamp(1.1rem, 2vw, 1.5rem);
+  }
+  .text-6xl {
+    font-size: 2.5rem !important;
+  }
+}
+
+@media (max-width: 1280px) {
+  .h-25vh {
+    height: 18vh;
+    min-height: 110px;
+    max-height: 200px;
+  }
+  .h-20vh {
+    height: 11vh;
+    min-height: 80px;
+    max-height: 150px;
+  }
+  .gap-15 {
+    gap: 1rem !important;
+  }
+  .gap-12 {
+    gap: 0.8rem !important;
+  }
+  .gap-30 {
+    gap: 1.5rem !important;
+  }
+  .adaptive-title {
+    font-size: clamp(1.1rem, 2vw, 1.5rem);
+  }
+  .adaptive-text {
+    font-size: clamp(1rem, 1.7vw, 1.2rem);
+  }
+  .text-6xl {
+    font-size: 2rem !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .h-25vh {
+    height: 14vh;
+    min-height: 90px;
+    max-height: 140px;
+  }
+  .h-20vh {
+    height: 9vh;
+    min-height: 60px;
+    max-height: 110px;
+  }
+  .gap-15,
+  .gap-12,
+  .gap-30 {
+    gap: 0.7rem !important;
+  }
+  .adaptive-title {
+    font-size: clamp(1rem, 1.5vw, 1.2rem);
+  }
+  .adaptive-text {
+    font-size: clamp(0.9rem, 1.2vw, 1rem);
+  }
+  .text-6xl {
+    font-size: 1.2rem !important;
+  }
+}
+
+@media (max-width: 1771px) and (min-width: 1200px) {
+  .h-25vh {
+    height: 32vh;
+    min-height: 200px;
+    max-height: none;
+    overflow: hidden;
+  }
+  .adaptive-text {
+    height: 100%;
+    max-height: 100%;
+    overflow: auto;
   }
 }

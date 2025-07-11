@@ -227,10 +227,8 @@ html, body {
 /* Classe pour le titre "Autres Salles" */
 .other-rooms-title {
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   font-weight: bold;
-  font-size: 1.5rem; /* équivalent à text-2xl */
+  /* équivalent à text-2xl */
   color: white;
   background-color: #3c2c53; /* bg-junia-purple */
   border-radius: 0.75rem; /* rounded-xl */
