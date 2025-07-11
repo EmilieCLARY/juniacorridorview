@@ -493,7 +493,7 @@ const AdminRoomDetails = () => {
 
   const breakpointColumnsObj = {
     default: 2,
-    1100: 2,
+    1075: 1,  // Passe à une seule colonne pour les écrans <= 1075px
     700: 1,
   };
 

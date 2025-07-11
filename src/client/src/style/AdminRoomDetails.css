@@ -80,15 +80,15 @@
 /* Styles pour la liste des liens */
 
 
-/* Adaptation pour les écrans plus petits */
-@media (max-width: 1024px) {
+/* Adaptation pour les écrans plus petits - changer le seuil de 1024px à 800px */
+@media (max-width: 800px) {
     .content-container {
         flex-direction: column;
     }
     
     .infospots-section,
-    .all-links-container {
-        width: 100%;
+    .content-container > div:nth-child(2) {
+        width: 100% !important;
     }
 }
 
@@ -345,4 +345,93 @@ input[type="file"]::file-selector-button {
 .admin-room-details-page {
   background-color: var(--color-junia-salmon);
   min-height: 100vh; /* Pour s'assurer que le fond couvre toute la hauteur */
+}
+
+/* Styles responsives pour les boutons */
+.button-type, .button-type2 {
+  font-size: clamp(0.75rem, 1vw + 0.3rem, 1.125rem);
+  transition: background-color 0.3s ease, transform 0.3s ease, font-size 0.3s ease;
+}
+
+/* Styles spécifiques pour les boutons d'action principaux */
+.button-add-360 .button-type {
+  font-size: clamp(0.7rem, 1vw + 0.2rem, 1.2rem);
+  padding: 0.5rem 0.75rem;
+  white-space: nowrap;
+}
+
+/* Styles pour les boutons dans les cartes d'infobulles et liens */
+.one-info-spot .button-type, 
+.one-info-spot .button-type2,
+.one-link-container .button-type,
+.one-link-container .button-type2 {
+  font-size: clamp(0.7rem, 0.8vw + 0.25rem, 1rem);
+  padding: 0.5rem 0.75rem;
+}
+
+/* Boutons d'en-tête (Nouvelle infobulle, Nouveau lien) */
+.info-spot-research-zone .button-type,
+.links-research-zone .button-type {
+  font-size: clamp(0.85rem, 1vw + 0.3rem, 1.2rem);
+}
+
+/* Boutons dans les modales */
+.modal-infospot .button-type,
+.modal-infospot .button-type2 {
+  font-size: clamp(0.8rem, 0.9vw + 0.3rem, 1.1rem);
+}
+
+/* Ajustements responsifs supplémentaires pour les écrans plus petits */
+@media (max-width: 768px) {
+  .one-info-spot .button-type, 
+  .one-info-spot .button-type2,
+  .one-link-container .button-type,
+  .one-link-container .button-type2 {
+    padding: 0.4rem 0.6rem;
+  }
+  
+  .modal-infospot .button-type,
+  .modal-infospot .button-type2 {
+    padding: 0.4rem 0.6rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .button-type, .button-type2 {
+    padding: 0.35rem 0.5rem;
+  }
+  
+  .one-info-spot .button-type, 
+  .one-info-spot .button-type2,
+  .one-link-container .button-type,
+  .one-link-container .button-type2 {
+    font-size: clamp(0.65rem, 0.75vw + 0.2rem, 0.9rem);
+    padding: 0.35rem 0.5rem;
+  }
+}
+
+/* Adaptation responsive pour les infobulles et liens */
+@media (max-width: 1075px) {
+  .infospots-section {
+    width: 50% !important; /* Passe de 66% à 50% */
+  }
+  
+  .content-container > div:nth-child(2) {
+    width: 50% !important; /* Passe de 33% à 50% */
+  }
+  
+  /* Ajustement des inputs de recherche pour s'adapter à la nouvelle largeur */
+  .research-input-IS {
+    width: 100%;
+  }
+  
+  .research-input-L {
+    width: 100%;
+  }
+  
+  /* Ajuster les boutons de filtre pour qu'ils tiennent mieux dans l'espace */
+  .all-IS-button {
+    font-size: clamp(0.8rem, 1.5vw, 1rem);
+    white-space: nowrap;
+  }
 }
